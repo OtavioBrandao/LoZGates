@@ -1,3 +1,6 @@
-Problemas a resolver:
-1. Consertar o implica na conversão de lógica proposicional para booleana;
-2. Entender como funciona a plotagem e fazer as conexões corretas;
+###### CORREÇÕES DE LÓGICA #######
+
+1- Mudar da linha 109 até 126, devemos arrumar um jeito de  escolher qual átomo será usado, pois só há P e Q até então;
+2- Arumar a função para que a ligação dos átomos com as portas seja para qualquer um, não somentes para os determinados;
+3- Expressões complexas não estão funcionando;
+4- Adicionar curvas aos fios(Futuramente);
