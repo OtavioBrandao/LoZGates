@@ -1,5 +1,49 @@
-from graphviz import Digraph
+import pygame
+import sys
 
+# Inicializa o pygame
+pygame.init()
+
+# Configurações da tela
+screen_width, screen_height = 800, 400
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Circuito Lógico")
+
+# Cores
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+# Funções de desenho das portas lógicas
+def draw_and_gate(x, y):
+    pygame.draw.line(screen, BLACK, (x, y), (x, y + 80), 5)
+    pygame.draw.line(screen, BLACK, (x, y), (x + 40, y), 5)
+    pygame.draw.line(screen, BLACK, (x, y + 80), (x + 40, y + 80), 5)
+    pygame.draw.arc(screen, BLACK, (x + 20, y, 40, 80), -1.57, 1.57, 5)
+    pygame.draw.line(screen, BLACK, (x + 60, y + 40), (x + 80, y + 40), 5)
+
+def draw_or_gate(x, y):
+    pygame.draw.line(screen, BLACK, (x, y), (x + 40, y), 5)
+    pygame.draw.line(screen, BLACK, (x, y + 80), (x + 40, y + 80), 5)
+    pygame.draw.arc(screen, BLACK, (x + 20, y, 40, 80), -1.57, 1.57, 5)
+    pygame.draw.arc(screen, BLACK, (x - 20, y, 40, 80), -1.57, 1.57, 5)
+    pygame.draw.line(screen, BLACK, (x + 60, y + 40), (x + 80, y + 40), 5)
+
+def draw_not_gate(x, y):
+    pygame.draw.polygon(screen, BLACK, [(x, y), (x, y + 80), (x + 50, y + 40)], 5)
+    pygame.draw.circle(screen, BLACK, (x + 60, y + 40), 10, 5)
+
+# Função de desenho dos átomos
+def draw_circle_label(x, y, label):
+    pygame.draw.circle(screen, BLACK, (x, y), 10)
+    font = pygame.font.Font(None, 36)
+    text = font.render(label, True, BLACK)
+    screen.blit(text, (x - 10, y + 10))
+
+# Função para desenhar as linhas
+def draw_line(x1, y1, x2, y2):
+    pygame.draw.line(screen, BLACK, (x1, y1), (x2, y2), 2)
+
+# Função de conversão para álgebra booleana
 def converter_para_algebra_booleana(expressao):
     resultado = ""  # String para armazenar o resultado
 
@@ -43,71 +87,58 @@ def converter_para_algebra_booleana(expressao):
     print("Expressão em Álgebra Booleana:", resultado)
     return resultado
 
+# Função para desenhar o circuito com base na expressão booleana
 def plotar_circuito_logico(expressao_booleana):
-    dot = Digraph()
+    x_pos = 200  # Posição inicial no eixo X
+    y_pos = 150  # Posição base no eixo Y
+    posicoes_variaveis = {}  # Dicionário para armazenar posições de P, Q e R
 
-    # Dicionário para associar operações a seus tipos de porta
-    operacoes = {'~': 'NOT', '*': 'AND', '+': 'OR'}
+    # Desenha variáveis P, Q, R
+    font = pygame.font.Font(None, 36)
+    for char in expressao_booleana:
+        if char == "P" and "P" not in posicoes_variaveis:
+            draw_circle_label(50, 150, "P")
+            posicoes_variaveis["P"] = (50, 150)
+        elif char == "Q" and "Q" not in posicoes_variaveis:
+            draw_circle_label(50, 250, "Q")
+            posicoes_variaveis["Q"] = (50, 250)
+        elif char == "R" and "R" not in posicoes_variaveis:
+            draw_circle_label(50, 350, "R")
+            posicoes_variaveis["R"] = (50, 350)
 
-    # Variáveis para rastrear nós e operandos
-    node_count = 0
-    operandos = []
+    #PRECISA IMPLEMENTAR TODOS OS CENÁRIOS POSSÍVEIS, EXEMPLO: Generalizar os atomos, e seguir a ordem da expressão, (esquerda para direita), ou seja, tem que
+    #atualizar a posição das linhas, que não usa apenas 
+    for simbolo in expressao_booleana:
+        if simbolo == "*":  # Porta AND
+            draw_and_gate(x_pos, y_pos)
+            draw_line(posicoes_variaveis["P"][0] + 10, posicoes_variaveis["P"][1], x_pos, y_pos + 20)
+            draw_line(posicoes_variaveis["Q"][0] + 10, posicoes_variaveis["Q"][1], x_pos, y_pos + 60)
+            x_pos += 150
+            
+        elif simbolo == "+":  # Porta OR
+            draw_or_gate(x_pos, y_pos)
+            draw_line(posicoes_variaveis["P"][0] + 10, posicoes_variaveis["P"][1], x_pos, y_pos + 20)
+            draw_line(posicoes_variaveis["Q"][0] + 10, posicoes_variaveis["Q"][1], x_pos, y_pos + 60)
+            x_pos += 150
 
-    # Função auxiliar para criar um nó de variável ou operação
-    def criar_nodo(label):
-        nonlocal node_count
-        node_id = f"node{node_count}"
-        dot.node(node_id, label)
-        node_count += 1
-        return node_id
+        elif simbolo == "~":  # Porta NOT
+            draw_not_gate(100, y_pos + 100)
+            draw_line(posicoes_variaveis["R"][0] + 10, posicoes_variaveis["R"][1], x_pos, y_pos + 40)
+            x_pos += 150
 
-    # Função para adicionar operações (NOT, AND, OR)
-    def adicionar_operacao(operacao, operandos):
-        if operacao == 'NOT':
-            not_node = criar_nodo("NOT")
-            if operandos[0]:
-                dot.edge(operandos[0], not_node) # Adiciona a aresta do operando para o nó NOT!!!(Lari)
-            return not_node
-        elif operacao == 'AND':
-            and_node = criar_nodo("AND")
-            for operando in operandos:
-                if operando:
-                    dot.edge(operando, and_node)
-            return and_node
-        elif operacao == 'OR':
-            or_node = criar_nodo("OR")
-            for operando in operandos:
-                if operando:
-                    dot.edge(operando, or_node)
-            return or_node
-
-    # Percorrer a expressão booleana e construir o circuito lógico
-    i = 0
-    while i < len(expressao_booleana):
-        caracter = expressao_booleana[i]
-
-        if caracter in 'PQR':
-            operandos.append(criar_nodo(caracter))
-        elif caracter in operacoes:
-            operacao = operacoes[caracter]
-            if operacao == 'NOT':
-                operando_atual = operandos.pop() if operandos else None
-                novo_nodo = adicionar_operacao(operacao, [operando_atual])
-                operandos.append(novo_nodo)
-            else:
-                # Garante que dois operandos são usados para operações binárias como AND e OR
-                operando2 = operandos.pop() if operandos else None
-                operando1 = operandos.pop() if operandos else None
-                novo_nodo = adicionar_operacao(operacao, [operando1, operando2])
-                operandos.append(novo_nodo)
-
-        i += 1
-
-    # Renderizar o diagrama em uma imagem
-    dot.render('circuito_logico_booleana', format='png', cleanup=True)
-    print("Circuito lógico salvo como 'circuito_logico_booleana.png'.")
-
-# Exemplo de uso
+# Loop principal
 expressao = input("Digite uma expressão proposicional (ex: P&Q|R):\n")
 expressao_booleana = converter_para_algebra_booleana(expressao)
-plotar_circuito_logico(expressao_booleana)
+running = True
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    screen.fill(WHITE)  # Limpa a tela
+    plotar_circuito_logico(expressao_booleana)  # Desenha o circuito com base na expressão
+    pygame.display.flip()  # Atualiza a tela
+
+pygame.quit()
+sys.exit()
