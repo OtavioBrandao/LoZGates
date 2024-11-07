@@ -8,14 +8,18 @@ root = tk.Tk()
 root.withdraw()  # Oculta a janela principal do Tkinter
 
 # Caixa de diálogo para capturar a expressão proposicional
-expressao = simpledialog.askstring("Entrada", "Digite uma expressão proposicional (ex: P&Q|R):")
-#expressao2 = simpledialog.askstring("Entrada", "Digite uma expressão para o cinto:")
+expressao4 = simpledialog.askstring("LARISSA FEZ TUDO", "Digite 1 para expressão simples ou 2 para complexa:")
+if expressao4 == "1":
+    expressao = simpledialog.askstring("EITA SIMPLES É", "Digite uma expressão proposicional --- ex: P>Q:")
+elif expressao4 == "2":
+    expressao2 = simpledialog.askstring("COMPLEXA :(?", "Digite uma expressão proposicional --- ex: (P&Q)&R:")
+    #expressao3 = simpledialog.askstring("COMPLEXA :(?", "Digite uma expressão para o cinto:")
 
 # Inicializa o pygame
 pygame.init()
 
 # Configurações da tela
-screen_width, screen_height = 800, 400
+screen_width, screen_height = 850, 550
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Circuito Lógico")
 
@@ -201,16 +205,18 @@ def porta_OR(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, P
 
 
 #Função para parenteses
+'''
 def processa_subexpressao(simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp):
      
     i = 0
-    while i < len(expressao_booleana):
-        simbolo = expressao_booleana[i]
-        
+    #(!P&!Q)
+    #(P&Q)&Q
+    for index, simbolo in enumerate(expressao_booleana):
         if simbolo == ")":
-            return i + 1
-        
-        elif simbolo == "P":
+            simbolo = expressao_booleana[i + 1]
+            return simbolo
+            
+        if simbolo == "P":
             if Ptemp > 0:
                 draw_line(x_pos - 30, y_pos - 50, x_pos, y_pos + 20)
                 Ptemp = 0
@@ -243,12 +249,10 @@ def processa_subexpressao(simbolo, expressao_booleana, x_pos, y_pos, posicoes_va
 
         elif simbolo == "~":  # Porta NOT
             Ptemp, Qtemp, Rtemp = porta_nao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
-        
-        i += 1
+        #print(simbolo)
+        i += 1'''
 
-
-
-# Função para desenhar o circuito com base na expressão booleana
+    
 def plotar_circuito_logico(expressao_booleana):
     x_pos = 200  # Posição inicial no eixo X
     y_pos = 150  # Posição base no eixo Y
@@ -278,16 +282,13 @@ def plotar_circuito_logico(expressao_booleana):
     Ptemp = 0
     Qtemp = 0
     Rtemp = 0
-    
+    #(Q&R)|R
     for i, simbolo in enumerate(expressao_booleana):
         
-        '''if simbolo == "(":
+        '''if "(" in expressao_booleana:
             # Chama a função para processar a subexpressão
+            processa_subexpressao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)'''
             
-            i = processa_subexpressao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
-            simbolo = expressao_booleana[i]
-        elif simbolo != "(" and simbolo != ")":  '''
-              
         if simbolo == "~":  # Porta NOT
             Ptemp, Qtemp, Rtemp = porta_nao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)  
             # Avance o índice para pular o próximo símbolo já processado
@@ -295,7 +296,6 @@ def plotar_circuito_logico(expressao_booleana):
         # Linha dps do NOT
         elif simbolo == "*":  # Porta AND
             draw_and_gate(x_pos, y_pos)
-            
             porta_AND(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
             x_pos += 150
             
@@ -305,17 +305,18 @@ def plotar_circuito_logico(expressao_booleana):
             #voltar na posiçao_porta -> porta_OR
             porta_OR(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
             x_pos += 150
-        
+       
+    
         
         
         #Ver lógica do parenteses depois :(  (P&Q)|(R>P)
             
 
 # Loop principal
-    #expressao = input("Digite uma expressão proposicional (ex: P&Q|R):\n")
-expressao_booleana = converter_para_algebra_booleana(expressao)
-running = True
-
+if expressao4 == "1": #expressao = input("Digite uma expressão proposicional (ex: P&Q|R):\n")
+        expressao_booleana = converter_para_algebra_booleana(expressao)
+        running = True
+#else(ver else para a logica da expressão complexa ex: (P>Q)>(Q&R))
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
