@@ -148,8 +148,9 @@ def porta_AND(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, 
     proximo_simbolo = expressao_booleana[i + 1]
     simbolo_anterior = expressao_booleana[i - 1]
    
-    if "~" in expressao_booleana: 
+    if proximo_simbolo == "~" or simbolo_anterior == "~" or simbolo == "~":  
         Ptemp, Qtemp, Rtemp = porta_nao(i+1, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
+        proximo_simbolo = expressao_booleana[i + 2]
        
     if proximo_simbolo == "P" or simbolo_anterior == "P":
         if Ptemp > 0:
@@ -177,29 +178,30 @@ def porta_OR(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, P
     proximo_simbolo = expressao_booleana[i + 1]
     simbolo_anterior = expressao_booleana[i - 1]
     
-    if "~" in expressao_booleana:  
+    if proximo_simbolo == "~" or simbolo_anterior == "~" or simbolo == "~":  
         Ptemp, Qtemp, Rtemp = porta_nao(i+1, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
+        proximo_simbolo = expressao_booleana[i + 2]
         
     if proximo_simbolo == "P" or simbolo_anterior == "P":
         if Ptemp > 0:
             draw_line(x_pos - 30, y_pos - 50, x_pos, y_pos + 20)
             Ptemp = 0
         else:   
-            draw_line(posicoes_variaveis["P"][0] + 10, posicoes_variaveis["P"][1], x_pos, y_pos + 20)
-        
+            draw_line(posicoes_variaveis["P"][0] + 10, posicoes_variaveis["P"][1], x_pos + 10, y_pos + 20)
+ 
     if proximo_simbolo == "Q" or simbolo_anterior == "Q":
         if Qtemp > 0:
             draw_line(x_pos - 30, y_pos + 40, x_pos, y_pos + 40)
             Qtemp = 0                    
         else:
-            draw_line(posicoes_variaveis["Q"][0] + 10, posicoes_variaveis["Q"][1], x_pos, y_pos + 40)
-            
+            draw_line(posicoes_variaveis["Q"][0] + 10, posicoes_variaveis["Q"][1], x_pos + 10, y_pos + 40)
+
     if proximo_simbolo == "R" or simbolo_anterior == "R":
         if Rtemp > 0:
             draw_line(x_pos - 40, y_pos + 120, x_pos, y_pos + 60)
             Rtemp = 0                    
         else:
-            draw_line(posicoes_variaveis["R"][0] + 10, posicoes_variaveis["R"][1], x_pos, y_pos + 60)
+            draw_line(posicoes_variaveis["R"][0] + 10, posicoes_variaveis["R"][1], x_pos + 10, y_pos + 60)
 
 #Função para parenteses
 def processa_subexpressao(simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp):
@@ -212,7 +214,7 @@ def processa_subexpressao(simbolo, expressao_booleana, x_pos, y_pos, posicoes_va
     for index, simbolo in enumerate(expressao_booleana):
         if simbolo == ")":
             #Implementar a logica para ligação das portas lógicas
-            #simbolo = expressao_booleana[i]
+            i += 1
             continue #simbolo
             
         elif simbolo == "*":  # Porta AND
@@ -262,7 +264,8 @@ def plotar_circuito_logico(expressao_booleana):
             # Chama a função para processar a subexpressão
             processa_subexpressao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
             continue
-        
+        if simbolo == ")":
+            simbolo = expressao_booleana[i+1]
         if simbolo == "~":  # Porta NOT
             Ptemp, Qtemp, Rtemp = porta_nao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)  
             # Avance o índice para pular o próximo símbolo já processado
@@ -280,8 +283,6 @@ def plotar_circuito_logico(expressao_booleana):
             #voltar na posiçao_porta -> porta_OR
             porta_OR(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
             x_pos += 150
-     
-        #Ver lógica do parenteses depois :(  (P&Q)|(R>P)
             
 
 # Loop principal
@@ -307,6 +308,7 @@ sys.exit()
                         Q&P|!R
                         Q&P&R
                         Q|R|P
+                        (Q&R)|P
     ----------- TODOS COM PARENTESES -------------
 '''
 
