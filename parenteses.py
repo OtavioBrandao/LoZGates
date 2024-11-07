@@ -145,25 +145,27 @@ def porta_nao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qt
   
 #Função para conexão da AND    
 def porta_AND(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp):
-    
+    proximo_simbolo = expressao_booleana[i + 1]
+    simbolo_anterior = expressao_booleana[i - 1]
+   
     if "~" in expressao_booleana: 
         Ptemp, Qtemp, Rtemp = porta_nao(i+1, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
        
-    if "P" in expressao_booleana:
+    if proximo_simbolo == "P" or simbolo_anterior == "P":
         if Ptemp > 0:
             draw_line(x_pos - 30, y_pos - 50, x_pos, y_pos + 20)
             Ptemp = 0
         else:   
             draw_line(posicoes_variaveis["P"][0] + 10, posicoes_variaveis["P"][1], x_pos, y_pos + 20)
         
-    if "Q" in expressao_booleana:
+    if proximo_simbolo == "Q" or simbolo_anterior == "Q":
         if Qtemp > 0:
             draw_line(x_pos - 30, y_pos + 40, x_pos, y_pos + 40)
             Qtemp = 0                    
         else:
             draw_line(posicoes_variaveis["Q"][0] + 10, posicoes_variaveis["Q"][1], x_pos, y_pos + 40)
             
-    if "R" in expressao_booleana:
+    if proximo_simbolo == "R" or simbolo_anterior == "R":
         if Rtemp > 0:
             draw_line(x_pos - 40, y_pos + 120, x_pos, y_pos + 60)
             Rtemp = 0                    
@@ -172,25 +174,27 @@ def porta_AND(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, 
 
 #Função para conexão da OR
 def porta_OR(i, simbolo, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp):
+    proximo_simbolo = expressao_booleana[i + 1]
+    simbolo_anterior = expressao_booleana[i - 1]
     
     if "~" in expressao_booleana:  
         Ptemp, Qtemp, Rtemp = porta_nao(i+1, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp)
         
-    if "P" in expressao_booleana:
+    if proximo_simbolo == "P" or simbolo_anterior == "P":
         if Ptemp > 0:
             draw_line(x_pos - 30, y_pos - 50, x_pos, y_pos + 20)
             Ptemp = 0
         else:   
             draw_line(posicoes_variaveis["P"][0] + 10, posicoes_variaveis["P"][1], x_pos, y_pos + 20)
         
-    if "Q" in expressao_booleana:
+    if proximo_simbolo == "Q" or simbolo_anterior == "Q":
         if Qtemp > 0:
             draw_line(x_pos - 30, y_pos + 40, x_pos, y_pos + 40)
             Qtemp = 0                    
         else:
             draw_line(posicoes_variaveis["Q"][0] + 10, posicoes_variaveis["Q"][1], x_pos, y_pos + 40)
             
-    if "R" in expressao_booleana:
+    if proximo_simbolo == "R" or simbolo_anterior == "R":
         if Rtemp > 0:
             draw_line(x_pos - 40, y_pos + 120, x_pos, y_pos + 60)
             Rtemp = 0                    
@@ -303,10 +307,9 @@ sys.exit()
                         Q&P|!R
                         Q&P&R
                         Q|R|P
-                        !P>Q
     ----------- TODOS COM PARENTESES -------------
 '''
 
 
 
-#O CODIGO COM PARENTESES +- CERTO
+#O CODIGO COM PARENTESES CERTO
