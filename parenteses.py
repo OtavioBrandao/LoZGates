@@ -303,6 +303,7 @@ sys.exit()
                         Q&P|!R
                         Q&P&R
                         Q|R|P
+                        !P>Q
     ----------- TODOS COM PARENTESES -------------
 '''
 
