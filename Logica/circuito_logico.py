@@ -76,12 +76,6 @@ def draw_curve(x1, y1, x2, y2):
     ]
     pygame.draw.lines(screen, WHITE, False, points, 2)
 
-draws = {
-    '&': draw_and_gate,
-    '|': draw_or_gate,
-    '~': draw_not_gate,
-    'L': draw_label}
-
 #Função para conexão da NOT
 def porta_nao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, Ptemp, Qtemp, Rtemp, Stemp, Ttemp):
     # Verifique o próximo símbolo na expressão para aplicar a porta NOT a ele
