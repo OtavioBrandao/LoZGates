@@ -185,7 +185,7 @@ botao_voltar1.place(x=400, y=400)
 # ---------------- Frame de Informações ----------------
 label_info = ctk.CTkLabel(
     frame_info, 
-    text="Integrantes do Grupo:\nOtávio, Larissa, Zilderlan, Hércules e Narel.", 
+    text="Integrantes do Grupo:\nOtávio, Larissa, Zilderlan,Narel  e Hércules.", 
     font=("Arial", 20), 
     text_color="white", 
     fg_color=None)
