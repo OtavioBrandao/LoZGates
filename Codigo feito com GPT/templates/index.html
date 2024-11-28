@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuito Lógico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 300px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .result-container {
+            margin-top: 30px;
+        }
+        .circuit-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px 0;
+        }
+        .formatted-expression, .explanation {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gerador de Circuito Lógico</h1>
+    <form method="POST">
+        <label for="expressao">Insira a expressão lógica:</label>
+        <input type="text" id="expressao" name="expressao" required>
+        <button type="submit">Gerar</button>
+    </form>
+
+    {% if expressao_formatada %}
+        <div class="formatted-expression">
+            <h2>Expressão Formatada:</h2>
+            <p>{{ expressao_formatada }}</p>
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <div class="result-container">
+        {% if image_path %}
+            <h2>Circuito Gerado:</h2>
+            <img src="{{ image_path }}" alt="Circuito Lógico" class="circuit-image">
+        {% endif %}
+
+        {% if explicacao %}
+            <div class="explanation">
+                <h2>Explicação:</h2>
+                <p>{{ explicacao }}</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
