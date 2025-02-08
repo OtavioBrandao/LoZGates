@@ -36,12 +36,19 @@ def clicked():
     if not expressao.strip():
         print("A expressão não pode estar vazia.")
         return
+    expressao = expressao.upper()  # Converte para maiúsculas
     with open(r"C:\Users\laris\Desktop\Logica\entrada.txt", "w") as file:
         file.write(expressao)
         
     #por algum motivo quando importa, vai direto pro outro codigo
     from converter import converter_para_algebra_booleana
     saida = converter_para_algebra_booleana(expressao)
+
+    from Tabela import gerar_tabela_verdade
+    
+    from Mapa import analisar
+    variaveis = analisar(expressao)
+    from Mapa import karnaugh_map 
     
     label = ctk.CTkLabel(
         janela, 
