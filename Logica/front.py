@@ -69,6 +69,30 @@ def clicked():
         font=("Arial", 16), 
         command=lambda: ver_circuito_pygame(saida))
     ver_circuito.place(x=100, y=300)
+    
+    tabela = ctk.CTkButton(
+        principal, 
+        text="Tabela verdade", 
+        fg_color="#1E90FF", 
+        text_color="white", 
+        hover_color="#8B008B", 
+        width=200, 
+        height=50, 
+        font=("Arial", 16), 
+        command=lambda: gerar_tabela_verdade(expressao))
+    tabela.place(x=100, y=200)
+    
+    karnaugh = ctk.CTkButton(
+        principal, 
+        text="Mapa de Karnaugh",
+        fg_color="#1E90FF", 
+        text_color="white", 
+        hover_color="#8B008B", 
+        width=200, 
+        height=50, 
+        font=("Arial", 16), 
+        command=lambda: karnaugh_map(expressao, variaveis))
+    karnaugh.place(x=100, y=250)
 
 # Frames principais
 frame_inicio = ctk.CTkFrame(
