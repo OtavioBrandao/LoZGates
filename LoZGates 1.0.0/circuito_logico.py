@@ -7,7 +7,7 @@ try:
     with open(r"C:\Users\Otávio\Desktop\Estudo e Trabalho\Códigos\Gerador de Circuito Lógico\entrada.txt", "r") as file:
         expressao = file.read().strip()
 except FileNotFoundError:
-    print("O arquivo com a expressão não foi encontrado.")
+    print("O arquivo com a expressão não foi encontrado no circuito_logico.")
     sys.exit()
     
 # Inicializa o pygame
