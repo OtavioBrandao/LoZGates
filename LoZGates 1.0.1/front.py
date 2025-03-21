@@ -45,7 +45,7 @@ def ver_circuito_pygame(expressao):
     threading.Thread(target=rodar_pygame).start()
 
 def clicked():
-    expressao = entrada.get().strip().upper()
+    expressao = entrada.get().strip().upper().replace(" ", "")
     
 
     with open("entrada.txt", "w") as file:  # Apenas o nome do arquivo
@@ -175,6 +175,22 @@ def clicked2():
     else:
         nao_equivalente.place(x=415, y=300)
         equivalente.place_forget()
+        
+def voltar_para(frame):
+    #limpa as entradas
+    entrada.delete(0, tk.END) 
+    entrada2.delete(0, tk.END)  
+    entrada3.delete(0, tk.END) 
+    
+    #escreve digite aqui
+    entrada.configure(placeholder_text="Digite aqui")
+    entrada2.configure(placeholder_text="Digite aqui")
+    entrada3.configure(placeholder_text="Digite aqui")
+    
+    #limpa o "é equivalente e o não é equivalente"
+    equivalente.place_forget()
+    nao_equivalente.place_forget()
+    show_frame(frame)  # Troca o frame
          
 # Frames principais
 frame_inicio = ctk.CTkFrame(
@@ -293,17 +309,17 @@ botao_equivalencia = ctk.CTkButton(
 botao_equivalencia.place(x=400, y=300)    
     
 botao_voltar4 = ctk.CTkButton(
-        frame_escolha,
-        text="Voltar", 
-        fg_color="goldenrod", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: show_frame(frame_inicio))
+    frame_escolha,
+    text="Voltar", 
+    fg_color="goldenrod", 
+    text_color="#000080", 
+    hover_color="#8B008B", 
+    border_width=2,
+    border_color="#708090",
+    width=200, 
+    height=50, 
+    font=("Arial", 16), 
+    command=lambda: voltar_para(frame_inicio))
 botao_voltar4.place(x=400, y=400)
 
 # ---------------- Frame de Tarefas ----------------
@@ -347,7 +363,7 @@ botao_voltar1 = ctk.CTkButton(
     width=200, 
     height=50, 
     font=("Arial", 16), 
-    command=lambda: show_frame(frame_escolha))
+    command=lambda: voltar_para(frame_escolha))
 botao_voltar1.place(x=400, y=400)
 
 
@@ -398,7 +414,7 @@ botao_voltar2 = ctk.CTkButton(
     width=200, 
     height=50, 
     font=("Arial", 16), 
-    command=lambda: show_frame(frame_inicio))
+    command=lambda: voltar_para(frame_inicio))
 botao_voltar2.place(x=400, y=400)
 
  # ---------------- Frame de Equivalência ----------------
@@ -439,17 +455,17 @@ botao_confirmar2 = ctk.CTkButton(
 botao_confirmar2.place(x=400, y=350)
 
 botao_voltar3 = ctk.CTkButton(
-        frame_equivalencia, 
-        text="Voltar", 
-        fg_color="goldenrod", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: show_frame(frame_escolha))
+    frame_equivalencia, 
+    text="Voltar", 
+    fg_color="goldenrod", 
+    text_color="#000080", 
+    hover_color="#8B008B", 
+    border_width=2,
+    border_color="#708090",
+    width=200, 
+    height=50, 
+    font=("Arial", 16), 
+    command=lambda: voltar_para(frame_escolha))
 botao_voltar3.place(x=400, y=420)
 
 titulo = ctk.CTkLabel(
