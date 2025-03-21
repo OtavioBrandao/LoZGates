@@ -1,43 +1,42 @@
-# Função de conversão para álgebra booleana
 def converter_para_algebra_booleana(expressao):
     resultado = ""  # String para armazenar o resultado
-
     i = 0
+
     while i < len(expressao):
         caracter = expressao[i]
 
         if caracter in 'PQRST':
             resultado += caracter  # Adiciona a variável diretamente
         elif caracter == '!':
-            if i + 1 < len(expressao) and expressao[i + 1] == '(':
-                resultado += "~("  # Negação de expressão complexa
-            else:
-                resultado += "~"  # Negação de variável
+            resultado += "~"  # Negação
         elif caracter == '&':
-            resultado += "*"
+            resultado += "*"  # AND
         elif caracter == '|':
-            resultado += "+"
+            resultado += "+"  # OR (substitui | por +)
         elif caracter == '>':
-                                    # Converter A > B para (~A + B)
-            if i > 0 and expressao[i - 1] in 'PQRST' and i + 1 < len(expressao) and expressao[i + 1] in 'PQRST':
-                # Remove o último caractere do resultado temporário (variável antes do >)
-                resultado = resultado[:-1]
-                resultado += f"(~{expressao[i - 1]}+{expressao[i + 1]})"
-                i += 1  # Pula a variável após o >
-            
-            elif i + 1 < len(expressao) and expressao[i + 1] == '!':
-                if i > 0 and expressao[i - 1] in 'PQRST' and i + 2 < len(expressao) and expressao[i + 2] in 'PQRST':
-                    resultado = resultado[:-1]  # Remove o último caractere do resultado temporário
-                    resultado += f"(~{expressao[i - 1]}+~{expressao[i + 2]})"
-                    i += 2  # Pula a variável após o !
-            
-            elif i + 1 < len(expressao) and expressao[i + 1] == '(':
-                if i + 2 < len(expressao) and expressao[i + 2] in 'PQRST':
-                    resultado = resultado[:-1]  # Remove o último caractere do resultado temporário
-                    resultado += f"{expressao[i - 1]}+({expressao[i + 2]}"
-                    i += 2  # Pula a variável após o >
+  
+            # Encontrar A (tudo antes do >)
+            a_start = i - 1
+            while a_start >= 0 and expressao[a_start] in 'PQRST()!&|':
+                a_start -= 1
+            a_start += 1
+            a_expressao = expressao[a_start:i]
+
+            # Encontrar B (tudo depois do >)
+            b_end = i + 1
+            while b_end < len(expressao) and expressao[b_end] in 'PQRST()!&|':
+                b_end += 1
+            b_expressao = expressao[i + 1:b_end]
+
+            # Converter A > B para (~A + B)
+            resultado = resultado[:a_start]  # Remove A do resultado temporário
+            resultado += f"(~{a_expressao}+{b_expressao})"
+            i = b_end - 1  # Atualiza o índice para pular B
         elif caracter in '()':
             resultado += caracter  # Adiciona parênteses diretamente
         i += 1
+
+    # Substituir | por + no resultado final (caso ainda haja algum | restante)
+    resultado = resultado.replace("|", "+").replace("&", "*").replace("!", "~")
 
     return resultado
