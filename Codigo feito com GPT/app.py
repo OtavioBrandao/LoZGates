@@ -13,25 +13,7 @@ os.makedirs(IMAGES_FOLDER, exist_ok=True)  # Cria o diretório se não existir
 # Função para validar a expressão
 def validar_expressao(expressao):
     stack = []
-    for char in expressao:
-        if char == "(":
-            stack.append(char)
-        elif char == ")":
-            if not stack:
-                return False
-   
-    criar_nodos(expressao)
-
-    output_image_path = os.path.join(IMAGES_FOLDER, 'circuito_logico')
-    dot.render(output_image_path, format='png', cleanup=True)
-
-    return f"/static/images/circuito_logico.png"
-
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        expressao_logica = request.form["expressao"]
-
+    
         if not validar_expressao(expressao_logica):
             return render_template("index.html", error="Expressão inválida: Parênteses desbalanceados ou operadores incorretos.")
 
