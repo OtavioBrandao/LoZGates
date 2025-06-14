@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 from flask import Flask, render_template, request
 from sympy.logic.boolalg import And, Or, Not
@@ -39,7 +38,5 @@ def validar_expressao(expressao):
 if __name__ == "__main__":
     app.run(debug=True)
 
-print("ygor")
-=======
 
->>>>>>> 20e580f01db1421034cd6bbe2f63415d7dd58e68
+
