@@ -38,5 +38,4 @@ def validar_expressao(expressao):
 if __name__ == "__main__":
     app.run(debug=True)
 
-
-
+print("ygor")
