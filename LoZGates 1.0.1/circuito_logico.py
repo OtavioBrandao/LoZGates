@@ -2,14 +2,20 @@ import pygame
 import sys
 from converter import converter_para_algebra_booleana
 from imagem import converte_matrix_para_pygame_imagem_endeota
+import os
 
-# Lê a expressão do arquivo
 try:
-    with open("entrada.txt", "r") as file:
+    # Caminho absoluto para o arquivo entrada.txt dentro da pasta assets
+    pasta_base = os.path.dirname(os.path.abspath(__file__))
+    caminho_entrada = os.path.join(pasta_base, "assets", "entrada.txt")
+
+    with open(caminho_entrada, "r", encoding="utf-8") as file:
         expressao = file.read().strip()
+
 except FileNotFoundError:
-    print("O arquivo com a expressão não foi encontrado no circuito_logico.")
+    print("O arquivo com a expressão não foi encontrado em assets/entrada.txt.")
     sys.exit()
+
 
 # Inicializa o pygame
 pygame.init()
@@ -174,25 +180,21 @@ def plotar_circuito_logico(expressao_booleana):
 
     processa_subexpressao(expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts)
 
-# Loop principal
+# Converte a expressão para álgebra booleana
 expressao_booleana = converter_para_algebra_booleana(expressao)
-running = True
 
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+# Preenche a tela de fundo
+screen.fill(BLACK)
 
-    screen.fill(BLACK)
-    plotar_circuito_logico(expressao_booleana)
-    pygame.display.flip()
+# Plota o circuito na tela do pygame (na memória)
+plotar_circuito_logico(expressao_booleana)
 
-    titulo = "Circuito Lógico"
-    pygame.display.set_caption(titulo.center(50))
+# Salva a imagem como PNG dentro da pasta assets
+caminho_imagem = os.path.join(pasta_base, "assets", "circuito.png")
+pygame.image.save(screen, caminho_imagem)
+print(f"Circuito salvo como imagem em: {caminho_imagem}")
 
-    bytes_per_row = 19
-    icon = converte_matrix_para_pygame_imagem_endeota(bytes_per_row)
-    pygame.display.set_icon(icon)
-
+# Encerra o pygame
 pygame.quit()
 sys.exit()
+

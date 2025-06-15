@@ -1,14 +1,14 @@
 import customtkinter as ctk
-from PIL import Image  # Apenas Image, sem ImageTk
+from PIL import Image, ImageTk 
 import threading
 import tkinter as tk
 from tkinter import font
-
+import os
 from imagem import converte_matrix_para_tkinter_imagem_icon
 from tabela import gerar_tabela_verdade, verificar_conclusao
-from karnaugh import analisar, karnaugh_map
 from converter import converter_para_algebra_booleana
 from equivalencia import tabela
+botao_ver_circuito = None
 
 # Configuração inicial
 ctk.set_appearance_mode("dark")  # Modo escuro
@@ -16,20 +16,24 @@ ctk.set_default_color_theme("blue")  # Tema azul
 
 janela = ctk.CTk()
 janela.title("LoZ Gates")
-janela.geometry("1000x500")
+largura_tela = janela.winfo_screenwidth()
+altura_tela = janela.winfo_screenheight()
+largura = int(largura_tela * 0.8)
+altura = int(altura_tela * 0.8)
+
+janela.geometry(f"{largura}x{altura}")
+
 bytes_per_row = 32  # Número de bytes por linha na matriz
 icon = converte_matrix_para_tkinter_imagem_icon(bytes_per_row)
 janela.iconbitmap(icon)
 janela.resizable(False, False)
 
-#C:\Users\laris\Desktop\LoZGates 1.0.0\icone.ico
-# Carregar a imagem com CTkImage
-#bg_image = ctk.CTkImage(Image.open(r"C:\Users\laris\Desktop\LoZGates 1.0.0\teste.png"), size=(1000, 500))
-
 # Função para alternar entre os frames
 def show_frame(frame):
     frame.tkraise()
     
+import time
+
 def ver_circuito_pygame(expressao):
     def rodar_pygame():
         try:
@@ -41,23 +45,68 @@ def ver_circuito_pygame(expressao):
         except ImportError as e:
             print(f"Erro ao importar 'circuito_logico': {e}")
     
-    # Executa o Pygame em uma nova thread, pra o principal ainda ser o front
-    threading.Thread(target=rodar_pygame).start()
+    # Remove imagem antiga se existir
+    caminho_imagem = os.path.join(pasta_base, "assets", "circuito.png")
+    if os.path.exists(caminho_imagem):
+        os.remove(caminho_imagem)
 
-def clicked():
+    # Executa o Pygame em uma thread
+    thread = threading.Thread(target=rodar_pygame)
+    thread.start()
+
+    # Espera a imagem ser criada antes de continuar
+    def aguardar_imagem():
+        tempo_max = 5  # segundos
+        tempo_passado = 0
+        while not os.path.exists(caminho_imagem) and tempo_passado < tempo_max:
+            time.sleep(0.1)
+            tempo_passado += 0.1
+        if os.path.exists(caminho_imagem):
+            atualizar_imagem_circuito()
+        else:
+            print("Erro: A imagem do circuito não foi criada a tempo.")
+
+    # Espera a imagem num thread separado para não travar a GUI
+    threading.Thread(target=aguardar_imagem).start()
+
+
+def trocar_para_abas():
+    pasta_base = os.path.dirname(os.path.abspath(__file__))
+    pasta_assets = os.path.join(pasta_base, "assets")
+    os.makedirs(pasta_assets, exist_ok=True)
+
+    # Caminho para salvar o arquivo entrada.txt dentro de assets
+    caminho_entrada = os.path.join(pasta_assets, "entrada.txt")
+
     expressao = entrada.get().strip().upper().replace(" ", "")
-    
-
-    with open("entrada.txt", "w") as file:  # Apenas o nome do arquivo
+    with open(caminho_entrada, "w", encoding="utf-8") as file: 
         file.write(expressao) 
 
     saida = converter_para_algebra_booleana(expressao)
 
-    variaveis = analisar(expressao)
+    ver_circuito_pygame(saida)
+    show_frame(frame_abas)
+    def aguarda_e_mostra():
+        # espera o circuito ser salvo e imagem estar disponível
+        caminho_img = os.path.join(pasta_base, "assets", "circuito.png")
+        for _ in range(50):  # 50 tentativas ~5s
+            if os.path.exists(caminho_img):
+                break
+            time.sleep(0.1)
+        atualizar_imagem_circuito()
+        janela.after(0, lambda: show_frame(frame_abas))  # mostra o frame principal na thread da GUI
 
-    ver_circuito = ctk.CTkButton(
+    threading.Thread(target=aguarda_e_mostra).start()
+
+
+def confirmar_expressao():
+    global botao_ver_circuito
+    if botao_ver_circuito:  # Se já existir, destrói e recria
+        botao_ver_circuito.destroy()
+
+    botao_ver_circuito = ctk.CTkButton(
         principal, 
-        text="Ver Circuito Lógico", 
+        text="Ver Circuito / Expressão", 
         fg_color="#B0E0E6", 
         text_color="#000080", 
         hover_color="#8B008B", 
@@ -66,25 +115,18 @@ def clicked():
         width=200, 
         height=50, 
         font=("Arial", 16), 
-        command=lambda: ver_circuito_pygame(saida))
-    ver_circuito.place(x=100, y=400)
-    
-    label = ctk.CTkLabel(
-        janela, 
-        text=f"Expressão em Álgebra Booleana:\n {saida}", 
-        fg_color="#000057", 
-        text_color="white", 
-        font=("Arial", 16))
-    label.place(x=380, y=240)
-    
-    
-    # Função para exibir a tabela verdade em uma nova janela
-    def exibir_tabela_verdade(expressao):
+        command=lambda: trocar_para_abas())
+    botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
+
+
+def exibir_tabela_verdade(expressao):
         # Cria uma nova janela
         janela_tabela = ctk.CTkToplevel(janela)
         janela_tabela.title("Tabela Verdade")
         janela_tabela.geometry("400x400")
-
+        janela_tabela.lift()               # Traz para frente
+        janela_tabela.attributes('-topmost', True)  # Mantém no topo
+        janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
         # Gera a tabela verdade usando a função do backend
         variaveis, combinacoes, resultados = gerar_tabela_verdade(expressao)
 
@@ -112,54 +154,7 @@ def clicked():
         label_conclusao = ctk.CTkLabel(frame_tabela, text=conclusao, font=("Arial", 14, "bold"))
         label_conclusao.pack(pady=10)
 
-    tabela_verdade = ctk.CTkButton(
-        principal, 
-        text="Tabela verdade", 
-        fg_color="#B0E0E6", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: exibir_tabela_verdade(expressao))
-    tabela_verdade.place(x=100, y=200)
-    
-    
-    def exibir_mapa_karnaugh(expressao, variaveis):
-        # Cria uma nova janela
-        janela_karnaugh = ctk.CTkToplevel(janela)
-        janela_karnaugh.title("Mapa de Karnaugh")
-        janela_karnaugh.geometry("400x400")
-
-        # Gera o mapa de Karnaugh usando a função do backend
-        mapa = karnaugh_map(expressao, variaveis)
-
-        # Cria um frame para exibir o mapa de Karnaugh
-        frame_karnaugh = ctk.CTkFrame(janela_karnaugh)
-        frame_karnaugh.pack(pady=10, padx=10, fill="both", expand=True)
-
-        # Cria um label para exibir o mapa de Karnaugh
-        label_karnaugh = ctk.CTkLabel(frame_karnaugh, text=mapa, font=("Arial", 20))
-        label_karnaugh.pack()
-    
-    karnaugh = ctk.CTkButton(
-        principal, 
-        text="Mapa de Karnaugh",
-        fg_color="#B0E0E6", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: exibir_mapa_karnaugh(expressao, variaveis))
-    karnaugh.place(x=100, y=300)
-
-
-def clicked2():
+def comparar():
     expressao2 = entrada2.get().strip().upper()
     expressao3 = entrada3.get().strip().upper()
     
@@ -170,66 +165,82 @@ def clicked2():
     valor = tabela(expressao2, expressao3)
     
     if valor == 1:
-        equivalente.place(x=423, y=300)
+        equivalente.place(relx=0.5, y=300, anchor="center")
         nao_equivalente.place_forget()
     else:
-        nao_equivalente.place(x=415, y=300)
+        nao_equivalente.place(relx=0.5, y=300, anchor="center")
         equivalente.place_forget()
         
 def voltar_para(frame):
-    #limpa as entradas
+    global botao_ver_circuito
+    if botao_ver_circuito:
+        botao_ver_circuito.destroy()
+        botao_ver_circuito = None
+
+    # limpa as entradas
     entrada.delete(0, tk.END) 
     entrada2.delete(0, tk.END)  
     entrada3.delete(0, tk.END) 
     
-    #escreve digite aqui
+    # escreve digite aqui
     entrada.configure(placeholder_text="Digite aqui")
     entrada2.configure(placeholder_text="Digite aqui")
     entrada3.configure(placeholder_text="Digite aqui")
     
-    #limpa o "é equivalente e o não é equivalente"
+    # limpa o "é equivalente e o não é equivalente"
     equivalente.place_forget()
     nao_equivalente.place_forget()
-    show_frame(frame)  # Troca o frame
-         
+
+    show_frame(frame)  # troca o frame
+
+    # Força o foco para a janela (tira o foco de qualquer campo antigo)
+    janela.focus_set()
+
+    # Se voltando para a tela principal, seta foco corretamente
+    if frame == principal:
+        entrada.focus_set()
+
+
+def atualizar_imagem_circuito():
+    caminho_img = os.path.join(pasta_base, "assets", "circuito.png")
+    if os.path.exists(caminho_img):
+        imagem_pil = Image.open(caminho_img)
+        imagem_tk = ImageTk.PhotoImage(imagem_pil)
+        imagem_circuito.configure(image=imagem_tk, text="")  # remove o texto
+        imagem_circuito.image = imagem_tk  # mantém referência
+        
 # Frames principais
 frame_inicio = ctk.CTkFrame(
     janela, 
-    width=1000, 
-    height=500, 
+    width=largura, 
+    height=altura, 
     fg_color="#000057")
 
 principal = ctk.CTkFrame(
     janela, 
-    width=1000, 
-    height=500, 
+    width=largura, 
+    height=altura, 
     fg_color="#000057")
 
 frame_equivalencia = ctk.CTkFrame(
     janela,
-    width=1000,
-    height=500,
+    width=largura,
+    height=altura,
     fg_color="#000057")
 
 frame_escolha = ctk.CTkFrame(
     janela,
-    width=1000,
-    height=500,
+    width=largura,
+    height=altura,
     fg_color="#000057")
+frame_abas = ctk.CTkFrame(
+    janela,
+    width=largura,
+    height=altura,
+    fg_color="#000057")
+for frame in (frame_inicio, principal, frame_equivalencia, frame_escolha, frame_abas):
+    frame.place(relx=0.5, rely=0.5, anchor="center")
 
-for frame in (frame_inicio, principal, frame_equivalencia, frame_escolha):
-    frame.place(x=0, y=0)
-    
-    '''bg_label = ctk.CTkLabel(
-        frame, 
-        image=bg_image, 
-        text="")'''
-    
-    '''bg_label.place(
-        x=0, 
-        y=0, 
-        relwidth=1, 
-        relheight=1)'''
     
 # ---------------- Frame de Início ----------------
 frame_inicio_conteudo = ctk.CTkFrame(
@@ -242,14 +253,24 @@ frame_inicio_conteudo.place(
     rely=0.5, 
     anchor="center")
 
-custom_font = font.Font(family="Momentz", size=20)
+from customtkinter import CTkFont
+import os
+
+# Caminho da fonte Momentz.ttf dentro da pasta assets (opcional agora)
+pasta_base = os.path.dirname(os.path.abspath(__file__))
+caminho_fonte = os.path.join(pasta_base, "assets", "Momentz.ttf")
+
+fonte_momentz = CTkFont(family="Momentz", size=30)
+
+# Exemplo de uso
 label_inicio = ctk.CTkLabel(
-    frame_inicio_conteudo, 
-    text="LoZ Gates", 
-    font=("Momentz", 30), 
-    text_color="white", 
-    fg_color="#000057")
-label_inicio.pack(pady=20)
+    frame_inicio_conteudo,
+    text="LoZ Gates",
+    font=fonte_momentz,
+    text_color="white",
+    fg_color="#000057"
+)
+label_inicio.pack(pady=30)
 
 botao_start = ctk.CTkButton(
     frame_inicio_conteudo, 
@@ -263,7 +284,7 @@ botao_start = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: show_frame(frame_escolha))
-botao_start.pack(pady=10)
+botao_start.pack(pady=30)
 
 botao_info = ctk.CTkButton(
     frame_inicio_conteudo, 
@@ -277,7 +298,7 @@ botao_info = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: show_frame(frame_info))
-botao_info.pack(pady=10)
+botao_info.pack(pady=20)
 
 # ---------------- Frame de Escolha ----------------
 botao_tarefas = ctk.CTkButton(
@@ -292,7 +313,7 @@ botao_tarefas = ctk.CTkButton(
     height=50,
     font=("Arial", 16),
     command=lambda: show_frame(principal))
-botao_tarefas.place(x=400, y=200)
+botao_tarefas.place(relx=0.5, y=300, anchor="center")
 
 botao_equivalencia = ctk.CTkButton(
         frame_escolha,
@@ -306,7 +327,7 @@ botao_equivalencia = ctk.CTkButton(
         height=50,
         font=("Arial", 16),
         command=lambda: show_frame(frame_equivalencia))
-botao_equivalencia.place(x=400, y=300)    
+botao_equivalencia.place(relx=0.5, y=400, anchor="center")    
     
 botao_voltar4 = ctk.CTkButton(
     frame_escolha,
@@ -320,23 +341,23 @@ botao_voltar4 = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: voltar_para(frame_inicio))
-botao_voltar4.place(x=400, y=400)
+botao_voltar4.place(relx=0.5, y=500, anchor="center")
 
-# ---------------- Frame de Tarefas ----------------
+# ---------------- Frame de Tarefas----------------
 label_tarefas = ctk.CTkLabel(
     principal, 
     text="Digite a expressão em Lógica Proposicional:", 
     font=("Arial Bold", 20), 
     text_color="white", 
     fg_color=None)
-label_tarefas.place(x=300, y=130)
+label_tarefas.place(relx=0.5, y=150, anchor="center")
 
 entrada = ctk.CTkEntry(
     principal, 
     width=300, 
     placeholder_text="Digite aqui", 
     font=("Arial", 14))
-entrada.place(x=350, y=200)
+entrada.place(relx=0.5, y=200, anchor="center")
 
 bot = ctk.CTkButton(
     principal, 
@@ -349,8 +370,8 @@ bot = ctk.CTkButton(
     width=200, 
     height=50, 
     font=("Arial", 16), 
-    command= clicked)
-bot.place(x=400, y=300)
+    command= confirmar_expressao)
+bot.place(relx=0.5, y=300, anchor="center")
 
 botao_voltar1 = ctk.CTkButton(
     principal, 
@@ -364,36 +385,74 @@ botao_voltar1 = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: voltar_para(frame_escolha))
-botao_voltar1.place(x=400, y=400)
+botao_voltar1.place(relx=0.5, y=400, anchor="center")
+# ---------------- Frame de Abas----------------
+# Criar o novo frame com abas
+frame_abas = ctk.CTkFrame(janela, width=largura, height=altura, fg_color="#000057")
+frame_abas.place(x=0, y=0)
+
+abas = ctk.CTkTabview(frame_abas, width=largura, height=altura, fg_color="#000057")
+abas.pack()
+
+# Aba do circuito
+aba_circuito = abas.add("      Circuito      ")
+imagem_circuito = ctk.CTkLabel(aba_circuito, text="")
+imagem_circuito.pack()
+
+# Aba da expressão
+aba_expressao = abas.add("      Expressão      ")
+label_simplificacao = ctk.CTkLabel(aba_expressao, text="Tabela da Verdade")
+label_simplificacao.pack()
+
+botao_tabela = ctk.CTkButton(aba_expressao, text="Tabela Verdade", command=lambda:exibir_tabela_verdade(entrada.get().strip().upper())) 
+botao_tabela.pack()
+
+botao_voltar5 = ctk.CTkButton(
+    frame_abas,
+    text="Voltar", 
+    fg_color="goldenrod", 
+    text_color="#000080", 
+    hover_color="#8B008B", 
+    border_width=2,
+    border_color="#708090",
+    width=200, 
+    height=50, 
+    font=("Arial", 16), 
+    command=lambda: voltar_para(principal))
+botao_voltar5.place(relx=0.5, y=700, anchor="center")
 
 
 # ---------------- Frame de Informações ----------------
-frame_info = ctk.CTkFrame(janela, width=1000, height=500, fg_color="#000057")
-frame_info.pack(fill="both", expand=True, padx=0, pady=0)
+frame_info = ctk.CTkFrame(janela, width=largura, height=altura, fg_color="#000057")
+frame_info.place(x=0, y=0)
 
-textbox_info = ctk.CTkTextbox(frame_info, width=600, height=300, font=("Arial", 20), text_color="white", fg_color="#000057")
-textbox_info.pack(pady=20)
+
+textbox_info = ctk.CTkTextbox(
+    frame_info, 
+    width=600, 
+    height=300, 
+    font=("Arial", 20), 
+    text_color="white", 
+    fg_color="#000057"
+)
+textbox_info.place(relx=0.5, rely=0.4, anchor="center")
 
 # Definindo o conteúdo do Textbox
 info_text = """
 Alunos responsáveis:
 Larissa de Souza, Otávio Menezes e Zilderlan Santos.
 ================================================
-
 Átomos aceitos:
 P, Q, R, S e T.
 
 Representação de símbolos:
 '&' (e), '|' (ou), '!' (não) e '>' (implica).
-
 ---------------------------------Atenção:-------------------------------
 O usuário consegue realizar as seguintes funções:
 1- Ver o circuito equivalente
 2- Tabela verdade
-3- Mapa de Karnaugh
-4- Comparar expressões
+3- Comparar expressões
 ================================================
-
 Universidade Federal de Alagoas
 Instituto de Computação
 Professor Doutor Evandro de Barros Costa
@@ -415,7 +474,7 @@ botao_voltar2 = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: voltar_para(frame_inicio))
-botao_voltar2.place(x=400, y=400)
+botao_voltar2.place(relx=0.5, rely=0.85, anchor="center")
 
  # ---------------- Frame de Equivalência ----------------
 label_escolha = ctk.CTkLabel(
@@ -424,23 +483,23 @@ label_escolha = ctk.CTkLabel(
         font=("Arial Bold", 20), 
         text_color="white", 
         fg_color=None)
-label_escolha.place(x=385, y=130)
+label_escolha.place(relx=0.5, y=200, anchor="center")
 
 entrada2 = ctk.CTkEntry(
         frame_equivalencia,
         width=300,
         placeholder_text="Digite aqui",
         font=("Arial", 14))
-entrada2.place(x=350, y=200)
+entrada2.place(relx=0.5, y=200, anchor="center")
 
 entrada3 = ctk.CTkEntry(
         frame_equivalencia,
         width=300,
         placeholder_text="Digite aqui",
         font=("Arial", 14))
-entrada3.place(x=350, y=250)
+entrada3.place(relx=0.5, y=250, anchor="center")
 
-botao_confirmar2 = ctk.CTkButton(
+botao_comparar = ctk.CTkButton(
         frame_equivalencia, 
         text="Confirmar", 
         fg_color="#B0E0E6", 
@@ -451,8 +510,8 @@ botao_confirmar2 = ctk.CTkButton(
         width=200, 
         height=50, 
         font=("Arial", 16), 
-        command=clicked2)
-botao_confirmar2.place(x=400, y=350)
+        command=comparar)
+botao_comparar.place(relx=0.5, y=350, anchor="center")
 
 botao_voltar3 = ctk.CTkButton(
     frame_equivalencia, 
@@ -466,7 +525,7 @@ botao_voltar3 = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: voltar_para(frame_escolha))
-botao_voltar3.place(x=400, y=420)
+botao_voltar3.place(relx=0.5, y=420, anchor="center")
 
 titulo = ctk.CTkLabel(
         frame_equivalencia, 
@@ -474,7 +533,7 @@ titulo = ctk.CTkLabel(
         font=("Arial Bold", 20), 
         text_color="white", 
         fg_color=None)
-titulo.place(x=350, y=130)
+titulo.place(relx=0.5, y=130, anchor="center")
 
 equivalente = ctk.CTkLabel(
         frame_equivalencia, 

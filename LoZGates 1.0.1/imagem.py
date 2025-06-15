@@ -3,6 +3,7 @@ import numpy as np
 import pygame
 from io import BytesIO
 import tkinter as tk
+import os
 
 
 def converte_matrix_para_pygame_imagem_endeota(bytes_per_row):
@@ -426,8 +427,14 @@ def converte_matrix_para_tkinter_imagem_icon(bytes_per_row):
 
     # Cria a imagem PIL
     image = Image.fromarray(matriz_binaria.astype(np.uint8), mode="L")
+# Caminho absoluto da pasta do script
+    pasta_base = os.path.dirname(os.path.abspath(__file__))
+    pasta_assets = os.path.join(pasta_base, "assets")
+    
+    # Garante que a pasta exista
+    os.makedirs(pasta_assets, exist_ok=True)
 
-    # Salva a imagem como um arquivo .ico
-    image.save("icon.ico", format="ICO")
+    caminho_icon = os.path.join(pasta_assets, "icon.ico")
+    image.save(caminho_icon, format="ICO")
 
-    return "icon.ico"
+    return caminho_icon
