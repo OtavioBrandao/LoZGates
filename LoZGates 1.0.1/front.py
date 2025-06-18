@@ -1,14 +1,18 @@
 import customtkinter as ctk
-from PIL import Image, ImageTk 
 import threading
 import tkinter as tk
-from tkinter import font
 import os
+import sys
+from PIL import Image, ImageTk, ImageOps
+from tkinter import font
 from imagem import converte_matrix_para_tkinter_imagem_icon
 from tabela import gerar_tabela_verdade, verificar_conclusao
 from converter import converter_para_algebra_booleana
 from equivalencia import tabela
+
 botao_ver_circuito = None
+label_convertida = None 
+
 
 # Configuração inicial
 ctk.set_appearance_mode("dark")  # Modo escuro
@@ -41,9 +45,9 @@ def ver_circuito_pygame(expressao):
             if hasattr(circuito_logico, "plotar_circuito_logico"):
                 circuito_logico.plotar_circuito_logico(expressao)
             else:
-                print("Erro: A função 'plotar_circuito_logico' não foi encontrada no módulo 'circuito_logico'.")
+                popup_erro("Erro: A função 'plotar_circuito_logico' não foi encontrada no módulo 'circuito_logico'.")
         except ImportError as e:
-            print(f"Erro ao importar 'circuito_logico': {e}")
+            popup_erro(f"Erro ao importar 'circuito_logico': {e}")
     
     # Remove imagem antiga se existir
     caminho_imagem = os.path.join(pasta_base, "assets", "circuito.png")
@@ -64,11 +68,19 @@ def ver_circuito_pygame(expressao):
         if os.path.exists(caminho_imagem):
             atualizar_imagem_circuito()
         else:
-            print("Erro: A imagem do circuito não foi criada a tempo.")
+            popup_erro("Erro: A imagem do circuito não foi criada a tempo.")
 
     # Espera a imagem num thread separado para não travar a GUI
     threading.Thread(target=aguardar_imagem).start()
 
+def popup_erro(mensagem):
+    popup = ctk.CTkToplevel(janela)
+    popup.attributes('-topmost', True)  # Mantém no topo
+    popup.after(10, lambda: popup.attributes('-topmost', False))
+    popup.title("Erro")
+    popup.geometry("300x100")
+    ctk.CTkLabel(popup, text=mensagem, font=("Arial", 14)).pack(pady=20)
+    ctk.CTkButton(popup, text="OK", command=popup.destroy).pack()
 
 def trocar_para_abas():
     pasta_base = os.path.dirname(os.path.abspath(__file__))
@@ -118,7 +130,6 @@ def confirmar_expressao():
         command=lambda: trocar_para_abas())
     botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
 
-
 def exibir_tabela_verdade(expressao):
         # Cria uma nova janela
         janela_tabela = ctk.CTkToplevel(janela)
@@ -159,7 +170,7 @@ def comparar():
     expressao3 = entrada3.get().strip().upper()
     
     if not expressao2 or not expressao3:
-        print("As expressões não podem estar vazias.")
+        popup_erro("As expressões não podem estar vazias.")
         return
     
     valor = tabela(expressao2, expressao3)
@@ -199,16 +210,24 @@ def voltar_para(frame):
     # Se voltando para a tela principal, seta foco corretamente
     if frame == principal:
         entrada.focus_set()
+    
+    label_convertida.pack_forget()
+
 
 
 def atualizar_imagem_circuito():
     caminho_img = os.path.join(pasta_base, "assets", "circuito.png")
     if os.path.exists(caminho_img):
         imagem_pil = Image.open(caminho_img)
-        imagem_tk = ImageTk.PhotoImage(imagem_pil)
-        imagem_circuito.configure(image=imagem_tk, text="")  # remove o texto
+
+        # Adiciona borda branca de 10px
+        borda = 10
+        imagem_com_borda = ImageOps.expand(imagem_pil, border=borda, fill="white")
+
+        imagem_tk = ImageTk.PhotoImage(imagem_com_borda)
+        imagem_circuito.configure(image=imagem_tk, text="")
         imagem_circuito.image = imagem_tk  # mantém referência
-        
+
 # Frames principais
 frame_inicio = ctk.CTkFrame(
     janela, 
@@ -343,7 +362,7 @@ botao_voltar4 = ctk.CTkButton(
     command=lambda: voltar_para(frame_inicio))
 botao_voltar4.place(relx=0.5, y=500, anchor="center")
 
-# ---------------- Frame de Tarefas----------------
+# ---------------- Frame dos Circuitos e expressões----------------
 label_tarefas = ctk.CTkLabel(
     principal, 
     text="Digite a expressão em Lógica Proposicional:", 
@@ -386,25 +405,99 @@ botao_voltar1 = ctk.CTkButton(
     font=("Arial", 16), 
     command=lambda: voltar_para(frame_escolha))
 botao_voltar1.place(relx=0.5, y=400, anchor="center")
+
 # ---------------- Frame de Abas----------------
-# Criar o novo frame com abas
 frame_abas = ctk.CTkFrame(janela, width=largura, height=altura, fg_color="#000057")
 frame_abas.place(x=0, y=0)
 
-abas = ctk.CTkTabview(frame_abas, width=largura, height=altura, fg_color="#000057")
+abas = ctk.CTkTabview(
+    master=frame_abas,
+    width=largura,
+    height=altura,
+    fg_color="#000057",
+    segmented_button_fg_color="#FFFFFF",               # fundo do grupo
+    segmented_button_selected_color="#4441F7",          # aba ativa
+    segmented_button_selected_hover_color="#0B1658",    # hover da ativa
+    segmented_button_unselected_color="#001E44",        # aba inativa
+    segmented_button_unselected_hover_color="#4682B4",  # hover da inativa
+)
+
 abas.pack()
+from tkinter import filedialog  
 
 # Aba do circuito
 aba_circuito = abas.add("      Circuito      ")
 imagem_circuito = ctk.CTkLabel(aba_circuito, text="")
-imagem_circuito.pack()
+imagem_circuito.pack(pady=10)
+
+def salvar_imagem():
+    caminho_img = os.path.join(pasta_base, "assets", "circuito.png")
+    if os.path.exists(caminho_img):
+        caminho_salvar = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            filetypes=[("Imagem PNG", "*.png")],
+            title="Salvar Circuito Como PNG"
+        )
+        if caminho_salvar:
+            img = Image.open(caminho_img)
+            img.save(caminho_salvar)
+    else:
+        popup_erro("Imagem não encontrada.")
+
+botao_salvar = ctk.CTkButton(
+    aba_circuito,
+    text="Salvar Circuito como PNG",
+    fg_color="#B0E0E6",
+    text_color="#000080",
+    hover_color="#8B008B",
+    border_width=2,
+    border_color="#708090",
+    width=220,
+    height=40,
+    font=("Arial", 16),
+    command=salvar_imagem
+)
+botao_salvar.pack(pady=20)
 
 # Aba da expressão
 aba_expressao = abas.add("      Expressão      ")
 label_simplificacao = ctk.CTkLabel(aba_expressao, text="Tabela da Verdade")
 label_simplificacao.pack()
 
-botao_tabela = ctk.CTkButton(aba_expressao, text="Tabela Verdade", command=lambda:exibir_tabela_verdade(entrada.get().strip().upper())) 
+label_convertida = ctk.CTkLabel(aba_expressao, text="", font=("Arial", 14), text_color="white")
+
+def mostrar_expressao_convertida():
+    entrada_txt = entrada.get().strip().upper()
+    if not entrada_txt:
+        popup_erro("Digite uma expressão primeiro.")
+        return
+    saida = converter_para_algebra_booleana(entrada_txt)
+    label_convertida.configure(text=f"Expressão convertida: {saida}")
+    label_convertida.pack(pady=5)
+
+
+botao_simplificar = ctk.CTkButton(
+    aba_expressao,
+    text="Converter para Álgebra Booleana",
+    fg_color="#B0E0E6",
+    text_color="#000080",
+    hover_color="#8B008B",
+    border_width=2,
+    border_color="#708090",
+    command=mostrar_expressao_convertida
+)
+botao_simplificar.pack(pady=5)
+
+
+botao_tabela = ctk.CTkButton(
+    aba_expressao, 
+    text="Tabela Verdade", 
+    command=lambda:exibir_tabela_verdade(entrada.get().strip().upper()), 
+    fg_color="#B0E0E6",
+    text_color="#000080",
+    hover_color="#8B008B",
+    border_width=2,
+    border_color="#708090",) 
 botao_tabela.pack()
 
 botao_voltar5 = ctk.CTkButton(
@@ -419,7 +512,7 @@ botao_voltar5 = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: voltar_para(principal))
-botao_voltar5.place(relx=0.5, y=700, anchor="center")
+botao_voltar5.place(relx=0.5, y=750, anchor="center")
 
 
 # ---------------- Frame de Informações ----------------
@@ -440,7 +533,8 @@ textbox_info.place(relx=0.5, rely=0.4, anchor="center")
 # Definindo o conteúdo do Textbox
 info_text = """
 Alunos responsáveis:
-Larissa de Souza, Otávio Menezes e Zilderlan Santos.
+Larissa de Souza, Otávio Menezes, Zilderlan Santos e
+David Oliveira.
 ================================================
 Átomos aceitos:
 P, Q, R, S e T.
@@ -529,7 +623,7 @@ botao_voltar3.place(relx=0.5, y=420, anchor="center")
 
 titulo = ctk.CTkLabel(
         frame_equivalencia, 
-        text="Digite a expressão para comparar:", 
+        text="Digite as expressões que deseja comparar:", 
         font=("Arial Bold", 20), 
         text_color="white", 
         fg_color=None)
