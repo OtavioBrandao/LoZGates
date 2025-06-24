@@ -30,7 +30,7 @@ janela.geometry(f"{largura}x{altura}")
 bytes_per_row = 32  # Número de bytes por linha na matriz
 icon = converte_matrix_para_tkinter_imagem_icon(bytes_per_row)
 janela.iconbitmap(icon)
-janela.resizable(False, False)
+janela.resizable(True, True)
 
 # Função para alternar entre os frames
 def show_frame(frame):
