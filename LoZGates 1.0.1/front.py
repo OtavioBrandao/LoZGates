@@ -525,7 +525,7 @@ botao_tabela = ctk.CTkButton(
 botao_tabela.pack()
 
 botao_voltar5 = ctk.CTkButton(
-    frame_abas,
+    scroll_frame2,
     text="Voltar", 
     fg_color="goldenrod", 
     text_color="#000080", 
@@ -536,8 +536,22 @@ botao_voltar5 = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: voltar_para(principal))
-botao_voltar5.place(relx=0.5, y=750, anchor="center")
+botao_voltar5.pack(pady=30)
 
+
+botao_voltar6 = ctk.CTkButton(
+    scroll_frame1,
+    text="Voltar", 
+    fg_color="goldenrod", 
+    text_color="#000080", 
+    hover_color="#8B008B", 
+    border_width=2,
+    border_color="#708090",
+    width=200, 
+    height=50, 
+    font=("Arial", 16), 
+    command=lambda: voltar_para(principal))
+botao_voltar6.pack(pady=30)
 
 # ---------------- Frame de Informações ----------------
 frame_info = ctk.CTkFrame(janela, fg_color="#000057")
