@@ -20,12 +20,16 @@ ctk.set_default_color_theme("blue")  # Tema azul
 
 janela = ctk.CTk()
 janela.title("LoZ Gates")
+janela.configure(bg="#000057")
 largura_tela = janela.winfo_screenwidth()
 altura_tela = janela.winfo_screenheight()
 largura = int(largura_tela * 0.8)
 altura = int(altura_tela * 0.8)
 
 janela.geometry(f"{largura}x{altura}")
+janela.grid_rowconfigure(0, weight=1)
+janela.grid_columnconfigure(0, weight=1)
+
 
 bytes_per_row = 32  # Número de bytes por linha na matriz
 icon = converte_matrix_para_tkinter_imagem_icon(bytes_per_row)
@@ -35,7 +39,7 @@ janela.resizable(True, True)
 # Função para alternar entre os frames
 def show_frame(frame):
     frame.tkraise()
-    
+
 import time
 
 def ver_circuito_pygame(expressao):
@@ -75,12 +79,41 @@ def ver_circuito_pygame(expressao):
 
 def popup_erro(mensagem):
     popup = ctk.CTkToplevel(janela)
-    popup.attributes('-topmost', True)  # Mantém no topo
+    popup.attributes('-topmost', True)
     popup.after(10, lambda: popup.attributes('-topmost', False))
     popup.title("Erro")
-    popup.geometry("300x100")
-    ctk.CTkLabel(popup, text=mensagem, font=("Arial", 14)).pack(pady=20)
-    ctk.CTkButton(popup, text="OK", command=popup.destroy).pack()
+
+    # Tamanho e centralização
+    largura_popup = 300
+    altura_popup = 120
+    popup.geometry(f"{largura_popup}x{altura_popup}")
+    popup.update_idletasks()
+    x = (popup.winfo_screenwidth() // 2) - (largura_popup // 2)
+    y = (popup.winfo_screenheight() // 2) - (altura_popup // 2)
+    popup.geometry(f"{largura_popup}x{altura_popup}+{x}+{y}")
+
+    # Cor de fundo
+    popup.configure(fg_color="#1a1a1a")  # fundo escuro
+
+    # Conteúdo
+    label = ctk.CTkLabel(
+        popup,
+        text=mensagem,
+        font=("Arial", 14),
+        text_color="white"
+    )
+    label.pack(pady=(20, 10))
+
+    botao_ok = ctk.CTkButton(
+        popup,
+        text="OK",
+        fg_color="red",
+        text_color="white",
+        hover_color="#8B0000",
+        command=popup.destroy
+    )
+    botao_ok.pack(pady=(0, 10))
+
 
 def trocar_para_abas():
     pasta_base = os.path.dirname(os.path.abspath(__file__))
@@ -116,6 +149,10 @@ def confirmar_expressao():
     if botao_ver_circuito:  # Se já existir, destrói e recria
         botao_ver_circuito.destroy()
 
+    if not entrada.get().strip():
+        popup_erro("A expressão não pode estar vazia.")
+        return
+    
     botao_ver_circuito = ctk.CTkButton(
         principal, 
         text="Ver Circuito / Expressão", 
@@ -228,44 +265,30 @@ def atualizar_imagem_circuito():
         imagem_circuito.configure(image=imagem_tk, text="")
         imagem_circuito.image = imagem_tk  # mantém referência
 
-# Frames principais
-frame_inicio = ctk.CTkFrame(
-    janela, 
-    width=largura, 
-    height=altura, 
-    fg_color="#000057")
+# Define os frames
+frame_inicio = ctk.CTkFrame(janela, fg_color="#000057")
+frame_inicio.grid(row=0, column=0, sticky="nsew")
 
-principal = ctk.CTkFrame(
-    janela, 
-    width=largura, 
-    height=altura, 
-    fg_color="#000057")
+principal = ctk.CTkFrame(janela, fg_color="#000057")
+principal.grid(row=0, column=0, sticky="nsew")
 
-frame_equivalencia = ctk.CTkFrame(
-    janela,
-    width=largura,
-    height=altura,
-    fg_color="#000057")
+frame_equivalencia = ctk.CTkFrame(janela, fg_color="#000057")
+frame_equivalencia.grid(row=0, column=0, sticky="nsew")
 
-frame_escolha = ctk.CTkFrame(
-    janela,
-    width=largura,
-    height=altura,
-    fg_color="#000057")
-frame_abas = ctk.CTkFrame(
-    janela,
-    width=largura,
-    height=altura,
-    fg_color="#000057")
-for frame in (frame_inicio, principal, frame_equivalencia, frame_escolha, frame_abas):
-    frame.place(relx=0.5, rely=0.5, anchor="center")
+frame_escolha = ctk.CTkFrame(janela, fg_color="#000057")
+frame_escolha.grid(row=0, column=0, sticky="nsew")
 
-    
+frame_abas = ctk.CTkFrame(janela, fg_color="#000057")
+frame_abas.grid(row=0, column=0, sticky="nsew")
+
 # ---------------- Frame de Início ----------------
 frame_inicio_conteudo = ctk.CTkFrame(
     frame_inicio, 
     fg_color="#000057", 
     corner_radius=30)
+
+frame_inicio_conteudo.pack(expand=True)
+
 
 frame_inicio_conteudo.place(
     relx=0.5, 
@@ -407,22 +430,17 @@ botao_voltar1 = ctk.CTkButton(
 botao_voltar1.place(relx=0.5, y=400, anchor="center")
 
 # ---------------- Frame de Abas----------------
-frame_abas = ctk.CTkFrame(janela, width=largura, height=altura, fg_color="#000057")
-frame_abas.place(x=0, y=0)
-
 abas = ctk.CTkTabview(
     master=frame_abas,
-    width=largura,
-    height=altura,
     fg_color="#000057",
-    segmented_button_fg_color="#FFFFFF",               # fundo do grupo
-    segmented_button_selected_color="#4441F7",          # aba ativa
-    segmented_button_selected_hover_color="#0B1658",    # hover da ativa
-    segmented_button_unselected_color="#001E44",        # aba inativa
-    segmented_button_unselected_hover_color="#4682B4",  # hover da inativa
+    segmented_button_fg_color="#FFFFFF",
+    segmented_button_selected_color="#4441F7",
+    segmented_button_selected_hover_color="#0B1658",
+    segmented_button_unselected_color="#001E44",
+    segmented_button_unselected_hover_color="#4682B4"
 )
+abas.pack(expand=True, fill="both")
 
-abas.pack()
 from tkinter import filedialog  
 
 # Aba do circuito
@@ -516,20 +534,16 @@ botao_voltar5.place(relx=0.5, y=750, anchor="center")
 
 
 # ---------------- Frame de Informações ----------------
-frame_info = ctk.CTkFrame(janela, width=largura, height=altura, fg_color="#000057")
-frame_info.place(x=0, y=0)
-
+frame_info = ctk.CTkFrame(janela, fg_color="#000057")
+frame_info.grid(row=0, column=0, sticky="nsew")
 
 textbox_info = ctk.CTkTextbox(
     frame_info, 
-    width=600, 
-    height=300, 
     font=("Arial", 20), 
     text_color="white", 
     fg_color="#000057"
 )
-textbox_info.place(relx=0.5, rely=0.4, anchor="center")
-
+textbox_info.pack(expand=True, fill="both", padx=20, pady=20)
 # Definindo o conteúdo do Textbox
 info_text = """
 Alunos responsáveis:
@@ -546,6 +560,10 @@ O usuário consegue realizar as seguintes funções:
 1- Ver o circuito equivalente
 2- Tabela verdade
 3- Comparar expressões
+-------------------------------Motivação:-------------------------------
+A proposta é desenvolver uma aplicação com interface amigável que permita que o aluno possa entender as interações da Lógica Proposicional
+com Circuitos Digitais. Além de interligar as áreas do conhecimento, a aplicação será uma ferramenta de apoio ao aprendizado, permitindo que
+o aluno praticar e entender melhor os conceitos que envolvem as duas áreas.
 ================================================
 Universidade Federal de Alagoas
 Instituto de Computação
@@ -555,6 +573,7 @@ Professor Doutor Evandro de Barros Costa
 
 textbox_info.insert("0.0", info_text)  # Inserir o texto no Textbox
 textbox_info.configure(state="disable")  # Desativar edição para evitar modificações
+
 
 botao_voltar2 = ctk.CTkButton(
     frame_info, 
@@ -568,7 +587,8 @@ botao_voltar2 = ctk.CTkButton(
     height=50, 
     font=("Arial", 16), 
     command=lambda: voltar_para(frame_inicio))
-botao_voltar2.place(relx=0.5, rely=0.85, anchor="center")
+botao_voltar2.pack(pady=20)
+
 
  # ---------------- Frame de Equivalência ----------------
 label_escolha = ctk.CTkLabel(
