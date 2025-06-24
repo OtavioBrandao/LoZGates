@@ -445,7 +445,10 @@ from tkinter import filedialog
 
 # Aba do circuito
 aba_circuito = abas.add("      Circuito      ")
-imagem_circuito = ctk.CTkLabel(aba_circuito, text="")
+scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color="#000057")
+scroll_frame1.pack(expand=True, fill="both")
+
+imagem_circuito = ctk.CTkLabel(scroll_frame1, text="")
 imagem_circuito.pack(pady=10)
 
 def salvar_imagem():
@@ -463,7 +466,7 @@ def salvar_imagem():
         popup_erro("Imagem não encontrada.")
 
 botao_salvar = ctk.CTkButton(
-    aba_circuito,
+    scroll_frame1,
     text="Salvar Circuito como PNG",
     fg_color="#B0E0E6",
     text_color="#000080",
@@ -479,10 +482,13 @@ botao_salvar.pack(pady=20)
 
 # Aba da expressão
 aba_expressao = abas.add("      Expressão      ")
-label_simplificacao = ctk.CTkLabel(aba_expressao, text="Tabela da Verdade")
+scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color="#000057")
+scroll_frame2.pack(expand=True, fill="both")
+
+label_simplificacao = ctk.CTkLabel(scroll_frame2, text="Tabela da Verdade")
 label_simplificacao.pack()
 
-label_convertida = ctk.CTkLabel(aba_expressao, text="", font=("Arial", 14), text_color="white")
+label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 14), text_color="white")
 
 def mostrar_expressao_convertida():
     entrada_txt = entrada.get().strip().upper()
@@ -495,7 +501,7 @@ def mostrar_expressao_convertida():
 
 
 botao_simplificar = ctk.CTkButton(
-    aba_expressao,
+    scroll_frame2,
     text="Converter para Álgebra Booleana",
     fg_color="#B0E0E6",
     text_color="#000080",
@@ -508,7 +514,7 @@ botao_simplificar.pack(pady=5)
 
 
 botao_tabela = ctk.CTkButton(
-    aba_expressao, 
+    scroll_frame2, 
     text="Tabela Verdade", 
     command=lambda:exibir_tabela_verdade(entrada.get().strip().upper()), 
     fg_color="#B0E0E6",
