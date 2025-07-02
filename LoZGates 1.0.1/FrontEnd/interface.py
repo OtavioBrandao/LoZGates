@@ -12,6 +12,9 @@ from BackEnd.equivalencia import tabela
 from config import ASSETS_PATH
 import time
 from customtkinter import CTkFont
+import webbrowser
+import urllib.parse
+
 
 botao_ver_circuito = None
 label_convertida = None
@@ -118,11 +121,6 @@ def inicializar_interface():
 
 
     def trocar_para_abas():
-        pasta_base = os.path.dirname(os.path.abspath(__file__))
-        pasta_assets = os.path.join(pasta_base, "assets")
-        os.makedirs(pasta_assets, exist_ok=True)
-
-        # Caminho para salvar o arquivo entrada.txt dentro de assets
         caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
 
         expressao = entrada.get().strip().upper().replace(" ", "")
@@ -251,7 +249,7 @@ def inicializar_interface():
             entrada.focus_set()
         
         label_convertida.pack_forget()
-
+    
     def atualizar_imagem_circuito():
         caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
         if os.path.exists(caminho_img):
@@ -492,6 +490,16 @@ def inicializar_interface():
         label_convertida.configure(text=f"Expressão convertida: {saida}")
         label_convertida.pack(pady=5)
 
+    def abrir_duvida_expressao(expressao):
+        if not expressao:
+            popup_erro("Digite uma expressão primeiro.")
+            return
+        
+        pergunta = f"Como posso simplificar a seguinte expressão lógica proposicional e qual sua interpretação? Como ela fica em álgebra booleana e qual sua tabela verdade? {expressao}"
+        query = urllib.parse.quote(pergunta)
+        url = f"https://chat.openai.com/?q={query}"
+        webbrowser.open(url)
+
 
     botao_simplificar = ctk.CTkButton(
         scroll_frame2,
@@ -516,6 +524,17 @@ def inicializar_interface():
         border_width=2,
         border_color="#708090",) 
     botao_tabela.pack()
+
+    botao_ia = ctk.CTkButton(
+    scroll_frame2,
+    text="Pedir ajuda à IA",
+    fg_color="#B0E0E6",
+    text_color="#000080",
+    hover_color="#8B008B",
+    border_width=2,
+    border_color="#708090",
+    command=lambda: abrir_duvida_expressao(entrada.get().strip().upper()))
+    botao_ia.pack(pady=10)
 
     botao_voltar5 = ctk.CTkButton(
         scroll_frame2,
