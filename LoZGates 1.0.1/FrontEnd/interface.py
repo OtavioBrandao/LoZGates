@@ -476,10 +476,26 @@ def inicializar_interface():
     scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color="#000057")
     scroll_frame2.pack(expand=True, fill="both")
 
-    label_simplificacao = ctk.CTkLabel(scroll_frame2, text="Tabela da Verdade")
+    label_simplificacao = ctk.CTkLabel(scroll_frame2, text="O que deseja fazer com a expressão?", font=("Arial Bold", 20), text_color="white")
     label_simplificacao.pack()
 
     label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 14), text_color="white")
+    label_leis = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 14), text_color="white")
+
+    from BackEnd.identificar_lei import construir_arvore
+    from BackEnd.identificar_lei import simplificar
+
+    def processo_simplificacao(expressao):
+        if not expressao:
+            popup_erro("Digite uma expressão primeiro.")
+
+        arvore = construir_arvore(expressao)
+        arvore_simplificada, procedimentos = simplificar(arvore)
+        texto = "\n".join(procedimentos)
+        texto += f"\n\nExpressão simplificada: {arvore_simplificada}"
+        texto += f"\n\nExpressão original: {expressao}"
+        label_leis.configure(text=texto)
+        label_leis.pack(pady=5)
 
     def mostrar_expressao_convertida():
         entrada_txt = entrada.get().strip().upper()
@@ -500,8 +516,19 @@ def inicializar_interface():
         url = f"https://chat.openai.com/?q={query}"
         webbrowser.open(url)
 
-
     botao_simplificar = ctk.CTkButton(
+        scroll_frame2,
+        text="Processo de Simplificação",
+        fg_color="#B0E0E6",
+        text_color="#000080",
+        hover_color="#8B008B",
+        border_width=2,
+        border_color="#708090",
+        command=lambda: processo_simplificacao(entrada.get().strip().upper())
+        )
+    botao_simplificar.pack(pady=5)
+    
+    botao_converter = ctk.CTkButton(
         scroll_frame2,
         text="Converter para Álgebra Booleana",
         fg_color="#B0E0E6",
@@ -511,7 +538,7 @@ def inicializar_interface():
         border_color="#708090",
         command=mostrar_expressao_convertida
     )
-    botao_simplificar.pack(pady=5)
+    botao_converter.pack(pady=5)
 
 
     botao_tabela = ctk.CTkButton(
@@ -547,7 +574,7 @@ def inicializar_interface():
         width=200, 
         height=50, 
         font=("Arial", 16), 
-        command=lambda: voltar_para(principal))
+        command=lambda: (voltar_para(principal), label_leis.pack_forget()))
     botao_voltar5.pack(pady=30)
 
 

@@ -1,4 +1,5 @@
 import time
+procedimentos = []
 
 class Node:
     """
@@ -79,7 +80,7 @@ def demorgan(node):
         novo_op = '|' if op_original == '&' else '&'
         novo_no = Node(novo_op, Node('!', inner.esquerda), Node('!', inner.direita))
         
-        print(f"Aplicando De Morgan em '{node}' -> '{novo_no}'")
+        procedimentos.append(f"Aplicando De Morgan em '{node}' -> '{novo_no}'")
         return novo_no
     return node
 
@@ -87,18 +88,18 @@ def identidade(node):
     #A & 1 = A  e  A | 0 = A
     if node.valor == '&':
         if str(node.esquerda) == '1':
-          print(f"Aplicando Identidade em '{node}' -> '{node.direita}'")
+          procedimentos.append(f"Aplicando Identidade em '{node}' -> '{node.direita}'")
           return node.direita
         if str(node.direita) == '1': 
-          print(f"Aplicando Identidade em '{node}' -> '{node.esquerda}'")
+          procedimentos.append(f"Aplicando Identidade em '{node}' -> '{node.esquerda}'")
           return node.esquerda
     
     elif node.valor == '|':
         if str(node.esquerda) == '0':
-          print(f"Aplicando Identidade em '{node}' -> '{node.direita}'")
+          procedimentos.append(f"Aplicando Identidade em '{node}' -> '{node.direita}'")
           return node.direita
         if str(node.direita) == '0': 
-          print(f"Aplicando Identidade em '{node}' -> '{node.esquerda}'")
+          procedimentos.append(f"Aplicando Identidade em '{node}' -> '{node.esquerda}'")
           return node.esquerda
         
     return node
@@ -107,18 +108,18 @@ def nula(node):
     #A & 0 = 0  e  A | 1 = 1
     if node.valor == '&':
         if str(node.esquerda) == '0' or str(node.direita) == '0':
-            print(f"Aplicando Nula em '{node}' -> '0'")
+            procedimentos.append(f"Aplicando Nula em '{node}' -> '0'")
             return Node('0')
     elif node.valor == '|':
         if str(node.esquerda) == '1' or str(node.direita) == '1':
-            print(f"Aplicando Nula em '{node}' -> '1'")
+            procedimentos.append(f"Aplicando Nula em '{node}' -> '1'")
             return Node('1')
     return node
 
 def idempotente(node):
     #A & A = A  e  A | A = A
     if node.valor in ('&', '|') and str(node.esquerda) == str(node.direita):
-        print(f"Aplicando Idempotência em '{node}' -> '{node.esquerda}'")
+        procedimentos.append(f"Aplicando Idempotência em '{node}' -> '{node.esquerda}'")
         return node.esquerda
     return node
 
@@ -126,11 +127,11 @@ def inversa(node):
     #A & !A = 0  e  A | !A = 1
     if node.esquerda and node.direita and sao_inversos(node.esquerda, node.direita):
         if node.valor == '&': 
-          print(f"Aplicando Inversa em '{node}' -> '0'")
+          procedimentos.append(f"Aplicando Inversa em '{node}' -> '0'")
           return Node('0')
         
         if node.valor == '|': 
-          print(f"Aplicando Inversa em '{node}' -> '1'")
+          procedimentos.append(f"Aplicando Inversa em '{node}' -> '1'")
           return Node('1')
     return node
 
@@ -138,19 +139,19 @@ def absorcao(node):
     #A & (A | B) = A  e  A | (A & B) = A
     if node.valor == '&' and node.direita and node.direita.valor == '|':
         if str(node.esquerda) == str(node.direita.esquerda) or str(node.esquerda) == str(node.direita.direita):
-            print(f"Aplicando Absorção em '{node}' -> '{node.esquerda}'")
+            procedimentos.append(f"Aplicando Absorção em '{node}' -> '{node.esquerda}'")
             return node.esquerda
     if node.valor == '&' and node.esquerda and node.esquerda.valor == '|':
         if str(node.direita) == str(node.esquerda.esquerda) or str(node.direita) == str(node.esquerda.direita):
-            print(f"Aplicando Absorção em '{node}' -> '{node.direita}'")
+            procedimentos.append(f"Aplicando Absorção em '{node}' -> '{node.direita}'")
             return node.direita
     if node.valor == '|' and node.direita and node.direita.valor == '&':
         if str(node.esquerda) == str(node.direita.esquerda) or str(node.esquerda) == str(node.direita.direita):
-            print(f"Aplicando Absorção em '{node}' -> '{node.esquerda}'")
+            procedimentos.append(f"Aplicando Absorção em '{node}' -> '{node.esquerda}'")
             return node.esquerda
     if node.valor == '|' and node.esquerda and node.esquerda.valor == '&':
         if str(node.direita) == str(node.esquerda.esquerda) or str(node.direita) == str(node.esquerda.direita):
-            print(f"Aplicando Absorção em '{node}' -> '{node.direita}'")
+            procedimentos.append(f"Aplicando Absorção em '{node}' -> '{node.direita}'")
             return node.direita
     return node
 
@@ -163,7 +164,7 @@ def associativa(node):
         b = node.esquerda.direita
         c = node.direita
         novo_no = Node(op, a, Node(op, b, c))
-        print(f"Aplicando Associativa em '{node}' -> '{novo_no}'")
+        procedimentos.append(f"Aplicando Associativa em '{node}' -> '{novo_no}'")
         return novo_no
     return node
 
@@ -171,7 +172,7 @@ def comutativa(node):
     if node.valor in ('&', '|'):
         if node.esquerda and node.direita and str(node.direita) < str(node.esquerda):
              novo_no = Node(node.valor, node.direita, node.esquerda)
-             print(f"Aplicando Comutativa em '{node}' -> '{novo_no}'")
+             procedimentos.append(f"Aplicando Comutativa em '{node}' -> '{novo_no}'")
              return novo_no
     return node
 
@@ -190,7 +191,7 @@ def distributiva(node):
 
         if common:
             novo_no = Node('|', common, Node('&', o1, o2))
-            print(f"Aplicando Distributiva em '{node}' -> '{novo_no}'")
+            procedimentos.append(f"Aplicando Distributiva em '{node}' -> '{novo_no}'")
             return novo_no 
     return node
  
@@ -221,34 +222,35 @@ def aplicar_leis_recursivo(node):
 
     #se teve alguma mudança, imprime o passo
     if str(novo_no) != original_str:
-        print(f"Passo de simplificação: {original_str} -> {novo_no}")
+        procedimentos.append(f"Passo de simplificação: {original_str} -> {novo_no}")
         return aplicar_leis_recursivo(novo_no)
         
     return novo_no
 
 def simplificar(arvore):
     #Aplica as leis lógicas na árvore até que nenhuma outra simplificação seja possível
-
-    print("--- Iniciando Simplificação ---")
+    global procedimentos
+    procedimentos = []  # Reseta a lista de procedimentos
+    procedimentos.append("Iniciando Simplificação")
     passo = 1
     while True:
         expressao_anterior = str(arvore)
-        print(f"\nIteração {passo}: tentando simplificar {expressao_anterior}")
+        procedimentos.append(f"\nIteração {passo}: tentando simplificar {expressao_anterior}")
         arvore = aplicar_leis_recursivo(arvore)
         expressao_atual = str(arvore)
         
         if expressao_anterior == expressao_atual:
-            print("\nNenhuma outra simplificação foi possível.")
+            procedimentos.append("\nNenhuma outra simplificação foi possível.")
             break
         
-        print(f"Árvore intermediária: {expressao_atual}")
+        procedimentos.append(f"Árvore intermediária: {expressao_atual}")
         passo += 1
         time.sleep(1) #tempo pra ver
         
-    return arvore
+    return arvore, procedimentos
 
 # ------------------ Laço Principal de Execução -------------------
-while True:
+'''while True:
     expressao_usuario = input("\nDigite a expressão lógica (use !, &, |) ou 'sair' para terminar: ")
 
     if expressao_usuario.lower() == 'sair':
@@ -278,7 +280,7 @@ while True:
         print(f"Ocorreu um erro ao processar a expressão: {e}")
         print("Por favor, verifique se a sintaxe está correta (ex: 'P & (Q | !R)').")
         
-
+'''
 
 '''
 -------------------------casos testes------------------
