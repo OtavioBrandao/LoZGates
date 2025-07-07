@@ -1,42 +1,52 @@
-def converter_para_algebra_booleana(expressao):
-    resultado = ""  # String para armazenar o resultado
+def substituir_implicacoes(expr):
     i = 0
+    while i < len(expr):
+        if expr[i] == '>':
+            #  lado esquerdo 
+            j = i - 1
+            if expr[j] == ')':
+                count = 1
+                j -= 1
+                while j >= 0 and count > 0:
+                    if expr[j] == ')':
+                        count += 1
+                    elif expr[j] == '(':
+                        count -= 1
+                    j -= 1
+                a = expr[j+1:i]
+                a_start = j+1
+            else:
+                a = expr[j]
+                a_start = j
 
-    while i < len(expressao):
-        caracter = expressao[i]
+            # lado direito 
+            k = i + 1
+            if expr[k] == '(':
+                count = 1
+                k += 1
+                start = k
+                while k < len(expr) and count > 0:
+                    if expr[k] == '(':
+                        count += 1
+                    elif expr[k] == ')':
+                        count -= 1
+                    k += 1
+                b = expr[start:k-1]
+                b_end = k
+            else:
+                b = expr[k]
+                b_end = k + 1
 
-        if caracter in 'PQRST':
-            resultado += caracter  # Adiciona a variável diretamente
-        elif caracter == '!':
-            resultado += "~"  # Negação
-        elif caracter == '&':
-            resultado += "*"  # AND
-        elif caracter == '|':
-            resultado += "+"  # OR (substitui | por +)
-        elif caracter == '>':
-  
-            # Encontrar A (tudo antes do >)
-            a_start = i - 1
-            while a_start >= 0 and expressao[a_start] in 'PQRST()!&|':
-                a_start -= 1
-            a_start += 1
-            a_expressao = expressao[a_start:i]
+            nova_expr = expr[:a_start] + f"(~{a}+{b})" + expr[b_end:]
+            return substituir_implicacoes(nova_expr)  # recursivo para múltiplos >
 
-            # Encontrar B (tudo depois do >)
-            b_end = i + 1
-            while b_end < len(expressao) and expressao[b_end] in 'PQRST()!&|':
-                b_end += 1
-            b_expressao = expressao[i + 1:b_end]
-
-            # Converter A > B para (~A + B)
-            resultado = resultado[:a_start]  # Remove A do resultado temporário
-            resultado += f"(~{a_expressao}+{b_expressao})"
-            i = b_end - 1  # Atualiza o índice para pular B
-        elif caracter in '()':
-            resultado += caracter  # Adiciona parênteses diretamente
         i += 1
+    return expr
 
-    # Substituir | por + no resultado final (caso ainda haja algum | restante)
-    resultado = resultado.replace("|", "+").replace("&", "*").replace("!", "~")
 
-    return resultado
+def converter_para_algebra_booleana(expressao):
+    #substituição direta
+    expressao = expressao.replace(" ", "")
+    expressao = substituir_implicacoes(expressao)
+    expressao = expressao.replace("&", "*").replace("|", "+").replace("!", "~")
+    return expressao

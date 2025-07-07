@@ -5,195 +5,273 @@ from BackEnd.imagem import converte_matrix_para_pygame_imagem_endeota
 import os
 from config import ASSETS_PATH
 
+# --- Classes de Nó da AST ---
+class Node:
+    pass
+
+class VariableNode(Node):
+    def __init__(self, name):
+        self.name = name
+
+class OperatorNode(Node):
+    def __init__(self, op, children):
+        self.op = op
+        self.children = children
+
+# Essa função converte a expressão em uma estrutura de árvore.
+def criar_ast_de_expressao(expressao):
+    tokens = list(expressao.replace(" ", ""))
+    pos = 0
+
+    def peek():
+        return tokens[pos] if pos < len(tokens) else None
+
+    def consume():
+        nonlocal pos
+        pos += 1
+        return tokens[pos - 1]
+
+    def parse_factor():
+        token = peek()
+        if token.isalpha():
+            return VariableNode(consume())
+        elif token == '~':
+            consume()
+            if peek() == '(':
+                consume()
+                expr = parse_expression()
+                if peek() != ')': raise ValueError("Parêntese não fechado")
+                consume()
+                return OperatorNode('~', [expr])
+            return OperatorNode('~', [parse_factor()])
+        elif token == '(':
+            consume()
+            expr = parse_expression()
+            if peek() != ')': raise ValueError("Parêntese não fechado")
+            consume()
+            return expr
+        raise ValueError(f"Token inválido: {token}")
+
+    def parse_term():
+        node = parse_factor()
+        while peek() == '*':
+            op = consume()
+            right = parse_factor()
+            node = OperatorNode(op, [node, right])
+        return node
+
+    def parse_expression():
+        node = parse_term()
+        while peek() == '+':
+            op = consume()
+            right = parse_term()
+            node = OperatorNode(op, [node, right])
+        return node
+
+    return parse_expression()
+
+
+# --- CONFIGURAÇÃO DO PYGAME ---
 try:
     caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
-
     with open(caminho_entrada, "r", encoding="utf-8") as file:
         expressao = file.read().strip()
-
+    if not expressao:
+        raise FileNotFoundError
 except FileNotFoundError:
-    print("O arquivo com a expressão não foi encontrado em assets/entrada.txt.")
-    sys.exit()
+    expressao = "P*~(Q+R)"
+    print(f"Arquivo 'entrada.txt' não encontrado ou vazio. Usando expressão de exemplo: {expressao}")
 
-
-# Inicializa o pygame
 pygame.init()
 
 # Configurações da tela
-screen_width, screen_height = 850, 550
+screen_width, screen_height = 1200, 800
 screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Gerador de Circuitos Lógicos")
 
-# Cores
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
-ORANGE = (255, 165, 0)
+# Cores e Constantes
+BACKGROUND = (0, 0, 0)
+WHITE = (230, 230, 230)
+BLUE = (60, 120, 220)
+GREEN = (50, 200, 130)
+ORANGE = (250, 170, 70)
+LABEL_COLOR = (255, 255, 255)
+WIRE_COLOR = (200, 200, 200)
 
-# Funções de desenho das portas lógicas
+GATE_WIDTH = 60
+GATE_HEIGHT = 80
+NODE_H_SPACING = 180
+NODE_V_SPACING = 100
+
 def draw_and_gate(x, y):
-    pygame.draw.line(screen, BLUE, (x, y), (x, y + 80), 5)
-    pygame.draw.line(screen, BLUE, (x, y), (x + 40, y), 5)
-    pygame.draw.line(screen, BLUE, (x, y + 80), (x + 40, y + 80), 5)
-    pygame.draw.arc(screen, BLUE, (x + 20, y, 40, 80), -1.57, 1.57, 5)
-    pygame.draw.line(screen, WHITE, (x + 60, y + 40), (x + 80, y + 40), 2)
+    rect = pygame.Rect(x, y, GATE_WIDTH - 20, GATE_HEIGHT)
+    pygame.draw.line(screen, BLUE, rect.topleft, rect.bottomleft, 3)
+    pygame.draw.arc(screen, BLUE, rect, -1.57, 1.57, 3)
+    pygame.draw.line(screen, BLUE, rect.topleft, (rect.centerx, rect.top), 3)
+    pygame.draw.line(screen, BLUE, rect.bottomleft, (rect.centerx, rect.bottom), 3)
+    return (rect.right, rect.centery)
 
 def draw_or_gate(x, y):
-    pygame.draw.line(screen, GREEN, (x, y), (x + 40, y), 5)
-    pygame.draw.line(screen, GREEN, (x, y + 80), (x + 40, y + 80), 5)
-    pygame.draw.arc(screen, GREEN, (x + 20, y, 40, 80), -1.57, 1.57, 5)
-    pygame.draw.arc(screen, GREEN, (x - 20, y, 40, 80), -1.57, 1.57, 5)
-    pygame.draw.line(screen, WHITE, (x + 60, y + 40), (x + 80, y + 40), 2)
+    rect = pygame.Rect(x, y, GATE_WIDTH - 20, GATE_HEIGHT)
+    back_rect = pygame.Rect(x - 15, y, 20, GATE_HEIGHT)
+    pygame.draw.arc(screen, GREEN, back_rect, -1.57, 1.57, 3)
+    pygame.draw.arc(screen, GREEN, rect, -1.57, 1.57, 3)
+    pygame.draw.line(screen, GREEN, (back_rect.centerx, back_rect.top), (rect.centerx, rect.top), 3)
+    pygame.draw.line(screen, GREEN, (back_rect.centerx, back_rect.bottom), (rect.centerx, rect.bottom), 3)
+    return (rect.right, rect.centery)
 
 def draw_not_gate(x, y):
-    pygame.draw.polygon(screen, ORANGE, [(x, y), (x, y + 80), (x + 50, y + 40)], 5)
-    pygame.draw.circle(screen, ORANGE, (x + 60, y + 40), 10, 5)
+    center_y = y + GATE_HEIGHT / 2
+    p1 = (x, y + 15)
+    p2 = (x, y + GATE_HEIGHT - 15)
+    p3 = (x + 30, center_y)
+    pygame.draw.polygon(screen, ORANGE, [p1, p2, p3], 3)
+    pygame.draw.circle(screen, ORANGE, (x + 38, center_y), 8, 3)
+    return (x + 46, center_y)
 
-# Função de desenho dos átomos
-def draw_circle_label(x, y, label):
-    pygame.draw.circle(screen, WHITE, (x, y), 10)
-    font = pygame.font.Font(None, 36)
-    text = font.render(label, True, WHITE)
-    screen.blit(text, (x - 10, y + 10))
+def draw_wire(start_pos, end_pos, color=WIRE_COLOR):
+    (x1, y1), (x2, y2) = start_pos, end_pos
+    mid_x = x1 + (x2 - x1) * 0.5
+    pygame.draw.line(screen, color, (x1, y1), (mid_x, y1), 2)
+    pygame.draw.line(screen, color, (mid_x, y1), (mid_x, y2), 2)
+    pygame.draw.line(screen, color, (mid_x, y2), (x2, y2), 2)
 
-# Função para desenhar as linhas
-def draw_line(x1, y1, x2, y2):
-    pygame.draw.line(screen, WHITE, (x1, y1), (x2, y2), 4)
+def draw_connection_dot(pos, color=WIRE_COLOR, radius=5):
+    pygame.draw.circle(screen, color, pos, radius)
 
-def draw_label(x, y, text):
-    font = pygame.font.Font(None, 36)
-    text = font.render(text, True, BLACK)
-    text_rect = text.get_rect(center=(x, y))
-    screen.blit(text, text_rect.topleft)
 
-# Função para desenhar uma curva suave entre dois pontos
-def draw_curve(x1, y1, x2, y2):
-    mid_x = (x1 + x2) // 2
-    mid_y = (y1 + y2) // 2
-    control_point1 = (mid_x, y1)
-    control_point2 = (mid_x, y2)
-    points = [(x1, y1), control_point1, control_point2, (x2, y2)]
-    pygame.draw.lines(screen, WHITE, False, points, 2)
+# --- LÓGICA DE DESENHO RECURSIVO ---
+def processa_subexpressao(node, x_pos, y_pos, bus_x_coords):
+    """
+    Processa recursivamente um nó da AST para desenhar o circuito.
+    Retorna a coordenada (x, y) de sua conexão de saída.
+    """
+    # CASO BASE 1: Variável simples (ex: 'P')
+    if isinstance(node, VariableNode):
+        return ('bus', node.name)
 
-# Função para aplicar a distributiva do NOT sobre parênteses
-def aplicar_distributiva_not(expressao):
-    i = 0
-    resultado = ""
-    while i < len(expressao):
-        if expressao[i] == '~' and i + 1 < len(expressao) and expressao[i + 1] == '(':
-            # Encontramos um NOT antes de um parêntese
-            resultado += "~("
-            i += 2
-            nivel = 1
-            while i < len(expressao) and nivel > 0:
-                if expressao[i] == '(':
-                    nivel += 1
-                elif expressao[i] == ')':
-                    nivel -= 1
-                if nivel > 0:
-                    resultado += expressao[i]
-                i += 1
-            resultado += ")"
+    # CASO BASE 2: NOT em uma variável simples (ex: '~P')
+    if isinstance(node, OperatorNode) and node.op == '~' and isinstance(node.children[0], VariableNode):
+        var_name = node.children[0].name
+        return ('bus', f"~{var_name}")
+
+    # PASSO RECURSIVO: Nó de operador com sub-expressões
+    if isinstance(node, OperatorNode):
+        num_children = len(node.children)
+        y_offset_start = y_pos - (num_children - 1) * NODE_V_SPACING / 2
+        child_outputs = []
+        for i, child_node in enumerate(node.children):
+            y_child = y_offset_start + i * NODE_V_SPACING
+            output = processa_subexpressao(child_node, x_pos - NODE_H_SPACING, y_child, bus_x_coords)
+            child_outputs.append(output)
+
+        gate_y_pos = y_pos - GATE_HEIGHT / 2
+        output_pos = None
+        if node.op == '*':
+            output_pos = draw_and_gate(x_pos, gate_y_pos)
+        elif node.op == '+':
+            output_pos = draw_or_gate(x_pos, gate_y_pos)
+        elif node.op == '~': # Para negações complexas como ~(P*Q)
+            output_pos = draw_not_gate(x_pos, gate_y_pos)
         else:
-            resultado += expressao[i]
-            i += 1
-    return resultado
+            raise ValueError(f"Operador desconhecido: {node.op}")
 
-# Função para conexão da NOT
-def porta_nao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts):
-    if i + 1 < len(expressao_booleana):
-        proximo_simbolo = expressao_booleana[i + 1]
-        if proximo_simbolo in posicoes_variaveis:
-            draw_not_gate(100, y_pos - 90 + (ord(proximo_simbolo) - ord('P')) * 90)
-            draw_curve(posicoes_variaveis[proximo_simbolo][0] + 10, posicoes_variaveis[proximo_simbolo][1], 100, y_pos - 50 + (ord(proximo_simbolo) - ord('P')) * 90)
-            temp_counts[proximo_simbolo] += 1
-    return temp_counts
+        gate_inputs_y = [y_pos]
+        if num_children > 1:
+            gate_inputs_y = [gate_y_pos + 20, gate_y_pos + GATE_HEIGHT - 20]
 
-# Função para conexão da AND
-def porta_AND(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts):
-    simbolo_anterior = expressao_booleana[i - 1] if i > 0 else None
-    proximo_simbolo = expressao_booleana[i + 1] if i + 1 < len(expressao_booleana) else None
+        for i, child_out in enumerate(child_outputs):
+            input_pos = (x_pos, gate_inputs_y[i])
 
-    if proximo_simbolo == "~" or simbolo_anterior == "~":
-        temp_counts = porta_nao(i + 1, expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts)
-        proximo_simbolo = expressao_booleana[i + 2] if i + 2 < len(expressao_booleana) else None
+            if isinstance(child_out, tuple) and child_out[0] == 'bus':
+                bus_name = child_out[1]
+                bus_x = bus_x_coords[bus_name]
+                start_pos = (bus_x, input_pos[1])
+                draw_wire(start_pos, input_pos)
+                draw_connection_dot(start_pos)
+            else: # A entrada vem de outra porta, não de um barramento
+                start_pos = child_out
+                draw_wire(start_pos, input_pos)
 
-    for simbolo in [simbolo_anterior, proximo_simbolo]:
-        if simbolo in posicoes_variaveis:
-            if temp_counts[simbolo] > 0:
-                draw_curve(x_pos - 30, y_pos - 50 + (ord(simbolo) - ord('P')) * 90, x_pos, y_pos + 20)
-                temp_counts[simbolo] = 0
-            else:
-                draw_curve(posicoes_variaveis[simbolo][0] + 10, posicoes_variaveis[simbolo][1], x_pos, y_pos + 20)
+        return output_pos
 
-# Função para conexão da OR
-def porta_OR(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts):
-    simbolo_anterior = expressao_booleana[i - 1] if i > 0 else None
-    proximo_simbolo = expressao_booleana[i + 1] if i + 1 < len(expressao_booleana) else None
-
-    if proximo_simbolo == "~" or simbolo_anterior == "~":
-        temp_counts = porta_nao(i + 1, expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts)
-        proximo_simbolo = expressao_booleana[i + 2] if i + 2 < len(expressao_booleana) else None
-
-    for simbolo in [simbolo_anterior, proximo_simbolo]:
-        if simbolo in posicoes_variaveis:
-            if temp_counts[simbolo] > 0:
-                draw_curve(x_pos - 30, y_pos - 50 + (ord(simbolo) - ord('P')) * 90, x_pos + 10, y_pos + 20)
-                temp_counts[simbolo] = 0
-            else:
-                draw_curve(posicoes_variaveis[simbolo][0] + 10, posicoes_variaveis[simbolo][1], x_pos + 10, y_pos + 20)
-
-# Função para processar subexpressões
-def processa_subexpressao(expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts):
-    i = 0
-    while i < len(expressao_booleana):
-        simbolo = expressao_booleana[i]
-        if simbolo == ")":
-            draw_curve(x_pos - 90, y_pos + 40, x_pos, y_pos + 40)
-        elif simbolo == "*":
-            draw_and_gate(x_pos, y_pos)
-            porta_AND(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts)
-            x_pos += 150
-        elif simbolo == "+":
-            draw_or_gate(x_pos, y_pos)
-            porta_OR(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts)
-            x_pos += 150
-        elif simbolo == "~":
-            temp_counts = porta_nao(i, expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts)
-        i += 1
+def _coletar_variaveis(node):
+    if isinstance(node, VariableNode):
+        return {node.name}
+    if isinstance(node, OperatorNode):
+        vars = set()
+        for child in node.children:
+            vars.update(_coletar_variaveis(child))
+        return vars
+    return set()
 
 def plotar_circuito_logico(expressao_booleana):
-    x_pos = 200
-    y_pos = 150
-    posicoes_variaveis = {}
-    temp_counts = {"P": 0, "Q": 0, "R": 0, "S": 0, "T": 0}
+    """Função principal do desenho."""
+    try:
+        ast_root = criar_ast_de_expressao(expressao_booleana)
+    except ValueError as e:
+        print(f"Erro ao analisar a expressão: {e}")
+        font = pygame.font.Font(None, 40)
+        text = font.render(f"Erro: {e}", True, (255, 80, 80))
+        text_rect = text.get_rect(center=(screen_width/2, screen_height/2))
+        screen.blit(text, text_rect)
+        return
 
-    # Aplicar distributiva do NOT sobre parênteses
-    expressao_booleana = aplicar_distributiva_not(expressao_booleana)
+    variaveis = sorted(list(_coletar_variaveis(ast_root)))
+    bus_x_coords = {}
+    font = pygame.font.Font(None, 36)
 
-    # Desenha variáveis P, Q, R, S, T
-    for char in expressao_booleana:
-        if char in ["P", "Q", "R", "S", "T"] and char not in posicoes_variaveis:
-            posicoes_variaveis[char] = (50, 80 + (ord(char) - ord('P')) * 100)
-            draw_circle_label(50, 80 + (ord(char) - ord('P')) * 100, char)
+    bus_x_start = 80
+    bus_pair_spacing = 100 # Espaço entre pares de variáveis (ex: entre 'A' e 'B')
+    negated_line_offset = 50 # Espaço entre a linha 'A' e '~A'
 
-    processa_subexpressao(expressao_booleana, x_pos, y_pos, posicoes_variaveis, temp_counts)
+    for i, var_name in enumerate(variaveis):
+        # 1. Desenha o barramento principal (variável verdadeira)
+        true_bus_x = bus_x_start
+        pygame.draw.line(screen, WHITE, (true_bus_x, 40), (true_bus_x, screen_height - 40), 2)
+        text = font.render(var_name, True, LABEL_COLOR)
+        screen.blit(text, (true_bus_x - text.get_width() / 2, 10))
+        bus_x_coords[var_name] = true_bus_x
 
-# Converte a expressão para álgebra booleana
+        # 2. Desenha o barramento negado (sem a porta NOT)
+        negated_bus_x = true_bus_x + negated_line_offset
+        pygame.draw.line(screen, WHITE, (negated_bus_x, 40), (negated_bus_x, screen_height - 40), 2)
+        text = font.render(f"~{var_name}", True, LABEL_COLOR)
+        screen.blit(text, (negated_bus_x - text.get_width() / 2, 10))
+        bus_x_coords[f"~{var_name}"] = negated_bus_x
+
+        # 3. Ajusta a posição para o próximo par de barramentos
+        bus_x_start = negated_bus_x + bus_pair_spacing
+
+    # Inicia o processo de desenho recursivo
+    x_final_gate = screen_width - NODE_H_SPACING
+    y_final_gate = screen_height / 2
+    final_output_pos = processa_subexpressao(ast_root, x_final_gate, y_final_gate, bus_x_coords)
+
+    # Desenha o fio de saída final
+    if final_output_pos:
+        # Se a saída for apenas uma variável vinda de um barramento
+        if isinstance(final_output_pos, tuple) and final_output_pos[0] == 'bus':
+            bus_name = final_output_pos[1]
+            bus_x = bus_x_coords[bus_name]
+            start_pos = (bus_x, y_final_gate)
+            # Desenha o fio de saída
+            pygame.draw.line(screen, WHITE, start_pos, (screen_width - 20, y_final_gate), 3)
+            # NOVA ALTERAÇÃO: Adiciona o ponto de conexão na saída final
+            draw_connection_dot(start_pos, color=WHITE)
+        else: # Se a saída vem de uma porta
+            pygame.draw.line(screen, WHITE, final_output_pos, (final_output_pos[0] + 50, final_output_pos[1]), 3)
+
+
+# --- EXECUÇÃO PRINCIPAL ---
 expressao_booleana = converter_para_algebra_booleana(expressao)
 
-# Preenche a tela de fundo
-screen.fill(BLACK)
-
-# Plota o circuito na tela do pygame (na memória)
+screen.fill(BACKGROUND)
 plotar_circuito_logico(expressao_booleana)
 
-# Salva a imagem como PNG dentro da pasta assets
 caminho_imagem = os.path.join(ASSETS_PATH, "circuito.png")
 pygame.image.save(screen, caminho_imagem)
-print(f"Circuito salvo como imagem em: {caminho_imagem}")
+print(f"Circuito modificado salvo como imagem em: {caminho_imagem}")
 
-# Encerra o pygame
 pygame.quit()
 sys.exit()
-

@@ -14,6 +14,8 @@ import time
 from customtkinter import CTkFont
 import webbrowser
 import urllib.parse
+from BackEnd.identificar_lei import principal_simplificar, simplificar
+from contextlib import redirect_stdout
 
 
 botao_ver_circuito = None
@@ -238,6 +240,11 @@ def inicializar_interface():
         # limpa o "é equivalente e o não é equivalente"
         equivalente.place_forget()
         nao_equivalente.place_forget()
+        
+        # Esconde os resultados da aba de expressão ao voltar
+        label_convertida.pack_forget()
+        log_simplificacao_textbox.pack_forget()
+        botao_lei.pack_forget()
 
         show_frame(frame)  # troca o frame
 
@@ -342,7 +349,7 @@ def inicializar_interface():
         hover_color="#8B008B",
         border_width=2,
         border_color="#708090",
-        width=200,
+        width=250,
         height=50,
         font=("Arial", 16),
         command=lambda: show_frame(principal))
@@ -356,7 +363,7 @@ def inicializar_interface():
             hover_color="#8B008B",
             border_width=2,
             border_color="#708090",
-            width=200,
+            width=250,
             height=50,
             font=("Arial", 16),
             command=lambda: show_frame(frame_equivalencia))
@@ -471,40 +478,69 @@ def inicializar_interface():
     )
     botao_salvar.pack(pady=20)
 
-    # Aba da expressão
+ # ------------------------------------------------ Aba de Expressão ----------------------------------------------
+
     aba_expressao = abas.add("      Expressão      ")
     scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color="#000057")
     scroll_frame2.pack(expand=True, fill="both")
 
-    label_simplificacao = ctk.CTkLabel(scroll_frame2, text="O que deseja fazer com a expressão?", font=("Arial Bold", 20), text_color="white")
-    label_simplificacao.pack()
+    expressao_booleana_atual = ""
 
-    label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 14), text_color="white")
-    label_leis = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 14), text_color="white")
+    class GUILogger:
+        def __init__(self, textbox_widget):
+            self.textbox = textbox_widget
 
-    from BackEnd.identificar_lei import construir_arvore
-    from BackEnd.identificar_lei import simplificar
+        def write(self, text):
+            self.textbox.configure(state="normal")
+            self.textbox.insert("end", text)
+            self.textbox.see("end")
+            janela.update_idletasks()
+            self.textbox.configure(state="disabled")
 
-    def processo_simplificacao(expressao):
-        if not expressao:
-            popup_erro("Digite uma expressão primeiro.")
+        def flush(self):
+            pass
 
-        arvore = construir_arvore(expressao)
-        arvore_simplificada, procedimentos = simplificar(arvore)
-        texto = "\n".join(procedimentos)
-        texto += f"\n\nExpressão simplificada: {arvore_simplificada}"
-        texto += f"\n\nExpressão original: {expressao}"
-        label_leis.configure(text=texto)
-        label_leis.pack(pady=5)
+    label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 16, "bold"), text_color="cyan")
+    log_simplificacao_textbox = ctk.CTkTextbox(scroll_frame2,  wrap="word", font=("Consolas", 14), height=250)
+    log_simplificacao_textbox.configure(state="disabled", fg_color="#1c1c1c")
 
     def mostrar_expressao_convertida():
+        botao_lei.pack_forget()
+        log_simplificacao_textbox.pack_forget()
+        
+        nonlocal expressao_booleana_atual
+
         entrada_txt = entrada.get().strip().upper()
         if not entrada_txt:
             popup_erro("Digite uma expressão primeiro.")
             return
-        saida = converter_para_algebra_booleana(entrada_txt)
-        label_convertida.configure(text=f"Expressão convertida: {saida}")
-        label_convertida.pack(pady=5)
+
+        saida_booleana = converter_para_algebra_booleana(entrada_txt)
+        
+        expressao_booleana_atual = saida_booleana
+        
+        label_convertida.configure(text=f"Expressão em Álgebra Booleana: {saida_booleana}")
+        label_convertida.pack(pady=10)
+        
+        botao_lei.pack(pady=15)
+
+    def expressao_simplificada():
+        if not expressao_booleana_atual:
+            popup_erro("Erro: Nenhuma expressão convertida encontrada.")
+            return
+
+        log_simplificacao_textbox.pack(pady=10, padx=10, fill="x")
+        log_simplificacao_textbox.configure(state="normal")
+        log_simplificacao_textbox.delete("1.0", "end")
+        log_simplificacao_textbox.configure(state="disabled", text_color="white", fg_color="#000057", spacing3=-27)
+        
+        gui_logger = GUILogger(log_simplificacao_textbox)
+
+        with redirect_stdout(gui_logger):
+            try:
+                principal_simplificar(expressao_booleana_atual)
+            except Exception as e:
+                popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}")
 
     def abrir_duvida_expressao(expressao):
         if not expressao:
@@ -518,19 +554,7 @@ def inicializar_interface():
 
     botao_simplificar = ctk.CTkButton(
         scroll_frame2,
-        text="Processo de Simplificação",
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        command=lambda: processo_simplificacao(entrada.get().strip().upper())
-        )
-    botao_simplificar.pack(pady=5)
-    
-    botao_converter = ctk.CTkButton(
-        scroll_frame2,
-        text="Converter para Álgebra Booleana",
+        text="Realizar conversão",
         fg_color="#B0E0E6",
         text_color="#000080",
         hover_color="#8B008B",
@@ -538,8 +562,18 @@ def inicializar_interface():
         border_color="#708090",
         command=mostrar_expressao_convertida
     )
-    botao_converter.pack(pady=5)
+    botao_simplificar.pack(pady=10)
 
+    botao_lei = ctk.CTkButton(
+        scroll_frame2,
+        text="Simplificar expressão",
+        fg_color="#B0E0E6",
+        text_color="#000080",
+        hover_color="#8B008B",
+        border_width=2,
+        border_color="#708090",
+        command=expressao_simplificada
+    )
 
     botao_tabela = ctk.CTkButton(
         scroll_frame2, 
@@ -550,7 +584,7 @@ def inicializar_interface():
         hover_color="#8B008B",
         border_width=2,
         border_color="#708090",) 
-    botao_tabela.pack()
+    botao_tabela.pack(pady=10)
 
     botao_ia = ctk.CTkButton(
     scroll_frame2,
@@ -574,7 +608,7 @@ def inicializar_interface():
         width=200, 
         height=50, 
         font=("Arial", 16), 
-        command=lambda: (voltar_para(principal), label_leis.pack_forget()))
+        command=lambda: voltar_para(principal))
     botao_voltar5.pack(pady=30)
 
 
@@ -611,14 +645,25 @@ def inicializar_interface():
     ================================================
     Átomos aceitos:
     P, Q, R, S e T.
-
+   
     Representação de símbolos:
     '&' (e), '|' (ou), '!' (não) e '>' (implica).
     ---------------------------------Atenção:-------------------------------
+    Na hora de digitar a expressão, o usuário deve indicar quem é a operação raiz da expressão.
+    Exemplo: (P & Q) | ((P | Q) & (R | S))
+
+    ->((P > Q) & (R | S)) é uma das subexpressões;
+    ->(P & Q) é outra subexpressão;
+    
+    O que conecta as duas é o operador '|', que é a operação raiz da expressão como um todo.
+    ---------------------------------Funções:-------------------------------
     O usuário consegue realizar as seguintes funções:
     1- Ver o circuito equivalente
     2- Tabela verdade
-    3- Comparar expressões
+    3- Converter a expressão para Álgebra Booleana e comparar as expressões
+    4- Simplificar a expressão lógica proposicional
+    5- Verificar se duas expressões são equivalentes
+    6- Pedir ajuda à IA para simplificar a expressão lógica proposicional
     -------------------------------Motivação:-------------------------------
     A proposta é desenvolver uma aplicação com interface amigável que permita que o aluno possa entender as interações da Lógica Proposicional
     com Circuitos Digitais. Além de interligar as áreas do conhecimento, a aplicação será uma ferramenta de apoio ao aprendizado, permitindo que
