@@ -126,6 +126,9 @@ def inicializar_interface():
         caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
 
         expressao = entrada.get().strip().upper().replace(" ", "")
+
+        label_circuito_expressao.configure(text=f"Expressão Lógica Proposicional: {expressao}")
+        
         with open(caminho_entrada, "w", encoding="utf-8") as file: 
             file.write(expressao) 
 
@@ -446,6 +449,14 @@ def inicializar_interface():
     scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color="#000057")
     scroll_frame1.pack(expand=True, fill="both")
 
+    label_circuito_expressao = ctk.CTkLabel(
+        scroll_frame1,
+        font=("Arial", 16, "bold"),
+        text_color="cyan",
+        text=""  
+    )
+    label_circuito_expressao.pack(pady=10)
+
     imagem_circuito = ctk.CTkLabel(scroll_frame1, text="")
     imagem_circuito.pack(pady=10)
 
@@ -461,7 +472,7 @@ def inicializar_interface():
                 img = Image.open(caminho_img)
                 img.save(caminho_salvar)
         else:
-            popup_erro("Imagem não encontradaaa.")
+            popup_erro("Imagem não encontrada.")
 
     botao_salvar = ctk.CTkButton(
         scroll_frame1,
