@@ -461,7 +461,7 @@ def inicializar_interface():
                 img = Image.open(caminho_img)
                 img.save(caminho_salvar)
         else:
-            popup_erro("Imagem não encontrad.")
+            popup_erro("Imagem não encontradaaa.")
 
     botao_salvar = ctk.CTkButton(
         scroll_frame1,
