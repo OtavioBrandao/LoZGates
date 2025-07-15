@@ -512,7 +512,7 @@ def inicializar_interface():
 
         entrada_txt = entrada.get().strip().upper()
         if not entrada_txt:
-            popup_erro("Digite uma expressão primeiro.")
+            popup_erro("zil é besta demais.")
             return
 
         saida_booleana = converter_para_algebra_booleana(entrada_txt)
