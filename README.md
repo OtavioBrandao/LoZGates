@@ -24,8 +24,6 @@ Uma aplicação desktop desenvolvida para auxiliar no estudo da Lógica Proposic
 
 O "LoZ Gates" foi criado como uma ferramenta de apoio ao aprendizado, permitindo que estudantes possam praticar e compreender melhor os conceitos que interligam a lógica matemática e a eletrônica digital.
 
-*(Sugestão: Adicione aqui um GIF ou screenshots da aplicação em funcionamento para um README mais atrativo!)*
-
 ## ✨ Funcionalidades Principais
 
 -   **Visualização de Circuitos Lógicos:** Gera e exibe o circuito digital correspondente a uma expressão lógica proposicional.
@@ -56,8 +54,16 @@ Siga os passos abaixo para executar a aplicação em sua máquina local.
 
 COLOCAR AQUI OS PASSOS
 
-👨‍💻 Autores
-Este projeto foi desenvolvido por:
+
+### Execução
+
+Para iniciar a aplicação, execute o arquivo de interface principal:
+
+```bash
+python main.py
+```
+
+##👨‍💻 Autores
 
 Larissa de Souza
 
@@ -67,16 +73,7 @@ Zilderlan Santos
 
 David Oliveira
 
-🙏 Agradecimentos
+##🙏 Agradecimentos
+
 Um agradecimento especial ao Professor Doutor Evandro de Barros Costa e à Universidade Federal de Alagoas (UFAL) - Instituto de Computação, pelo apoio e orientação durante o desenvolvimento deste projeto.
-
-
-
-### Execução
-
-Para iniciar a aplicação, execute o arquivo de interface principal:
-
-```bash
-python main.py
-
 
