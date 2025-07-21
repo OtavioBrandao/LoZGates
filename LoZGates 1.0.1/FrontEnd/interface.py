@@ -296,8 +296,13 @@ def inicializar_interface():
     frame_educacional = ctk.CTkFrame(janela, fg_color="#000057")
     frame_educacional.grid(row=0, column=0, sticky="nsew")
 
+
     frame_resolucao_direta = ctk.CTkFrame(janela, fg_color="#000057")
     frame_resolucao_direta.grid(row=0, column=0, sticky="nsew")
+
+    scroll_conteudo = ctk.CTkScrollableFrame(frame_resolucao_direta, fg_color="#000057")
+    scroll_conteudo.pack(expand=True, fill="both", padx=20, pady=20)
+
 
     frame_interativo = ctk.CTkFrame(janela, fg_color="#000057")
     frame_interativo.grid(row=0, column=0, sticky="nsew")
@@ -436,6 +441,21 @@ def inicializar_interface():
         command= confirmar_expressao)
     bot.place(relx=0.5, y=300, anchor="center")
 
+    botao_problemas_reais = ctk.CTkButton(
+        principal,
+        text="Problemas Reais",
+        fg_color="#B0E0E6",
+        text_color="#000080",
+        hover_color="#8B008B",
+        border_width=2,
+        border_color="#708090",
+        width=200,
+        height=50,
+        font=("Arial", 16),
+        command=lambda: (show_frame(frame_problemas_reais), problemas_reais())
+    )
+    botao_problemas_reais.place(relx=0.5, y=400, anchor="center")
+
     botao_voltar1 = ctk.CTkButton(
         principal, 
         text="Voltar", 
@@ -448,12 +468,17 @@ def inicializar_interface():
         height=50, 
         font=("Arial", 16), 
         command=lambda: voltar_para(frame_escolha))
-    botao_voltar1.place(relx=0.5, y=400, anchor="center")
+    botao_voltar1.place(relx=0.5, y=500, anchor="center")
     # ---------------- Frames dos problemas reais ----------------
+     
+    def problemas_reais():
 
+        label_problemas = ctk.CTkLabel(frame_problemas_reais, text="Aqui você pode ver alguns problemas do mundo real que podem ser representados por circuitos lógicos e lógica proposicional.",
+                     font=("Arial", 18), text_color="white")
+        label_problemas.pack(pady=20)
 
-
-
+        container_problemas = ctk.CTkFrame(frame_problemas_reais, fg_color="#6D6DF3", height=900, width=300)
+        container_problemas.pack(pady=20)
 
 
 
@@ -548,11 +573,11 @@ def inicializar_interface():
             pass
 
     frame_borda = ctk.CTkFrame(
-        master=frame_resolucao_direta,
+        master=scroll_conteudo,
         fg_color="white", 
         corner_radius=10  
     )
-
+    
     label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 16, "bold"), text_color="white")
     log_simplificacao_textbox = ctk.CTkTextbox(frame_borda,  wrap="word", font=("Consolas", 18), height=600, width=900)
     log_simplificacao_textbox.configure(fg_color="#1c1c1c")
@@ -583,7 +608,7 @@ def inicializar_interface():
             return
         
         label_solucao = ctk.CTkLabel(
-            frame_resolucao_direta,
+            scroll_conteudo,
             text="Solução da expressão:",
             font=("Arial", 20, "bold"),
             text_color="white"
@@ -698,7 +723,7 @@ def inicializar_interface():
     botao_solucao.pack(pady=10)
 
     botao_voltar8 = ctk.CTkButton(
-        frame_resolucao_direta,
+        scroll_conteudo,
         text="Voltar",
         fg_color="goldenrod",
         text_color="#000080",
