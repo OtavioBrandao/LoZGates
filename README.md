@@ -54,14 +54,7 @@ Siga os passos abaixo para executar a aplicação em sua máquina local.
 
 ### Instalação
 
-
-### Execução
-
-Para iniciar a aplicação, execute o arquivo de interface principal:
-
-```bash
-python main.py
-
+COLOCAR AQUI OS PASSOS
 
 👨‍💻 Autores
 Este projeto foi desenvolvido por:
@@ -76,3 +69,14 @@ David Oliveira
 
 🙏 Agradecimentos
 Um agradecimento especial ao Professor Doutor Evandro de Barros Costa e à Universidade Federal de Alagoas (UFAL) - Instituto de Computação, pelo apoio e orientação durante o desenvolvimento deste projeto.
+
+
+
+### Execução
+
+Para iniciar a aplicação, execute o arquivo de interface principal:
+
+```bash
+python main.py
+
+
