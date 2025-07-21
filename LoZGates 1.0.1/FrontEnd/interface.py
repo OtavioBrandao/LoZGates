@@ -231,7 +231,10 @@ def inicializar_interface():
             botao_ver_circuito = None
 
         # limpa as entradas
-        entrada.delete(0, tk.END) 
+        if frame not in [frame_abas, frame_resolucao_direta, frame_educacional, frame_interativo]:
+            entrada.delete(0, tk.END) 
+
+            
         entrada2.delete(0, tk.END)  
         entrada3.delete(0, tk.END) 
         
@@ -244,10 +247,11 @@ def inicializar_interface():
         equivalente.place_forget()
         nao_equivalente.place_forget()
         
-        # Esconde os resultados da aba de expressão ao voltar
-        label_convertida.pack_forget()
-        log_simplificacao_textbox.pack_forget()
-        botao_lei.pack_forget()
+        # Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
+        if frame != frame_abas:
+            label_convertida.pack_forget()
+            log_simplificacao_textbox.pack_forget()
+            botao_simplificacao.pack_forget()
 
         show_frame(frame)  # troca o frame
 
@@ -288,6 +292,22 @@ def inicializar_interface():
 
     frame_abas = ctk.CTkFrame(janela, fg_color="#000057")
     frame_abas.grid(row=0, column=0, sticky="nsew")
+
+    frame_educacional = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_educacional.grid(row=0, column=0, sticky="nsew")
+
+    frame_resolucao_direta = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_resolucao_direta.grid(row=0, column=0, sticky="nsew")
+
+    frame_interativo = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_interativo.grid(row=0, column=0, sticky="nsew")
+
+    frame_problemas_reais = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_problemas_reais.grid(row=0, column=0, sticky="nsew")
+
+    frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
+
 
     # ---------------- Frame de Início ----------------
     frame_inicio_conteudo = ctk.CTkFrame(
@@ -429,6 +449,16 @@ def inicializar_interface():
         font=("Arial", 16), 
         command=lambda: voltar_para(frame_escolha))
     botao_voltar1.place(relx=0.5, y=400, anchor="center")
+    # ---------------- Frames dos problemas reais ----------------
+
+
+
+
+
+
+
+
+
 
     # ---------------- Frame de Abas----------------
     abas = ctk.CTkTabview(
@@ -500,23 +530,35 @@ def inicializar_interface():
     class GUILogger:
         def __init__(self, textbox_widget):
             self.textbox = textbox_widget
+            self.largura_linha = 150
 
         def write(self, text):
+            linhas = text.splitlines()
             self.textbox.configure(state="normal")
-            self.textbox.insert("end", text)
+            for linha in linhas:
+                linha = linha.strip()
+                if linha:
+                    self.textbox.insert("end", linha.strip() + "\n")
+                else:
+                    self.textbox.insert("end", "\n")
             self.textbox.see("end")
-            janela.update_idletasks()
             self.textbox.configure(state="disabled")
 
         def flush(self):
             pass
 
-    label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 16, "bold"), text_color="cyan")
-    log_simplificacao_textbox = ctk.CTkTextbox(scroll_frame2,  wrap="word", font=("Consolas", 14), height=250)
-    log_simplificacao_textbox.configure(state="disabled", fg_color="#1c1c1c")
+    frame_borda = ctk.CTkFrame(
+        master=frame_resolucao_direta,
+        fg_color="white", 
+        corner_radius=10  
+    )
+
+    label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 16, "bold"), text_color="white")
+    log_simplificacao_textbox = ctk.CTkTextbox(frame_borda,  wrap="word", font=("Consolas", 18), height=600, width=900)
+    log_simplificacao_textbox.configure(fg_color="#1c1c1c")
 
     def mostrar_expressao_convertida():
-        botao_lei.pack_forget()
+        botao_simplificacao.pack_forget()
         log_simplificacao_textbox.pack_forget()
         
         nonlocal expressao_booleana_atual
@@ -533,17 +575,30 @@ def inicializar_interface():
         label_convertida.configure(text=f"Expressão em Álgebra Booleana: {saida_booleana}")
         label_convertida.pack(pady=10)
         
-        botao_lei.pack(pady=15)
+        botao_simplificacao.pack(pady=15)
 
     def expressao_simplificada():
         if not expressao_booleana_atual:
             popup_erro("Erro: Nenhuma expressão convertida encontrada.")
             return
+        
+        label_solucao = ctk.CTkLabel(
+            frame_resolucao_direta,
+            text="Solução da expressão:",
+            font=("Arial", 20, "bold"),
+            text_color="white"
+        )
 
-        log_simplificacao_textbox.pack(pady=10, padx=10, fill="x")
+        label_solucao.pack(pady=20)
+        frame_borda.pack(pady=10)
+        frame_borda.configure(width=800)
+        log_simplificacao_textbox.pack(padx=10, pady=10, fill="both", expand=True)
+
         log_simplificacao_textbox.configure(state="normal")
         log_simplificacao_textbox.delete("1.0", "end")
-        log_simplificacao_textbox.configure(state="disabled", text_color="white", fg_color="#000057", spacing3=-27)
+        log_simplificacao_textbox.configure(text_color="#39FF14",spacing3=-27)
+
+        botao_voltar8.pack(pady=20)
         
         gui_logger = GUILogger(log_simplificacao_textbox)
 
@@ -563,7 +618,7 @@ def inicializar_interface():
         url = f"https://chat.openai.com/?q={query}"
         webbrowser.open(url)
 
-    botao_simplificar = ctk.CTkButton(
+    botao_conversao = ctk.CTkButton(
         scroll_frame2,
         text="Realizar conversão",
         fg_color="#B0E0E6",
@@ -573,9 +628,9 @@ def inicializar_interface():
         border_color="#708090",
         command=mostrar_expressao_convertida
     )
-    botao_simplificar.pack(pady=10)
+    botao_conversao.pack(pady=10)
 
-    botao_lei = ctk.CTkButton(
+    botao_simplificacao = ctk.CTkButton(
         scroll_frame2,
         text="Simplificar expressão",
         fg_color="#B0E0E6",
@@ -583,8 +638,94 @@ def inicializar_interface():
         hover_color="#8B008B",
         border_width=2,
         border_color="#708090",
-        command=expressao_simplificada
+        command=lambda: show_frame(frame_educacional)
     )
+
+    # Definição do frame educacional (frame pai aqui)
+    label_educacional = ctk.CTkLabel(
+        frame_educacional,
+        text="Escolha o que deseja fazer:",
+        font=("Arial Bold", 20),
+        text_color="white",
+        fg_color=None
+    )
+    label_educacional.pack(pady=100, padx=100)
+
+    botao_interativo = ctk.CTkButton(
+        frame_educacional,
+        text="Tentar Simplificar",
+        fg_color="#B0E0E6",
+        text_color="#000080",
+        hover_color="#8B008B",
+        border_width=2,
+        border_color="#708090",
+        width=200,
+        height=50,
+        font=("Arial", 16),
+        command=lambda: show_frame(frame_interativo)
+    )
+    botao_interativo.pack(pady=(30, 10))
+
+    botao_voltar9 = ctk.CTkButton(
+        frame_interativo,
+        text="Voltar",
+        fg_color="goldenrod",
+        text_color="#000080",
+        hover_color="#8B008B",
+        border_width=2,
+        border_color="#708090",
+        width=200,
+        height=50,
+        font=("Arial", 16),
+        command=lambda: voltar_para(frame_educacional)
+    )
+    botao_voltar9.pack(pady=(10, 20))
+
+    # Frame da resposta -----------------------------------------------
+    botao_solucao = ctk.CTkButton(
+        frame_educacional,
+        text="Ver Solução",
+        fg_color="#B0E0E6",
+        text_color="#000080",
+        hover_color="#8B008B",
+        border_width=2,
+        width=200,
+        height=50,
+        font=("Arial", 16),
+        border_color="#708090",
+        command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada())
+    )
+    botao_solucao.pack(pady=10)
+
+    botao_voltar8 = ctk.CTkButton(
+        frame_resolucao_direta,
+        text="Voltar",
+        fg_color="goldenrod",
+        text_color="#000080",
+        hover_color="#8B008B",
+        border_width=2,
+        border_color="#708090",
+        width=200,
+        height=50,
+        font=("Arial", 16),
+        command=lambda: voltar_para(frame_educacional)
+    )
+
+    #------------------------------------------------------------------------
+    botao_voltar7 = ctk.CTkButton(
+        frame_educacional,
+        text="Voltar",
+        fg_color="goldenrod",
+        text_color="#000080",
+        hover_color="#8B008B",
+        border_width=2,
+        border_color="#708090",
+        width=200,
+        height=50,
+        font=("Arial", 16),
+        command=lambda: voltar_para(frame_abas)
+    )
+    botao_voltar7.pack(pady=(10))
 
     botao_tabela = ctk.CTkButton(
         scroll_frame2, 
