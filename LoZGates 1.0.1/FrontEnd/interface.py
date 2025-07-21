@@ -700,12 +700,19 @@ def inicializar_interface():
         width=200,
         height=50,
         font=("Arial", 16),
-        command=lambda: show_frame(frame_interativo)
+        command=lambda: (show_frame(frame_interativo), parte_interativa())
     )
     botao_interativo.pack(pady=(30, 10))
 
+    escolher_caminho = ctk.CTkFrame(
+            frame_interativo,
+            fg_color="#FFFFFF",
+            height=800,
+            width=200
+        )
+    
     botao_voltar9 = ctk.CTkButton(
-        frame_interativo,
+        escolher_caminho,
         text="Voltar",
         fg_color="goldenrod",
         text_color="#000080",
@@ -717,7 +724,7 @@ def inicializar_interface():
         font=("Arial", 16),
         command=lambda: voltar_para(frame_educacional)
     )
-    botao_voltar9.pack(pady=(10, 20))
+    
 
     # Frame da resposta -----------------------------------------------
     botao_solucao = ctk.CTkButton(
@@ -750,6 +757,26 @@ def inicializar_interface():
     )
 
     #------------------------------------------------------------------------
+    def parte_interativa():
+    # Frame da parte interativa
+        escolher_caminho.pack_propagate(False)
+        escolher_caminho.pack(side="right", padx=(0, 350), pady=10)
+
+        area_expressao = ctk.CTkTextbox(
+        master=frame_interativo,
+        fg_color="#1c1c1c",
+        text_color="#39FF14",
+        font=("Consolas", 16),
+        wrap="word",
+        width=800,
+        height=800,
+        )
+        area_expressao.pack(side="left", padx=(250, 0), pady=10)
+
+        botao_voltar9.pack(pady=10)
+
+        
+
     botao_voltar7 = ctk.CTkButton(
         frame_educacional,
         text="Voltar",
@@ -800,7 +827,6 @@ def inicializar_interface():
         font=("Arial", 16), 
         command=lambda: voltar_para(principal))
     botao_voltar5.pack(pady=30)
-
 
     botao_voltar6 = ctk.CTkButton(
         scroll_frame1,
