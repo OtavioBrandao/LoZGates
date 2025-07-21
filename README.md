@@ -63,7 +63,8 @@ Para iniciar a aplicação, execute o arquivo de interface principal:
 python main.py
 ```
 
-##👨‍💻 Autores
+
+## 👨‍💻 Autores
 
 Larissa de Souza
 
@@ -73,7 +74,7 @@ Zilderlan Santos
 
 David Oliveira
 
-##🙏 Agradecimentos
+## 🙏 Agradecimentos
 
 Um agradecimento especial ao Professor Doutor Evandro de Barros Costa e à Universidade Federal de Alagoas (UFAL) - Instituto de Computação, pelo apoio e orientação durante o desenvolvimento deste projeto.
 
