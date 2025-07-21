@@ -477,14 +477,27 @@ def inicializar_interface():
                      font=("Arial", 18), text_color="white")
         label_problemas.pack(pady=20)
 
-        container_problemas = ctk.CTkFrame(frame_problemas_reais, fg_color="#6D6DF3", height=900, width=300)
+        container_problemas = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#B7B7DD", height=1200, width=300)
         container_problemas.pack(pady=20)
 
 
-
-
-
-
+        problemas = ["Problema 1", "Problema 2", "Problema 3", "Problema 4", "Problema 5", "Problema 6", "Problema 7", "Problema 8", "Problema 9", "Problema 10",
+        "Problema 11", "Problema 12", "Problema 13", "Problema 14", "Problema 15", "Problema 16", "Problema 17", "Problema 18", "Problema 19", "Problema 20"]
+        # Ver um if pra ver se o problema é facil dificil ou medio, talvez ver a possibilidade de usar POO pra o problema
+        for problema in problemas:
+            botao_problema = ctk.CTkButton(
+                container_problemas,
+                text=problema,
+                fg_color="#B0E0E6",
+                text_color="#000080",
+                hover_color="#8B008B",
+                border_width=2,
+                border_color="#708090",
+                width=250,
+                height=50,
+                font=("Arial", 16),
+            )
+            botao_problema.pack(pady=10)
     # ---------------- Frame de Abas----------------
     abas = ctk.CTkTabview(
         master=frame_abas,
