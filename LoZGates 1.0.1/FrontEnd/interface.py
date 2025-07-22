@@ -615,17 +615,23 @@ def inicializar_interface():
         
         botao_simplificacao.pack(pady=15)
 
+    label_solucao = ctk.CTkLabel(
+        scroll_conteudo,
+        text="Solução da expressão:",
+        font=("Arial", 20, "bold"),
+        text_color="white"
+    )
+
     def expressao_simplificada():
         if not expressao_booleana_atual:
             popup_erro("Erro: Nenhuma expressão convertida encontrada.")
             return
-        
-        label_solucao = ctk.CTkLabel(
-            scroll_conteudo,
-            text="Solução da expressão:",
-            font=("Arial", 20, "bold"),
-            text_color="white"
-        )
+        # Solução talvez um pouco ineficiente, mas funciona
+        if label_solucao.winfo_ismapped():
+            label_solucao.pack_forget()
+            log_simplificacao_textbox.pack_forget()
+            frame_borda.pack_forget()
+            botao_voltar8.pack_forget()
 
         label_solucao.pack(pady=20)
         frame_borda.pack(pady=10)
@@ -775,8 +781,7 @@ def inicializar_interface():
 
         botao_voltar9.pack(pady=10)
 
-        
-
+    
     botao_voltar7 = ctk.CTkButton(
         frame_educacional,
         text="Voltar",
