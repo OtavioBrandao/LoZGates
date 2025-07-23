@@ -172,40 +172,45 @@ def inicializar_interface():
             command=lambda: trocar_para_abas())
         botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
 
+
     def exibir_tabela_verdade(expressao):
-            # Cria uma nova janela
-            janela_tabela = ctk.CTkToplevel(janela)
-            janela_tabela.title("Tabela Verdade")
-            janela_tabela.geometry("400x400")
-            janela_tabela.lift()               # Traz para frente
-            janela_tabela.attributes('-topmost', True)  # Mantém no topo
-            janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
-            # Gera a tabela verdade usando a função do backend
-            variaveis, combinacoes, resultados = gerar_tabela_verdade(expressao)
+        janela_tabela = ctk.CTkToplevel(janela)
+        janela_tabela.title("Tabela Verdade")
+        janela_tabela.geometry("800x600") #Aumentei a largura para caber, ja que nao sei colocar scroll pro lado
+        janela_tabela.lift()
+        janela_tabela.attributes('-topmost', True)
+        janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
 
-            # Cria um frame para exibir a tabela verdade
-            frame_tabela = ctk.CTkFrame(janela_tabela)
-            frame_tabela.pack(pady=10, padx=10, fill="both", expand=True)
+        #Gera a tabela verdade usando a função do backend
+        dados_tabela = gerar_tabela_verdade(expressao)
+        
+        #Extrai os dados do dicionário retornado
+        colunas = dados_tabela["colunas"]
+        tabela = dados_tabela["tabela"]
+        resultados_finais = dados_tabela["resultados_finais"]
 
-            # Cria um label para o cabeçalho da tabela
-            cabecalho = " ".join(variaveis) + " | Resultado"
-            label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho, font=("Arial", 20))
-            label_cabecalho.pack()
+        #Cria um frame para exibir a tabela verdade
+        frame_tabela = ctk.CTkScrollableFrame(janela_tabela)
+        frame_tabela.pack(pady=10, padx=10, fill="both", expand=True)
 
-            # Adiciona uma linha separadora
-            separador = ctk.CTkLabel(frame_tabela, text="-" * (len(variaveis) * 3 + 12))
-            separador.pack()
+        cabecalho_str = " | ".join([f"{col:^10}" for col in colunas])
+        label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho_str, font=("Consolas", 14, "bold"))
+        label_cabecalho.pack(pady=(5, 0))
 
-            # Adiciona as linhas da tabela
-            for valores, resultado in zip(combinacoes, resultados):
-                linha = " ".join(str(int(v)) for v in valores) + " | " + str(int(resultado))
-                label_linha = ctk.CTkLabel(frame_tabela, text=linha, font=("Arial", 20))
-                label_linha.pack()
+        separador_str = "-".join(["-" * 10 for _ in colunas])
+        separador = ctk.CTkLabel(frame_tabela, text=separador_str, font=("Consolas", 14))
+        separador.pack()
 
-            # Verifica a conclusão da expressão
-            conclusao = verificar_conclusao(resultados)
-            label_conclusao = ctk.CTkLabel(frame_tabela, text=conclusao, font=("Arial", 14, "bold"))
-            label_conclusao.pack(pady=10)
+        #Adiciona as linhas da tabela
+        for linha_valores in tabela:
+            linha_str = " | ".join([f"{str(val):^10}" for val in linha_valores])
+            label_linha = ctk.CTkLabel(frame_tabela, text=linha_str, font=("Consolas", 14))
+            label_linha.pack()
+
+        #Verifica a conclusão da expressão (Tautologia, Contradição ou Satisfatível)
+        conclusao = verificar_conclusao(resultados_finais)
+        label_conclusao = ctk.CTkLabel(frame_tabela, text=conclusao, font=("Arial", 16, "bold"))
+        label_conclusao.pack(pady=20)
 
     def comparar():
         expressao2 = entrada2.get().strip().upper()
@@ -576,14 +581,15 @@ def inicializar_interface():
             for linha in linhas:
                 linha = linha.strip()
                 if linha:
-                    self.textbox.insert("end", linha.strip() + "\n")
-                else:
-                    self.textbox.insert("end", "\n")
+                    #queria que ele centralizasse o texto, mas não consegui
+                    if len(linha) > self.largura_linha:
+                        # Divide a linha em partes menores
+                        partes = [linha[i:i+self.largura_linha] for i in range(0, len(linha), self.largura_linha)]
+                        for parte in partes:
+                            self.textbox.insert("end", parte.strip() + "\n")
+                    else:
+                        self.textbox.insert("end", linha.strip() + "\n")
             self.textbox.see("end")
-            self.textbox.configure(state="disabled")
-
-        def flush(self):
-            pass
 
     frame_borda = ctk.CTkFrame(
         master=scroll_conteudo,
