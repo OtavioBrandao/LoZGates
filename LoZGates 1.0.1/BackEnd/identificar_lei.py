@@ -252,27 +252,24 @@ def principal_simplificar(expressao_usuario):
  
     #expressao_usuario = input("\nDigite a expressão lógica (use !, &, |) ou 'sair' para terminar: ")
     expressao_usuario = expressao_usuario.replace("+", "|").replace("*", "&").replace("~", "!")
-    print(f"\n=======================================================")
-    print(f"Expressão Original: {expressao_usuario}")
-    print(f"=======================================================")
+    print(f"\n=====================================================================")
+    print(f"\t\tExpressão Original: {expressao_usuario}")
+    print(f"=====================================================================")
 
     try:
         arvore = construir_arvore(expressao_usuario)
-        print(f"Árvore Inicial: {arvore}")
         
         arvore_simplificada = simplificar(arvore)
         
         print("\n------------------ Resultado Final -------------------")
-        print(f"Expressão Original    : {expressao_usuario}")
+        print(f"Expressão Original    : {expressao_usuario}")
         print(f"Expressão Simplificada: {arvore_simplificada}")
-        print("--------------------------------------------------------\n")
+        print("------------------------------------------------------\n")
 
     except Exception as e:
         print(f"Ocorreu um erro ao processar a expressão: {e}")
         print("Por favor, verifique se a sintaxe está correta (ex: 'P & (Q | !R)').")
         
-
-
 '''
 -------------------------casos testes------------------
 
