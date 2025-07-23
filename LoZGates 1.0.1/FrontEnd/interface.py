@@ -765,8 +765,9 @@ def inicializar_interface():
     #------------------------------------------------------------------------
     def parte_interativa():
     # Frame da parte interativa
+    # Ver como colocar IA dps
         escolher_caminho.pack_propagate(False)
-        escolher_caminho.pack(side="right", padx=(0, 350), pady=10)
+        escolher_caminho.pack(side="right", padx=(20, 350), pady=10)
 
         area_expressao = ctk.CTkTextbox(
         master=frame_interativo,
@@ -777,7 +778,7 @@ def inicializar_interface():
         width=800,
         height=800,
         )
-        area_expressao.pack(side="left", padx=(250, 0), pady=10)
+        area_expressao.pack(side="left", padx=(250, 20), pady=10)
 
         botao_voltar9.pack(pady=10)
 
