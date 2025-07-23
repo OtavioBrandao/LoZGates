@@ -180,6 +180,7 @@ def inicializar_interface():
         janela_tabela.lift()
         janela_tabela.attributes('-topmost', True)
         janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
+        janela_tabela.configure(fg_color="#FFFFFF")
 
         #Gera a tabela verdade usando a função do backend
         dados_tabela = gerar_tabela_verdade(expressao)
@@ -192,6 +193,7 @@ def inicializar_interface():
         #Cria um frame para exibir a tabela verdade
         frame_tabela = ctk.CTkScrollableFrame(janela_tabela)
         frame_tabela.pack(pady=10, padx=10, fill="both", expand=True)
+        frame_tabela.configure(fg_color="#000057")
 
         cabecalho_str = " | ".join([f"{col:^10}" for col in colunas])
         label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho_str, font=("Consolas", 14, "bold"))
