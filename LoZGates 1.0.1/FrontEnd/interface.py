@@ -867,43 +867,54 @@ def inicializar_interface():
         fg_color="#000057"
     )
     textbox_info.pack(expand=True, fill="both", padx=20, pady=20)
+    textbox_info.configure(fg_color="#00002C", text_color="white")  # Permitir edição para inserir o texto
     # Definindo o conteúdo do Textbox
     info_text = """
-    Alunos responsáveis:
-    Larissa de Souza, Otávio Menezes, Zilderlan Santos e
-    David Oliveira.
-    ================================================
-    Átomos aceitos:
-    P, Q, R, S e T.
-   
-    Representação de símbolos:
-    '&' (e), '|' (ou), '!' (não) e '>' (implica).
-    ---------------------------------Atenção:-------------------------------
-    Na hora de digitar a expressão, o usuário deve indicar quem é a operação raiz da expressão.
-    Exemplo: (P & Q) | ((P | Q) & (R | S))
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎓 Alunos responsáveis:
+- Larissa de Souza
+- Otávio Menezes
+- Zilderlan Santos
+- David Oliveira
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 Átomos aceitos:
+P, Q, R, S, T
 
-    ->((P > Q) & (R | S)) é uma das subexpressões;
-    ->(P & Q) é outra subexpressão;
-    
-    O que conecta as duas é o operador '|', que é a operação raiz da expressão como um todo.
-    ---------------------------------Funções:-------------------------------
-    O usuário consegue realizar as seguintes funções:
-    1- Ver o circuito equivalente
-    2- Tabela verdade
-    3- Converter a expressão para Álgebra Booleana e comparar as expressões
-    4- Simplificar a expressão lógica proposicional
-    5- Verificar se duas expressões são equivalentes
-    6- Pedir ajuda à IA para simplificar a expressão lógica proposicional
-    -------------------------------Motivação:-------------------------------
-    A proposta é desenvolver uma aplicação com interface amigável que permita que o aluno possa entender as interações da Lógica Proposicional
-    com Circuitos Digitais. Além de interligar as áreas do conhecimento, a aplicação será uma ferramenta de apoio ao aprendizado, permitindo que
-    o aluno praticar e entender melhor os conceitos que envolvem as duas áreas.
-    ================================================
-    Universidade Federal de Alagoas
-    Instituto de Computação
-    Professor Doutor Evandro de Barros Costa
-    ================================================
-    """
+🔣 Símbolos lógicos utilizados:
+- '&'  → E (conjunção)
+- '|'  → OU (disjunção)
+- '!'  → NÃO (negação)
+- '>'  → IMPLICA (condicional)
+
+⚠️ Atenção!
+Ao digitar a expressão, o usuário deve indicar **qual é a operação raiz** da expressão.
+
+📝 Exemplo:
+    (P & Q) | ((P | Q) & (R | S))
+
+- ((P > Q) & (R | S)) é uma subexpressão
+- (P & Q) é outra subexpressão
+➡ O operador que conecta as duas é o **'|'**, que representa a **operação raiz** da expressão.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠️ Funcionalidades disponíveis:
+1. Visualizar o circuito lógico equivalente
+2. Gerar a tabela verdade
+3. Converter a expressão para Álgebra Booleana e comparar
+4. Simplificar a expressão lógica proposicional
+5. Verificar se duas expressões são logicamente equivalentes
+6. Obter ajuda da IA para simplificação
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 Motivação:
+A proposta é desenvolver uma aplicação com interface amigável que ajude os alunos a compreenderem as interações entre **Lógica Proposicional** e **Circuitos Digitais**. Essa ferramenta visa promover o aprendizado prático e interdisciplinar, conectando conceitos de diferentes áreas.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏛️ Universidade Federal de Alagoas  
+🏢 Instituto de Computação  
+👨‍🏫 Prof. Dr. Evandro de Barros Costa
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+
 
     textbox_info.insert("0.0", info_text)  # Inserir o texto no Textbox
     textbox_info.configure(state="disable")  # Desativar edição para evitar modificações
