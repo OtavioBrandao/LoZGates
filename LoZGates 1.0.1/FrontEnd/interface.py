@@ -16,8 +16,10 @@ import webbrowser
 import urllib.parse
 from BackEnd.identificar_lei import principal_simplificar, simplificar
 from contextlib import redirect_stdout
+from BackEnd.simplificador_interativo import modo_interativo
 
 
+expressao_global = ""
 botao_ver_circuito = None
 label_convertida = None
 
@@ -133,6 +135,8 @@ def inicializar_interface():
             file.write(expressao) 
 
         saida = converter_para_algebra_booleana(expressao)
+        global expressao_global
+        expressao_global = saida
 
         ver_circuito_pygame(saida)
         show_frame(frame_abas)
@@ -491,6 +495,7 @@ def inicializar_interface():
         problemas = ["Problema 1", "Problema 2", "Problema 3", "Problema 4", "Problema 5", "Problema 6", "Problema 7", "Problema 8", "Problema 9", "Problema 10",
         "Problema 11", "Problema 12", "Problema 13", "Problema 14", "Problema 15", "Problema 16", "Problema 17", "Problema 18", "Problema 19", "Problema 20"]
         # Ver um if pra ver se o problema é facil dificil ou medio, talvez ver a possibilidade de usar POO pra o problema
+        
         for problema in problemas:
             botao_problema = ctk.CTkButton(
                 container_problemas,
@@ -505,6 +510,24 @@ def inicializar_interface():
                 font=("Arial", 16),
             )
             botao_problema.pack(pady=10)
+            
+     
+        botao_voltar_problemas = ctk.CTkButton(
+            container_problemas,
+            text="Voltar",
+            fg_color="goldenrod",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=250,
+            height=50,
+            font=("Arial", 16),
+            command=lambda: voltar_para(principal)
+        )
+        botao_voltar_problemas.pack(pady=10)
+            
+        
     # ---------------- Frame de Abas----------------
     abas = ctk.CTkTabview(
         master=frame_abas,
@@ -717,7 +740,8 @@ def inicializar_interface():
         command=lambda: (show_frame(frame_interativo), parte_interativa())
     )
     botao_interativo.pack(pady=(30, 10))
-
+    
+    
     escolher_caminho = ctk.CTkFrame(
             frame_interativo,
             fg_color="#FFFFFF",
@@ -725,7 +749,7 @@ def inicializar_interface():
             width=200
         )
     
-    botao_voltar9 = ctk.CTkButton(
+    botao_voltar_interativo = ctk.CTkButton(
         escolher_caminho,
         text="Voltar",
         fg_color="goldenrod",
@@ -787,9 +811,166 @@ def inicializar_interface():
         height=800,
         )
         area_expressao.pack(side="left", padx=(250, 20), pady=10)
+        # Botões de leis lógicas
+        botao_inversao = ctk.CTkButton(
+            escolher_caminho,
+            text="Inversa (A * ~A = 0)",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        
+        botao_demorgan = ctk.CTkButton(
+            escolher_caminho,
+            text="Leis de De Morgan",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        
+        botao_absorcao = ctk.CTkButton(
+            escolher_caminho,
+            text="Leis de Absorção",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        
+        botao_identidade = ctk.CTkButton(
+            escolher_caminho,
+            text="Leis de Identidade",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        
+        botao_idempotencia = ctk.CTkButton(
+            escolher_caminho,
+            text="Leis de Idempotência",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        
+        botao_comutatividade = ctk.CTkButton(
+            escolher_caminho,
+            text="Leis de Comutatividade",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        
+        botao_distributividade = ctk.CTkButton(
+            escolher_caminho,
+            text="Leis de Distributividade",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        
+        botao_leinula = ctk.CTkButton(
+            escolher_caminho,
+            text="Leis de Leinula",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        
+        botao_associatividade = ctk.CTkButton(
+            escolher_caminho,
+            text="Leis de Associatividade",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        botao_pular = ctk.CTkButton(
+            escolher_caminho,
+            text="Pular",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )            
 
-        botao_voltar9.pack(pady=10)
-
+        botao_absorcao.pack(pady=5)
+        botao_identidade.pack(pady=5)
+        botao_idempotencia.pack(pady=5)
+        botao_comutatividade.pack(pady=5)
+        botao_distributividade.pack(pady=5)
+        botao_leinula.pack(pady=5)
+        botao_associatividade.pack(pady=5)
+        botao_inversao.pack(pady=5)
+        botao_demorgan.pack(pady=5)
+        botao_pular.pack(pady=5)
+        
+        botao_voltar_interativo.pack(pady=5)
+        interativo = modo_interativo(expressao_global)
+    
+        texto_interativo = interativo
+        area_expressao.insert("1.0", texto_interativo)
+        
+        botao_simplificar = ctk.CTkButton(
+            frame_interativo,
+            text="Simplificar Expressão",
+            fg_color="#B0E0E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=200,
+            height=50,
+            font=("Arial", 16),
+        )
+        botao_simplificar.pack(pady=10)
     
     botao_voltar7 = ctk.CTkButton(
         frame_educacional,

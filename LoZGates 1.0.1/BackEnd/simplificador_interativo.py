@@ -1,4 +1,5 @@
 import time
+passar_pro_front = []
 
 class Node:
     """
@@ -11,10 +12,10 @@ class Node:
         self.direita = direita
 
     def __str__(self):
-        if self.valor in ('&', '|'):
+        if self.valor in ('*', '+'):
             return f"({self.esquerda}{self.valor}{self.direita})"
-        elif self.valor == '!':
-            return f"!{self.esquerda}"
+        elif self.valor == '~':
+            return f"~{self.esquerda}"
         else:
             return str(self.valor)
 
@@ -27,8 +28,8 @@ def construir_arvore(expr):
             c = s[i]
             if c == ')': depth += 1
             elif c == '(': depth -= 1
-            elif c == '|' and depth == 0:
-                return Node('|', construir_arvore_or(s[:i]), construir_arvore_and(s[i+1:]))
+            elif c == '+' and depth == 0:
+                return Node('+', construir_arvore_or(s[:i]), construir_arvore_and(s[i+1:]))
         return construir_arvore_and(s)
 
     def construir_arvore_and(s):
@@ -37,13 +38,13 @@ def construir_arvore(expr):
             c = s[i]
             if c == ')': depth += 1
             elif c == '(': depth -= 1
-            elif c == '&' and depth == 0:
-                return Node('&', construir_arvore_and(s[:i]), construir_arvore_not(s[i+1:]))
+            elif c == '*' and depth == 0:
+                return Node('*', construir_arvore_and(s[:i]), construir_arvore_not(s[i+1:]))
         return construir_arvore_not(s)
 
     def construir_arvore_not(s):
-        if s.startswith('!'):
-            return Node('!', esquerda=construir_arvore_or(s[1:]))
+        if s.startswith('~'):
+            return Node('~', esquerda=construir_arvore_or(s[1:]))
         elif s.startswith('(') and s.endswith(')'):
             return construir_arvore_or(s[1:-1])
         else:
@@ -56,69 +57,69 @@ def construir_arvore(expr):
 def sao_inversos(n1, n2):
     if not n1 or not n2:
         return False
-    return (n1.valor == '!' and str(n1.esquerda) == str(n2)) or \
-           (n2.valor == '!' and str(n2.esquerda) == str(n1))
+    return (n1.valor == '~' and str(n1.esquerda) == str(n2)) or \
+           (n2.valor == '~' and str(n2.esquerda) == str(n1))
 
 def pode_demorgan(node):
-    return node and node.valor == '!' and node.esquerda and node.esquerda.valor in ('&', '|')
+    return node and node.valor == '~' and node.esquerda and node.esquerda.valor in ('*', '+')
 
 def pode_identidade(node):
     if not node or not node.esquerda or not node.direita: return False
-    if node.valor == '&':
+    if node.valor == '*':
         return str(node.esquerda) == '1' or str(node.direita) == '1'
-    elif node.valor == '|':
+    elif node.valor == '+':
         return str(node.esquerda) == '0' or str(node.direita) == '0'
     return False
 
 def pode_nula(node):
     if not node or not node.esquerda or not node.direita: return False
-    if node.valor == '&':
+    if node.valor == '*':
         return str(node.esquerda) == '0' or str(node.direita) == '0'
-    elif node.valor == '|':
+    elif node.valor == '+':
         return str(node.esquerda) == '1' or str(node.direita) == '1'
     return False
 
 def pode_idempotente(node):
-    return node and node.valor in ('&', '|') and node.esquerda and node.direita and str(node.esquerda) == str(node.direita)
+    return node and node.valor in ('*', '+') and node.esquerda and node.direita and str(node.esquerda) == str(node.direita)
 
 def pode_inversa(node):
-    return node and node.valor in ('&', '|') and node.esquerda and node.direita and sao_inversos(node.esquerda, node.direita)
+    return node and node.valor in ('*', '+') and node.esquerda and node.direita and sao_inversos(node.esquerda, node.direita)
 
 def pode_absorcao(node):
     if not node or not node.esquerda or not node.direita:
         return False
-    #A & (A | B) ou A & (B | A)
-    if node.valor == '&' and node.direita.valor == '|':
+    #A * (A + B) ou A * (B + A)
+    if node.valor == '*' and node.direita.valor == '+':
         if str(node.esquerda) == str(node.direita.esquerda) or str(node.esquerda) == str(node.direita.direita):
             return True
-    #(A | B) & A ou (B | A) & A
-    if node.valor == '&' and node.esquerda.valor == '|':
+    #(A + B) * A ou (B + A) * A
+    if node.valor == '*' and node.esquerda.valor == '+':
         if str(node.direita) == str(node.esquerda.esquerda) or str(node.direita) == str(node.esquerda.direita):
             return True
-    #A | (A & B) ou A | (B & A)
-    if node.valor == '|' and node.direita.valor == '&':
+    #A + (A * B) ou A + (B * A)
+    if node.valor == '+' and node.direita.valor == '*':
         if str(node.esquerda) == str(node.direita.esquerda) or str(node.esquerda) == str(node.direita.direita):
             return True
-    #(A & B) | A ou (B & A) | A
-    if node.valor == '|' and node.esquerda.valor == '&':
+    #(A * B) + A ou (B * A) + A
+    if node.valor == '+' and node.esquerda.valor == '*':
         if str(node.direita) == str(node.esquerda.esquerda) or str(node.direita) == str(node.esquerda.direita):
             return True
     return False
 
 def pode_distributiva(node):
     if not node: return False
-    #A | (B & C) -> (A | B) & (A | C)
-    if node.valor == '|' and node.direita and node.direita.valor == '&':
+    #A + (B * C) -> (A + B) * (A + C)
+    if node.valor == '+' and node.direita and node.direita.valor == '*':
         return True
-    if node.valor == '|' and node.esquerda and node.esquerda.valor == '&':
+    if node.valor == '+' and node.esquerda and node.esquerda.valor == '*':
         return True
-    #A & (B | C) -> (A & B) | (A & C) (a mais comum para expansão)
-    if node.valor == '&' and node.direita and node.direita.valor == '|':
+    #A * (B + C) -> (A * B) + (A * C) (a mais comum para expansão)
+    if node.valor == '*' and node.direita and node.direita.valor == '+':
         return True
-    if node.valor == '&' and node.esquerda and node.esquerda.valor == '|':
+    if node.valor == '*' and node.esquerda and node.esquerda.valor == '+':
         return True
-    #(A|B) & (A|C) -> A | (B&C) (a mais comum para simplificação)
-    if node.valor == '&' and node.esquerda and node.direita and node.esquerda.valor == '|' and node.direita.valor == '|':
+    #(A+B) * (A+C) -> A + (B*C) (a mais comum para simplificação)
+    if node.valor == '*' and node.esquerda and node.direita and node.esquerda.valor == '+' and node.direita.valor == '+':
         a, b = node.esquerda.esquerda, node.esquerda.direita
         c, d = node.direita.esquerda, node.direita.direita
         if any(str(x) == str(y) for x in [a,b] for y in [c,d]):
@@ -128,55 +129,55 @@ def pode_distributiva(node):
 def pode_associativa(node):
     if not node: return False
     #(A op B) op C  -> A op (B op C)
-    if node.valor in ('&', '|') and node.esquerda and node.esquerda.valor == node.valor:
+    if node.valor in ('*', '+') and node.esquerda and node.esquerda.valor == node.valor:
         return True
     #A op (B op C) -> (A op B) op C
-    if node.valor in ('&', '|') and node.direita and node.direita.valor == node.valor:
+    if node.valor in ('*', '+') and node.direita and node.direita.valor == node.valor:
         return True
     return False
 
 def pode_comutativa(node):
     if not node or not node.esquerda or not node.direita: return False
-    #Aplica para ordenar (ex: B & A -> A & B)
-    return node.valor in ('&', '|') and str(node.direita) < str(node.esquerda)
+    #Aplica para ordenar (ex: B * A -> A * B)
+    return node.valor in ('*', '+') and str(node.direita) < str(node.esquerda)
 
 #------------------ Leis Lógicas -------------------
 
 def demorgan(node):
     inner = node.esquerda
-    novo_op = '|' if inner.valor == '&' else '&'
-    return Node(novo_op, Node('!', inner.esquerda), Node('!', inner.direita))
+    novo_op = '+' if inner.valor == '*' else '*'
+    return Node(novo_op, Node('~', inner.esquerda), Node('~', inner.direita))
 
 def identidade(node):
-    if node.valor == '&':
+    if node.valor == '*':
         return node.direita if str(node.esquerda) == '1' else node.esquerda
-    elif node.valor == '|':
+    elif node.valor == '+':
         return node.direita if str(node.esquerda) == '0' else node.esquerda
 
 def nula(node):
-    return Node('0') if node.valor == '&' else Node('1')
+    return Node('0') if node.valor == '*' else Node('1')
 
 def idempotente(node):
     return node.esquerda
 
 def inversa(node):
-    return Node('0') if node.valor == '&' else Node('1')
+    return Node('0') if node.valor == '*' else Node('1')
 
 def absorcao(node):
-    #A & (A|B) = A
-    if node.valor == '&' and node.direita.valor == '|': return node.esquerda
-    #(A|B) & A = A
-    if node.valor == '&' and node.esquerda.valor == '|': return node.direita
-    #A | (A&B) = A
-    if node.valor == '|' and node.direita.valor == '&': return node.esquerda
-    #(A&B) | A = A
-    if node.valor == '|' and node.esquerda.valor == '&': return node.direita
+    #A * (A+B) = A
+    if node.valor == '*' and node.direita.valor == '+': return node.esquerda
+    #(A+B) * A = A
+    if node.valor == '*' and node.esquerda.valor == '+': return node.direita
+    #A + (A*B) = A
+    if node.valor == '+' and node.direita.valor == '*': return node.esquerda
+    #(A*B) + A = A
+    if node.valor == '+' and node.esquerda.valor == '*': return node.direita
     #Caso não corresponda, retorna o original (embora a verificação deva impedir isso)
     return node
 
 def distributiva(node):
-    #Simplificação: (A|B) & (A|C) -> A | (B&C)
-    if node.valor == '&' and node.esquerda.valor == '|' and node.direita.valor == '|':
+    #Simplificação: (A+B) * (A+C) -> A + (B*C)
+    if node.valor == '*' and node.esquerda.valor == '+' and node.direita.valor == '+':
         a, b = node.esquerda.esquerda, node.esquerda.direita
         c, d = node.direita.esquerda, node.direita.direita
         common, o1, o2 = (None, None, None)
@@ -185,16 +186,16 @@ def distributiva(node):
         elif str(b) == str(c): common, o1, o2 = b, a, d
         elif str(b) == str(d): common, o1, o2 = b, a, c
         if common:
-            return Node('|', common, Node('&', o1, o2))
+            return Node('+', common, Node('*', o1, o2))
             
-    #Expansão: A & (B | C) -> (A & B) | (A & C)
-    if node.valor == '&':
-        if node.direita and node.direita.valor == '|':
+    #Expansão: A * (B + C) -> (A * B) + (A * C)
+    if node.valor == '*':
+        if node.direita and node.direita.valor == '+':
              a, b, c = node.esquerda, node.direita.esquerda, node.direita.direita
-             return Node('|', Node('&', a, b), Node('&', a, c))
-        if node.esquerda and node.esquerda.valor == '|':
+             return Node('+', Node('*', a, b), Node('*', a, c))
+        if node.esquerda and node.esquerda.valor == '+':
              a, b, c = node.direita, node.esquerda.esquerda, node.esquerda.direita
-             return Node('|', Node('&', a, b), Node('&', a, c))
+             return Node('+', Node('*', a, b), Node('*', a, c))
 
     return node #Retorna o nó original se nenhuma regra aplicou
 
@@ -217,17 +218,17 @@ def comutativa(node):
 #--- Estrutura de dados que agrupa as leis, suas verificações e aplicações ---
 LEIS_LOGICAS = [
     #Leis de simplificação mais fortes primeiro
-    {"nome": "Inversa (A & !A = 0)", "verifica": pode_inversa, "aplica": inversa},
-    {"nome": "Nula (A & 0 = 0)", "verifica": pode_nula, "aplica": nula},
-    {"nome": "Identidade (A & 1 = A)", "verifica": pode_identidade, "aplica": identidade},
-    {"nome": "Idempotente (A & A = A)", "verifica": pode_idempotente, "aplica": idempotente},
-    {"nome": "Absorção (A & (A|B) = A)", "verifica": pode_absorcao, "aplica": absorcao},
-    {"nome": "De Morgan (!(A&B) = !A|!B)", "verifica": pode_demorgan, "aplica": demorgan},
-    {"nome": "Distributiva ((A|B)&(A|C) = A|(B&C))", "verifica": pode_distributiva, "aplica": distributiva},
+    {"nome": "Inversa (A * ~A = 0)", "verifica": pode_inversa, "aplica": inversa},
+    {"nome": "Nula (A * 0 = 0)", "verifica": pode_nula, "aplica": nula},
+    {"nome": "Identidade (A * 1 = A)", "verifica": pode_identidade, "aplica": identidade},
+    {"nome": "Idempotente (A * A = A)", "verifica": pode_idempotente, "aplica": idempotente},
+    {"nome": "Absorção (A * (A+B) = A)", "verifica": pode_absorcao, "aplica": absorcao},
+    {"nome": "De Morgan (~(A*B) = ~A+~B)", "verifica": pode_demorgan, "aplica": demorgan},
+    {"nome": "Distributiva ((A+B)*(A+C) = A+(B*C))", "verifica": pode_distributiva, "aplica": distributiva},
     
     #Leis de reorganização
-    {"nome": "Associativa ((A&B)&C = A&(B&C))", "verifica": pode_associativa, "aplica": associativa},
-    {"nome": "Comutativa (B&A = A&B)", "verifica": pode_comutativa, "aplica": comutativa},
+    {"nome": "Associativa ((A*B)*C = A*(B*C))", "verifica": pode_associativa, "aplica": associativa},
+    {"nome": "Comutativa (B*A = A*B)", "verifica": pode_comutativa, "aplica": comutativa},
 ]
 
 #------------------ Processo Interativo -------------------
@@ -261,10 +262,10 @@ def encontrar_e_aplicar_interativo(node):
     #2. Se nenhuma mudança ocorreu nos filhos, interage com o usuário para o nó atual.
     #Este laço continua até o usuário aplicar uma lei com sucesso ou pular (0).
     while True:
-        print("\n--------------------------------------------------------")
-        print(f"Expressão atual: {str(arvore_global)}")
-        print(f"\nAnalisando a sub-expressão: '{node}'")
-        print("Qual lei você gostaria de TENTAR aplicar?")
+        passar_pro_front.append("\n--------------------------------------------------------")
+        passar_pro_front.append(f"Expressão atual: {str(arvore_global)}")
+        passar_pro_front.append(f"\nAnalisando a sub-expressão: '{node}'")
+        passar_pro_front.append("Qual lei você gostaria de TENTAR aplicar?")
         
         #3. Sempre mostra TODAS as leis
         for i, lei in enumerate(LEIS_LOGICAS, 1):
@@ -275,7 +276,7 @@ def encontrar_e_aplicar_interativo(node):
         try:
             escolha = int(input("\nEscolha uma opção: "))
             if not (0 <= escolha <= len(LEIS_LOGICAS)):
-                print("Opção inválida. Tente novamente.")
+                passar_pro_front.append("Opção inválida. Tente novamente.")
                 time.sleep(1)
                 continue
         except ValueError:
@@ -285,7 +286,7 @@ def encontrar_e_aplicar_interativo(node):
             
         #5. Processa a escolha
         if escolha == 0:
-            print("Ok, pulando este nó.")
+            passar_pro_front.append("Ok, pulando este nó.")
             return node, False #Nenhuma mudança feita neste nó
 
         lei_escolhida = LEIS_LOGICAS[escolha - 1]
@@ -295,24 +296,23 @@ def encontrar_e_aplicar_interativo(node):
             #Se for, aplica a lei e retorna.
             antigo_no_str = str(node)
             novo_no = lei_escolhida["aplica"](node)
-            print(f"\nÓtimo! A lei '{lei_escolhida['nome']}' foi aplicada com sucesso.")
-            print(f"'{antigo_no_str}'  ->  '{novo_no}'")
+            passar_pro_front.append(f"\nÓtimo~ A lei '{lei_escolhida['nome']}' foi aplicada com sucesso.")
+            passar_pro_front.append(f"'{antigo_no_str}'  ->  '{novo_no}'")
             time.sleep(2)
             return novo_no, True #Retorna o nó modificado e indica que houve mudança
         else:
             #Se não for, informa o usuário e o laço continua, mostrando as opções novamente.
-            print(f"\nAVISO: A lei '{lei_escolhida['nome']}' não pode ser aplicada na sub-expressão '{node}'.")
-            print("Por favor, escolha outra lei ou pule (0).")
+            passar_pro_front.append(f"\nAVISO: A lei '{lei_escolhida['nome']}' não pode ser aplicada na sub-expressão '{node}'.")
+            passar_pro_front.append("Por favor, escolha outra lei ou pule (0).")
             time.sleep(2.5) #Pausa para o usuário ler o aviso
 
 
 def modo_interativo(expressao_usuario):
     global arvore_global
-    
-    expressao_usuario = expressao_usuario.replace("+", "|").replace("*", "&").replace("~", "!")
-    print(f"\n=======================================================")
-    print(f"Expressão Original: {expressao_usuario}")
-    print(f"=======================================================")
+
+    passar_pro_front.append(f"\n=======================================================")
+    passar_pro_front.append(f"Expressão Original: {expressao_usuario}")
+    passar_pro_front.append(f"=======================================================")
 
     try:
         arvore = construir_arvore(expressao_usuario)
@@ -325,23 +325,24 @@ def modo_interativo(expressao_usuario):
             arvore_global, houve_mudanca_geral = encontrar_e_aplicar_interativo(arvore_global)
             
             if not houve_mudanca_geral:
-                print("\nNenhuma outra simplificação foi aplicada ou você pulou todas as opções.")
+                passar_pro_front.append("\nNenhuma outra simplificação foi aplicada ou você pulou todas as opções.")
                 break
         
-        print("\n------------------ Resultado Final -------------------")
-        print(f"Expressão Original    : {expressao_usuario}")
-        print(f"Expressão Simplificada: {arvore_global}")
-        print("--------------------------------------------------------\n")
+        passar_pro_front.append("\n------------------ Resultado Final -------------------")
+        passar_pro_front.append(f"Expressão Original    : {expressao_usuario}")
+        passar_pro_front.append(f"Expressão Simplificada: {arvore_global}")
+        passar_pro_front.append("--------------------------------------------------------\n")
 
     except Exception as e:
         print(f"Ocorreu um erro ao processar a expressão: {e}")
-        print("Por favor, verifique se a sintaxe está correta (ex: 'P & (Q | !R)').")
+        print("Por favor, verifique se a sintaxe está correta (ex: 'P * (Q + ~R)').")
+    return passar_pro_front
 
 #------------------ Laço Principal de Execução -------------------
 if __name__ == "__main__":
     arvore_global = None 
     while True:
-        expressao_do_usuario = input("\nDigite a expressão lógica (use !, &, |) ou 'sair' para terminar: ")
+        expressao_do_usuario = input("\nDigite a expressão lógica (use ~, *, +) ou 'sair' para terminar: ")
         if expressao_do_usuario.lower() == 'sair':
             break
         modo_interativo(expressao_do_usuario)

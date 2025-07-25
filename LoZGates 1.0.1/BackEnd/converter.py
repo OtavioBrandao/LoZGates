@@ -43,7 +43,7 @@ def substituir_implicacoes(expr):
         i += 1
     return expr
 
-
+def converter_para_algebra_booleana(expressao):
     expressao = expressao.replace(" ", "")
     expressao = substituir_implicacoes(expressao)
     expressao = expressao.replace("&", "*").replace("|", "+").replace("!", "~")
