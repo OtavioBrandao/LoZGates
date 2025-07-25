@@ -1,4 +1,4 @@
-def substituir_implicacoes(expr):
+def substituir_implicacoes(expr): 
     i = 0
     while i < len(expr):
         if expr[i] == '>':
@@ -44,9 +44,8 @@ def substituir_implicacoes(expr):
     return expr
 
 
-def converter_para_algebra_booleana(expressao):
-    #substituição direta
     expressao = expressao.replace(" ", "")
     expressao = substituir_implicacoes(expressao)
     expressao = expressao.replace("&", "*").replace("|", "+").replace("!", "~")
+    
     return expressao
