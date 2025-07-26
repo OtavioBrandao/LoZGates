@@ -14,14 +14,22 @@ import time
 from customtkinter import CTkFont
 import webbrowser
 import urllib.parse
-from BackEnd.identificar_lei import principal_simplificar, simplificar
+from BackEnd.identificar_lei import principal_simplificar
 from contextlib import redirect_stdout
-from BackEnd.simplificador_interativo import modo_interativo
+import BackEnd.simplificador_interativo as simpli
 
 
 expressao_global = ""
 botao_ver_circuito = None
 label_convertida = None
+
+# Variáveis de estado para o modo interativo
+arvore_interativa = None
+passo_atual_info = None
+nos_ignorados = set()
+historico_interativo = []
+botoes_leis = []
+
 
 def inicializar_interface():
 
@@ -726,6 +734,11 @@ def inicializar_interface():
     )
     label_educacional.pack(pady=100, padx=100)
 
+    def go_to_interactive():
+        # Função wrapper para garantir a ordem correta das chamadas
+        show_frame(frame_interativo)
+        parte_interativa()
+
     botao_interativo = ctk.CTkButton(
         frame_educacional,
         text="Tentar Simplificar",
@@ -737,32 +750,31 @@ def inicializar_interface():
         width=200,
         height=50,
         font=("Arial", 16),
-        command=lambda: (show_frame(frame_interativo), parte_interativa())
+        command=go_to_interactive # Comando corrigido
     )
     botao_interativo.pack(pady=(30, 10))
     
     
     escolher_caminho = ctk.CTkFrame(
             frame_interativo,
-            fg_color="#FFFFFF",
+            fg_color="#000033",
+            corner_radius=10,
             height=800,
-            width=200
+            width=280
         )
     
-    botao_voltar_interativo = ctk.CTkButton(
-        escolher_caminho,
-        text="Voltar",
-        fg_color="goldenrod",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        width=200,
-        height=50,
-        font=("Arial", 16),
-        command=lambda: voltar_para(frame_educacional)
+    area_expressao = ctk.CTkTextbox(
+        master=frame_interativo,
+        fg_color="#1c1c1c",
+        text_color="#39FF14",
+        font=("Consolas", 16),
+        wrap="word",
+        width=800,
+        height=800,
     )
     
+    # REMOVIDO: A criação do botão "Voltar" foi movida para dentro da função parte_interativa()
+    # para evitar o erro de widget destruído.
 
     # Frame da resposta -----------------------------------------------
     botao_solucao = ctk.CTkButton(
@@ -794,183 +806,167 @@ def inicializar_interface():
         command=lambda: voltar_para(frame_educacional)
     )
 
-    #------------------------------------------------------------------------
+    #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
+    def on_lei_selecionada(indice_lei):
+        global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados
+
+        if not passo_atual_info:
+            return
+
+        no_antigo_str = str(passo_atual_info['no_atual'])
+        lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
+        
+        nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
+
+        if sucesso:
+            arvore_interativa = nova_arvore
+            historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada.")
+            historico_interativo.append(f"  Nova Expressão: {str(arvore_interativa)}")
+            
+            # Reseta os nós ignorados pois a árvore mudou
+            nos_ignorados = set()
+            
+            iniciar_rodada_interativa()
+        else:
+            popup_erro("Não foi possível aplicar esta lei aqui.")
+
+    def on_pular_selecionado():
+        global nos_ignorados, passo_atual_info, historico_interativo
+        if passo_atual_info and passo_atual_info['no_atual']:
+            # Adiciona o nó atual à lista de ignorados e busca o próximo
+            nos_ignorados.add(passo_atual_info['no_atual'])
+            historico_interativo.append(f"↷ Ignorando a sub-expressão '{str(passo_atual_info['no_atual'])}'")
+            iniciar_rodada_interativa()
+
+    def atualizar_ui_interativa():
+        global botoes_leis
+        
+        # Atualiza a área de texto principal
+        area_expressao.configure(state="normal")
+        area_expressao.delete("1.0", "end")
+        
+        # Junta o histórico com quebras de linha
+        texto_historico = "\n".join(historico_interativo)
+        area_expressao.insert("1.0", texto_historico)
+
+        if passo_atual_info:
+            sub_expr = str(passo_atual_info['no_atual'])
+            area_expressao.insert("end", f"\n\n========================================\n")
+            area_expressao.insert("end", f"Analisando a sub-expressão: '{sub_expr}'\n")
+            area_expressao.insert("end", "Qual lei deseja aplicar?")
+            
+            # Habilita/desabilita botões
+            leis_aplicaveis = passo_atual_info['leis_aplicaveis']
+            for i, botao in enumerate(botoes_leis):
+                estado = "normal" if leis_aplicaveis[i] else "disabled"
+                botao.configure(state=estado)
+            
+            # Habilita o botão pular
+            botao_pular.configure(state="normal")
+
+        else:
+            # Nenhuma simplificação encontrada
+            area_expressao.insert("end", "\n\n========================================\n")
+            area_expressao.insert("end", "Simplificação finalizada. Nenhuma outra lei pôde ser aplicada.")
+            for botao in botoes_leis:
+                botao.configure(state="disabled")
+            botao_pular.configure(state="disabled")
+
+        area_expressao.configure(state="disabled")
+        area_expressao.see("end") # Rola para o final
+
+    def iniciar_rodada_interativa():
+        global passo_atual_info
+        # Procura o próximo passo possível, ignorando os nós que o usuário pulou
+        passo_atual_info = simpli.encontrar_proximo_passo(arvore_interativa, nos_a_ignorar=nos_ignorados)
+        atualizar_ui_interativa()
+        
     def parte_interativa():
-    # Frame da parte interativa
-    # Ver como colocar IA dps
+        global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis
+        
+        # Inicializa o estado
+        if not expressao_global:
+            popup_erro("Por favor, primeiro insira e converta uma expressão.")
+            voltar_para(frame_abas)
+            show_frame(principal) # Volta para a tela principal de inserção
+            return
+            
+        try:
+            arvore_interativa = simpli.construir_arvore(expressao_global)
+        except Exception as e:
+            popup_erro(f"Erro ao construir a expressão: {e}")
+            voltar_para(frame_educacional)
+            return
+
+        historico_interativo = [f"Expressão Inicial: {str(arvore_interativa)}"]
+        nos_ignorados = set()
+        passo_atual_info = None
+        
+        # Layout da UI
         escolher_caminho.pack_propagate(False)
-        escolher_caminho.pack(side="right", padx=(20, 350), pady=10)
+        escolher_caminho.pack(side="right", fill="y", padx=20, pady=20)
+        area_expressao.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+        
+        # Mapeamento de botões para índices de LEIS_LOGICAS
+        botoes_info = [
+            {"texto": "Inversa (A * ~A = 0)", "idx": 0},
+            {"texto": "Nula (A * 0 = 0)", "idx": 1},
+            {"texto": "Identidade (A * 1 = A)", "idx": 2},
+            {"texto": "Idempotente (A * A = A)", "idx": 3},
+            {"texto": "Absorção (A * (A+B) = A)", "idx": 4},
+            {"texto": "De Morgan (~(A*B) = ~A+~B)", "idx": 5},
+            {"texto": "Distributiva ((A+B)*(A+C))", "idx": 6},
+            {"texto": "Associativa ((A*B)*C)", "idx": 7},
+            {"texto": "Comutativa (B*A = A*B)", "idx": 8},
+        ]
 
-        area_expressao = ctk.CTkTextbox(
-        master=frame_interativo,
-        fg_color="#1c1c1c",
-        text_color="#39FF14",
-        font=("Consolas", 16),
-        wrap="word",
-        width=800,
-        height=800,
-        )
-        area_expressao.pack(side="left", padx=(250, 20), pady=10)
-        # Botões de leis lógicas
-        botao_inversao = ctk.CTkButton(
-            escolher_caminho,
-            text="Inversa (A * ~A = 0)",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
+        # Limpa botões antigos e a lista
+        for widget in escolher_caminho.winfo_children():
+            widget.destroy()
+        botoes_leis = []
         
-        botao_demorgan = ctk.CTkButton(
-            escolher_caminho,
-            text="Leis de De Morgan",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
+        # Cria os botões de leis
+        for info in botoes_info:
+            btn = ctk.CTkButton(
+                escolher_caminho, text=info["texto"],
+                fg_color="#B0E0E6", text_color="#000080", hover_color="#8B008B",
+                border_width=2, border_color="#708090", width=250, height=45,
+                font=("Arial", 12),
+                command=lambda idx=info["idx"]: on_lei_selecionada(idx)
+            )
+            btn.pack(pady=5, padx=10)
+            botoes_leis.append(btn)
         
-        botao_absorcao = ctk.CTkButton(
-            escolher_caminho,
-            text="Leis de Absorção",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
-        
-        botao_identidade = ctk.CTkButton(
-            escolher_caminho,
-            text="Leis de Identidade",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
-        
-        botao_idempotencia = ctk.CTkButton(
-            escolher_caminho,
-            text="Leis de Idempotência",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
-        
-        botao_comutatividade = ctk.CTkButton(
-            escolher_caminho,
-            text="Leis de Comutatividade",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
-        
-        botao_distributividade = ctk.CTkButton(
-            escolher_caminho,
-            text="Leis de Distributividade",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
-        
-        botao_leinula = ctk.CTkButton(
-            escolher_caminho,
-            text="Leis de Leinula",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
-        
-        botao_associatividade = ctk.CTkButton(
-            escolher_caminho,
-            text="Leis de Associatividade",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )
+        # Botão Pular
+        global botao_pular
         botao_pular = ctk.CTkButton(
-            escolher_caminho,
-            text="Pular",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
-        )            
-
-        botao_absorcao.pack(pady=5)
-        botao_identidade.pack(pady=5)
-        botao_idempotencia.pack(pady=5)
-        botao_comutatividade.pack(pady=5)
-        botao_distributividade.pack(pady=5)
-        botao_leinula.pack(pady=5)
-        botao_associatividade.pack(pady=5)
-        botao_inversao.pack(pady=5)
-        botao_demorgan.pack(pady=5)
-        botao_pular.pack(pady=5)
-        
-        botao_voltar_interativo.pack(pady=5)
-        interativo = modo_interativo(expressao_global)
-    
-        texto_interativo = interativo
-        area_expressao.insert("1.0", texto_interativo)
-        
-        botao_simplificar = ctk.CTkButton(
-            frame_interativo,
-            text="Simplificar Expressão",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=200,
-            height=50,
-            font=("Arial", 16),
+            escolher_caminho, text="Pular Sugestão",
+            fg_color="#DAA520", text_color="#000080", hover_color="#8B008B",
+            border_width=2, border_color="#708090", width=250, height=45,
+            font=("Arial", 16), command=on_pular_selecionado
         )
-        botao_simplificar.pack(pady=10)
+        botao_pular.pack(pady=(15, 5), padx=10)
+        
+        # Adiciona o botão de voltar no final
+        botao_voltar_interativo = ctk.CTkButton(
+            escolher_caminho,
+            text="Voltar",
+            fg_color="goldenrod",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=250,
+            height=45,
+            font=("Arial", 16),
+            command=lambda: voltar_para(frame_educacional)
+        )
+        botao_voltar_interativo.pack(side="bottom", pady=10, padx=10)
+        
+        # Inicia a primeira rodada
+        iniciar_rodada_interativa()
+
+    #------------------------------------------------------------------------
     
     botao_voltar7 = ctk.CTkButton(
         frame_educacional,

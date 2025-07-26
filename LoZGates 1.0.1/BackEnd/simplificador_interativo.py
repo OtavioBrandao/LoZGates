@@ -89,19 +89,19 @@ def pode_absorcao(node):
     if not node or not node.esquerda or not node.direita:
         return False
     #A * (A + B) ou A * (B + A)
-    if node.valor == '*' and node.direita.valor == '+':
+    if node.valor == '*' and node.direita and node.direita.valor == '+':
         if str(node.esquerda) == str(node.direita.esquerda) or str(node.esquerda) == str(node.direita.direita):
             return True
     #(A + B) * A ou (B + A) * A
-    if node.valor == '*' and node.esquerda.valor == '+':
+    if node.valor == '*' and node.esquerda and node.esquerda.valor == '+':
         if str(node.direita) == str(node.esquerda.esquerda) or str(node.direita) == str(node.esquerda.direita):
             return True
     #A + (A * B) ou A + (B * A)
-    if node.valor == '+' and node.direita.valor == '*':
+    if node.valor == '+' and node.direita and node.direita.valor == '*':
         if str(node.esquerda) == str(node.direita.esquerda) or str(node.esquerda) == str(node.direita.direita):
             return True
     #(A * B) + A ou (B * A) + A
-    if node.valor == '+' and node.esquerda.valor == '*':
+    if node.valor == '+' and node.esquerda and node.esquerda.valor == '*':
         if str(node.direita) == str(node.esquerda.esquerda) or str(node.direita) == str(node.esquerda.direita):
             return True
     return False
@@ -231,118 +231,74 @@ LEIS_LOGICAS = [
     {"nome": "Comutativa (B*A = A*B)", "verifica": pode_comutativa, "aplica": comutativa},
 ]
 
-#------------------ Processo Interativo -------------------
+#------------------ Funções para Controle da GUI -------------------
 
-def encontrar_e_aplicar_interativo(node):
+def encontrar_proximo_passo(no, pai=None, ramo=None, nos_a_ignorar=None):
     """
-    Percorre a árvore (pós-ordem). Para cada nó, permite ao usuário TENTAR
-    aplicar qualquer lei. Se a lei escolhida for inaplicável, informa o usuário.
-    Retorna o nó modificado e um flag indicando se houve mudança.
+    Percorre a árvore em pós-ordem para encontrar o primeiro nó que pode ser simplificado.
+    Retorna um dicionário com informações sobre o nó, seu pai e as leis aplicáveis.
+    'nos_a_ignorar' é um conjunto de nós que devem ser pulados nesta busca.
     """
-    if node is None:
-        return None, False
+    if no is None:
+        return None
+    if nos_a_ignorar is None:
+        nos_a_ignorar = set()
 
-    #1. Tenta simplificar os filhos primeiro.
-    mudou_na_subarvore = False
+    # Pós-ordem: primeiro os filhos
+    if no.esquerda:
+        resultado_esquerda = encontrar_proximo_passo(no.esquerda, no, 'esquerda', nos_a_ignorar)
+        if resultado_esquerda:
+            return resultado_esquerda
+
+    if no.direita:
+        resultado_direita = encontrar_proximo_passo(no.direita, no, 'direita', nos_a_ignorar)
+        if resultado_direita:
+            return resultado_direita
+
+    # Se o nó atual deve ser ignorado, retorna None
+    if no in nos_a_ignorar:
+        return None
+        
+    # Depois o nó atual
+    leis_aplicaveis = []
+    for lei in LEIS_LOGICAS:
+        leis_aplicaveis.append(lei['verifica'](no))
+
+    # Se qualquer lei for aplicável, encontramos nosso passo
+    if any(leis_aplicaveis):
+        return {
+            "no_atual": no,
+            "pai": pai,
+            "ramo": ramo,  # 'esquerda', 'direita' ou None para a raiz
+            "leis_aplicaveis": leis_aplicaveis
+        }
+
+    return None
+
+def aplicar_lei_e_substituir(arvore_raiz, passo_info, indice_lei):
+    """
+    Aplica uma lei a um nó e o substitui na árvore.
+    Retorna a nova árvore (raiz pode ter mudado) e um booleano de sucesso.
+    """
+    lei_escolhida = LEIS_LOGICAS[indice_lei]
+    no_alvo = passo_info['no_atual']
+    pai = passo_info['pai']
+    ramo = passo_info['ramo']
+
+    # Verifica novamente por segurança
+    if not lei_escolhida['verifica'](no_alvo):
+        return arvore_raiz, False
+
+    novo_no = lei_escolhida['aplica'](no_alvo)
+
+    if pai is None:
+        # A raiz da árvore foi substituída
+        return novo_no, True
     
-    no_filho_esquerdo, mudou_esquerda = encontrar_e_aplicar_interativo(node.esquerda)
-    if mudou_esquerda:
-        node.esquerda = no_filho_esquerdo
-        mudou_na_subarvore = True
+    if ramo == 'esquerda':
+        pai.esquerda = novo_no
+    elif ramo == 'direita':
+        pai.direita = novo_no
 
-    no_filho_direito, mudou_direita = encontrar_e_aplicar_interativo(node.direita)
-    if mudou_direita:
-        node.direita = no_filho_direito
-        mudou_na_subarvore = True
-    
-    #Se uma mudança já ocorreu em um filho, reiniciamos a busca do topo para garantir que a expressão inteira seja reavaliada.
-    if mudou_na_subarvore:
-        return node, True
-
-    #2. Se nenhuma mudança ocorreu nos filhos, interage com o usuário para o nó atual.
-    #Este laço continua até o usuário aplicar uma lei com sucesso ou pular (0).
-    while True:
-        passar_pro_front.append("\n--------------------------------------------------------")
-        passar_pro_front.append(f"Expressão atual: {str(arvore_global)}")
-        passar_pro_front.append(f"\nAnalisando a sub-expressão: '{node}'")
-        passar_pro_front.append("Qual lei você gostaria de TENTAR aplicar?")
-        
-        #3. Sempre mostra TODAS as leis
-        for i, lei in enumerate(LEIS_LOGICAS, 1):
-            print(f"  {i}. {lei['nome']}")
-        print("  0. Pular / Nenhuma")
-
-        #4. Obtém a escolha do usuário
-        try:
-            escolha = int(input("\nEscolha uma opção: "))
-            if not (0 <= escolha <= len(LEIS_LOGICAS)):
-                passar_pro_front.append("Opção inválida. Tente novamente.")
-                time.sleep(1)
-                continue
-        except ValueError:
-            print("Por favor, digite um número.")
-            time.sleep(1)
-            continue
-            
-        #5. Processa a escolha
-        if escolha == 0:
-            passar_pro_front.append("Ok, pulando este nó.")
-            return node, False #Nenhuma mudança feita neste nó
-
-        lei_escolhida = LEIS_LOGICAS[escolha - 1]
-
-        #6. VERIFICA se a lei escolhida é aplicável
-        if lei_escolhida["verifica"](node):
-            #Se for, aplica a lei e retorna.
-            antigo_no_str = str(node)
-            novo_no = lei_escolhida["aplica"](node)
-            passar_pro_front.append(f"\nÓtimo~ A lei '{lei_escolhida['nome']}' foi aplicada com sucesso.")
-            passar_pro_front.append(f"'{antigo_no_str}'  ->  '{novo_no}'")
-            time.sleep(2)
-            return novo_no, True #Retorna o nó modificado e indica que houve mudança
-        else:
-            #Se não for, informa o usuário e o laço continua, mostrando as opções novamente.
-            passar_pro_front.append(f"\nAVISO: A lei '{lei_escolhida['nome']}' não pode ser aplicada na sub-expressão '{node}'.")
-            passar_pro_front.append("Por favor, escolha outra lei ou pule (0).")
-            time.sleep(2.5) #Pausa para o usuário ler o aviso
-
-
-def modo_interativo(expressao_usuario):
-    global arvore_global
-
-    passar_pro_front.append(f"\n=======================================================")
-    passar_pro_front.append(f"Expressão Original: {expressao_usuario}")
-    passar_pro_front.append(f"=======================================================")
-
-    try:
-        arvore = construir_arvore(expressao_usuario)
-        arvore_global = arvore
-        print(f"Árvore Inicial: {arvore}")
-        
-        #O laço de simplificação continua enquanto houver mudanças
-        houve_mudanca_geral = True
-        while houve_mudanca_geral:
-            arvore_global, houve_mudanca_geral = encontrar_e_aplicar_interativo(arvore_global)
-            
-            if not houve_mudanca_geral:
-                passar_pro_front.append("\nNenhuma outra simplificação foi aplicada ou você pulou todas as opções.")
-                break
-        
-        passar_pro_front.append("\n------------------ Resultado Final -------------------")
-        passar_pro_front.append(f"Expressão Original    : {expressao_usuario}")
-        passar_pro_front.append(f"Expressão Simplificada: {arvore_global}")
-        passar_pro_front.append("--------------------------------------------------------\n")
-
-    except Exception as e:
-        print(f"Ocorreu um erro ao processar a expressão: {e}")
-        print("Por favor, verifique se a sintaxe está correta (ex: 'P * (Q + ~R)').")
-    return passar_pro_front
-
-#------------------ Laço Principal de Execução -------------------
-if __name__ == "__main__":
-    arvore_global = None 
-    while True:
-        expressao_do_usuario = input("\nDigite a expressão lógica (use ~, *, +) ou 'sair' para terminar: ")
-        if expressao_do_usuario.lower() == 'sair':
-            break
-        modo_interativo(expressao_do_usuario)
+    # Retorna a raiz original, que agora aponta para a árvore modificada
+    return arvore_raiz, True
