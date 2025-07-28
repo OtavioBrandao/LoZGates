@@ -806,7 +806,7 @@ def inicializar_interface():
         command=lambda: voltar_para(frame_educacional)
     )
 
-    #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
+      #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados
 
@@ -821,9 +821,9 @@ def inicializar_interface():
         if sucesso:
             arvore_interativa = nova_arvore
             historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada.")
-            historico_interativo.append(f"  Nova Expressão: {str(arvore_interativa)}")
+            historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
             
-            # Reseta os nós ignorados pois a árvore mudou
+            #Reseta os nós ignorados pois a árvore mudou
             nos_ignorados = set()
             
             iniciar_rodada_interativa()
@@ -833,19 +833,19 @@ def inicializar_interface():
     def on_pular_selecionado():
         global nos_ignorados, passo_atual_info, historico_interativo
         if passo_atual_info and passo_atual_info['no_atual']:
-            # Adiciona o nó atual à lista de ignorados e busca o próximo
+            #Adiciona o nó atual à lista de ignorados e busca o próximo
             nos_ignorados.add(passo_atual_info['no_atual'])
-            historico_interativo.append(f"↷ Ignorando a sub-expressão '{str(passo_atual_info['no_atual'])}'")
+            historico_interativo.append(f"↷ Sub-expressão '{str(passo_atual_info['no_atual'])}' ignorada (você pulou).") 
             iniciar_rodada_interativa()
 
     def atualizar_ui_interativa():
         global botoes_leis
         
-        # Atualiza a área de texto principal
+        #Atualiza a área de texto principal
         area_expressao.configure(state="normal")
         area_expressao.delete("1.0", "end")
         
-        # Junta o histórico com quebras de linha
+        #Junta o histórico com quebras de linha
         texto_historico = "\n".join(historico_interativo)
         area_expressao.insert("1.0", texto_historico)
 
@@ -855,17 +855,15 @@ def inicializar_interface():
             area_expressao.insert("end", f"Analisando a sub-expressão: '{sub_expr}'\n")
             area_expressao.insert("end", "Qual lei deseja aplicar?")
             
-            # Habilita/desabilita botões
-            leis_aplicaveis = passo_atual_info['leis_aplicaveis']
+            #Habilita todos os botões de lei
             for i, botao in enumerate(botoes_leis):
-                estado = "normal" if leis_aplicaveis[i] else "disabled"
-                botao.configure(state=estado)
+                botao.configure(state="normal")
             
-            # Habilita o botão pular
+            #Habilita o botão pular
             botao_pular.configure(state="normal")
 
         else:
-            # Nenhuma simplificação encontrada
+            #Nenhuma simplificação encontrada
             area_expressao.insert("end", "\n\n========================================\n")
             area_expressao.insert("end", "Simplificação finalizada. Nenhuma outra lei pôde ser aplicada.")
             for botao in botoes_leis:
@@ -873,22 +871,22 @@ def inicializar_interface():
             botao_pular.configure(state="disabled")
 
         area_expressao.configure(state="disabled")
-        area_expressao.see("end") # Rola para o final
+        area_expressao.see("end") #Rola para o final
 
     def iniciar_rodada_interativa():
         global passo_atual_info
-        # Procura o próximo passo possível, ignorando os nós que o usuário pulou
+        #Procura o próximo passo possível, ignorando os nós que o usuário pulou
         passo_atual_info = simpli.encontrar_proximo_passo(arvore_interativa, nos_a_ignorar=nos_ignorados)
         atualizar_ui_interativa()
         
     def parte_interativa():
         global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis
         
-        # Inicializa o estado
+        #Inicializa o estado
         if not expressao_global:
             popup_erro("Por favor, primeiro insira e converta uma expressão.")
             voltar_para(frame_abas)
-            show_frame(principal) # Volta para a tela principal de inserção
+            show_frame(principal) #Volta para a tela principal de inserção
             return
             
         try:
@@ -902,12 +900,12 @@ def inicializar_interface():
         nos_ignorados = set()
         passo_atual_info = None
         
-        # Layout da UI
+        #Layout da UI
         escolher_caminho.pack_propagate(False)
         escolher_caminho.pack(side="right", fill="y", padx=20, pady=20)
         area_expressao.pack(side="left", fill="both", expand=True, padx=20, pady=20)
         
-        # Mapeamento de botões para índices de LEIS_LOGICAS
+        #Mapeamento de botões para índices de LEIS_LOGICAS
         botoes_info = [
             {"texto": "Inversa (A * ~A = 0)", "idx": 0},
             {"texto": "Nula (A * 0 = 0)", "idx": 1},
@@ -920,12 +918,12 @@ def inicializar_interface():
             {"texto": "Comutativa (B*A = A*B)", "idx": 8},
         ]
 
-        # Limpa botões antigos e a lista
+        #Limpa botões antigos e a lista
         for widget in escolher_caminho.winfo_children():
             widget.destroy()
         botoes_leis = []
         
-        # Cria os botões de leis
+        #Cria os botões de leis
         for info in botoes_info:
             btn = ctk.CTkButton(
                 escolher_caminho, text=info["texto"],
@@ -937,7 +935,7 @@ def inicializar_interface():
             btn.pack(pady=5, padx=10)
             botoes_leis.append(btn)
         
-        # Botão Pular
+        #Botão Pular
         global botao_pular
         botao_pular = ctk.CTkButton(
             escolher_caminho, text="Pular Sugestão",
@@ -947,7 +945,7 @@ def inicializar_interface():
         )
         botao_pular.pack(pady=(15, 5), padx=10)
         
-        # Adiciona o botão de voltar no final
+        #Adiciona o botão de voltar no final
         botao_voltar_interativo = ctk.CTkButton(
             escolher_caminho,
             text="Voltar",
@@ -963,7 +961,7 @@ def inicializar_interface():
         )
         botao_voltar_interativo.pack(side="bottom", pady=10, padx=10)
         
-        # Inicia a primeira rodada
+        #Inicia a primeira rodada
         iniciar_rodada_interativa()
 
     #------------------------------------------------------------------------

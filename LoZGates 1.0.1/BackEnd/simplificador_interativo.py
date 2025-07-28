@@ -19,6 +19,15 @@ class Node:
         else:
             return str(self.valor)
 
+    #Adicionamos um método para calcular o tamanho (número de nós) da subárvore
+    def pegar_tamanho(self):
+        size = 1 #Conta o próprio nó
+        if self.esquerda:
+            size += self.esquerda.pegar_tamanho()
+        if self.direita:
+            size += self.direita.pegar_tamanho()
+        return size
+
 def construir_arvore(expr):
     expr = expr.replace(" ", "")
 
@@ -141,6 +150,7 @@ def pode_comutativa(node):
     #Aplica para ordenar (ex: B * A -> A * B)
     return node.valor in ('*', '+') and str(node.direita) < str(node.esquerda)
 
+
 #------------------ Leis Lógicas -------------------
 
 def demorgan(node):
@@ -231,68 +241,74 @@ LEIS_LOGICAS = [
     {"nome": "Comutativa (B*A = A*B)", "verifica": pode_comutativa, "aplica": comutativa},
 ]
 
+#Variável global para armazenar a lista ordenada de nós
+_todos_os_nos_ordenados = []
+_indice_no_atual = 0
+
 #------------------ Funções para Controle da GUI -------------------
 
-def encontrar_proximo_passo(no, pai=None, ramo=None, nos_a_ignorar=None):
+def _coletar_todos_os_nos(node, parent=None, branch=None, collected_nodes=None):
+    """Função auxiliar para coletar todos os nós da árvore com informações de pai,
+    ignorando nós que são apenas átomos (variáveis ou constantes)."""
+    if collected_nodes is None:
+        collected_nodes = []
+    if node:
+        if node.esquerda or node.direita: #Se tiver filhos, não é um átomo sozinho
+            collected_nodes.append({
+                "no_atual": node,
+                "pai": parent,
+                "ramo": branch,
+                "leis_aplicaveis": [lei['verifica'](node) for lei in LEIS_LOGICAS]
+            })
+
+        _coletar_todos_os_nos(node.esquerda, node, 'esquerda', collected_nodes)
+        _coletar_todos_os_nos(node.direita, node, 'direita', collected_nodes)
+    return collected_nodes
+
+def encontrar_proximo_passo(arvore_raiz, nos_a_ignorar=None):
     """
-    Percorre a árvore em pós-ordem para encontrar o primeiro nó que pode ser simplificado.
-    Retorna um dicionário com informações sobre o nó, seu pai e as leis aplicáveis.
-    'nos_a_ignorar' é um conjunto de nós que devem ser pulados nesta busca.
+    Prepara e retorna o próximo nó na ordem de complexidade (menor para maior),
+    ignorando átomos sozinhos.
+    Gerencia um índice para percorrer a lista de nós pré-ordenada e filtrada.
     """
-    if no is None:
-        return None
+    global _todos_os_nos_ordenados, _indice_no_atual
+
     if nos_a_ignorar is None:
         nos_a_ignorar = set()
 
-    # Pós-ordem: primeiro os filhos
-    if no.esquerda:
-        resultado_esquerda = encontrar_proximo_passo(no.esquerda, no, 'esquerda', nos_a_ignorar)
-        if resultado_esquerda:
-            return resultado_esquerda
-
-    if no.direita:
-        resultado_direita = encontrar_proximo_passo(no.direita, no, 'direita', nos_a_ignorar)
-        if resultado_direita:
-            return resultado_direita
-
-    # Se o nó atual deve ser ignorado, retorna None
-    if no in nos_a_ignorar:
-        return None
+    #Na primeira chamada ou se a árvore mudou ou se o índice atual está fora dos limites refazemos a lista de todos os nós.
+    #Usamos o ID do objeto para verificar se a árvore é a mesma.
+    if not _todos_os_nos_ordenados or id(arvore_raiz) != getattr(encontrar_proximo_passo, '_ultima_arvore_id', None):
+        todos_nos_info = _coletar_todos_os_nos(arvore_raiz) 
+        _todos_os_nos_ordenados = [info for info in todos_nos_info if info['no_atual'] not in nos_a_ignorar]
         
-    # Depois o nó atual
-    leis_aplicaveis = []
-    for lei in LEIS_LOGICAS:
-        leis_aplicaveis.append(lei['verifica'](no))
+        _todos_os_nos_ordenados.sort(key=lambda x: (x['no_atual'].pegar_tamanho(), str(x['no_atual'])))
+        _indice_no_atual = 0
+        setattr(encontrar_proximo_passo, '_ultima_arvore_id', id(arvore_raiz)) #Salva o ID da árvore
 
-    # Se qualquer lei for aplicável, encontramos nosso passo
-    if any(leis_aplicaveis):
-        return {
-            "no_atual": no,
-            "pai": pai,
-            "ramo": ramo,  # 'esquerda', 'direita' ou None para a raiz
-            "leis_aplicaveis": leis_aplicaveis
-        }
+    #Avança o índice até encontrar um nó não ignorado
+    while _indice_no_atual < len(_todos_os_nos_ordenados):
+        passo_atual_info = _todos_os_nos_ordenados[_indice_no_atual]
+        _indice_no_atual += 1 
+        return passo_atual_info
+
 
     return None
 
 def aplicar_lei_e_substituir(arvore_raiz, passo_info, indice_lei):
-    """
-    Aplica uma lei a um nó e o substitui na árvore.
-    Retorna a nova árvore (raiz pode ter mudado) e um booleano de sucesso.
-    """
     lei_escolhida = LEIS_LOGICAS[indice_lei]
     no_alvo = passo_info['no_atual']
     pai = passo_info['pai']
     ramo = passo_info['ramo']
 
-    # Verifica novamente por segurança
+    #Verifica novamente por segurança
     if not lei_escolhida['verifica'](no_alvo):
         return arvore_raiz, False
 
     novo_no = lei_escolhida['aplica'](no_alvo)
 
     if pai is None:
-        # A raiz da árvore foi substituída
+        #A raiz da árvore foi substituída
         return novo_no, True
     
     if ramo == 'esquerda':
@@ -300,5 +316,5 @@ def aplicar_lei_e_substituir(arvore_raiz, passo_info, indice_lei):
     elif ramo == 'direita':
         pai.direita = novo_no
 
-    # Retorna a raiz original, que agora aponta para a árvore modificada
+    #Retorna a raiz original, que agora aponta para a árvore modificada
     return arvore_raiz, True
