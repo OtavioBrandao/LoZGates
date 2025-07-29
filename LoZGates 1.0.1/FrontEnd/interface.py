@@ -340,6 +340,7 @@ def inicializar_interface():
 
     entrada = ctk.CTkEntry(principal, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
     entrada.place(relx=0.5, y=200, anchor="center")
+    entrada.bind("<Return>", lambda event: confirmar_expressao())
 
     botao_confirmar_expressao = Button.botao_padrao("Confirmar", principal)
     botao_confirmar_expressao.configure(command=confirmar_expressao)

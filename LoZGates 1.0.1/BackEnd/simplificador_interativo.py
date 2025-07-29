@@ -292,7 +292,6 @@ def encontrar_proximo_passo(arvore_raiz, nos_a_ignorar=None):
         _indice_no_atual += 1 
         return passo_atual_info
 
-
     return None
 
 def aplicar_lei_e_substituir(arvore_raiz, passo_info, indice_lei):
