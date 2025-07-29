@@ -1,4 +1,4 @@
-import customtkinter as CTK
+import customtkinter as ctk
 
 
 class Button:
@@ -7,11 +7,11 @@ class Button:
         self.comando = comando
         self.botao = botao
 
-    def botao_voltar(self, nome, comando, botao, frame):
-        botao = CTK.CTkButton(
+    @staticmethod
+    def botao_voltar(nome, frame):
+        botao = ctk.CTkButton(
             frame,
             text=nome,
-            command=lambda: comando,
             fg_color="goldenrod",
             text_color="#000080",
             hover_color="#8B008B",
@@ -22,12 +22,12 @@ class Button:
             font=("Arial", 16),
         )
         return botao
-
-    def botao_padrao(self, nome, comando, botao, frame):
-        botao = CTK.CTkButton(
+    
+    @staticmethod
+    def botao_padrao(nome, frame):
+        botao = ctk.CTkButton(
             frame,
             text=nome,
-            command=comando,
             fg_color="#B0E0E6",
             text_color="#000080",
             hover_color="#8B008B",
@@ -38,14 +38,13 @@ class Button:
             font=("Arial", 16),
         )
         return botao
-       
     
-    def posicionar_botao_place(self, botao, x, y):
-        botao.place(x=x, y=y)
-        return botao
-    def posicionar_botao_grid(self, botao, row, column):
-        botao.grid(row=row, column=column, padx=10, pady=10)
-        return botao
-    def posicionar_botao_pack(self, botao):
-        botao.pack(pady=10)
-        return botao
+    @staticmethod
+    def botao_facil(nome, frame):
+        pass
+    def botao_dificil(nome, frame):
+        pass
+    def botao_medio(nome, frame):
+        pass
+
+    

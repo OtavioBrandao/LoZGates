@@ -9,7 +9,7 @@ from BackEnd.imagem import converte_matrix_para_tkinter_imagem_icon
 from BackEnd.tabela import gerar_tabela_verdade, verificar_conclusao
 from BackEnd.converter import converter_para_algebra_booleana
 from BackEnd.equivalencia import tabela
-from config import ASSETS_PATH
+from config import ASSETS_PATH, informacoes
 import time
 from customtkinter import CTkFont
 import webbrowser
@@ -17,26 +17,21 @@ import urllib.parse
 from BackEnd.identificar_lei import principal_simplificar
 from contextlib import redirect_stdout
 import BackEnd.simplificador_interativo as simpli
-
+from FrontEnd.buttons import Button
+from tkinter import filedialog 
 
 expressao_global = ""
 botao_ver_circuito = None
 label_convertida = None
-
-# Variáveis de estado para o modo interativo
 arvore_interativa = None
 passo_atual_info = None
 nos_ignorados = set()
 historico_interativo = []
 botoes_leis = []
 
-
 def inicializar_interface():
-
-    # Configuração inicial
-    ctk.set_appearance_mode("dark")  # Modo escuro
-    ctk.set_default_color_theme("blue")  # Tema azul
-
+    ctk.set_appearance_mode("dark")  #Modo escuro
+    ctk.set_default_color_theme("blue")  #Tema azul
     janela = ctk.CTk()
     janela.title("LoZ Gates")
     janela.configure(bg="#000057")
@@ -44,18 +39,14 @@ def inicializar_interface():
     altura_tela = janela.winfo_screenheight()
     largura = int(largura_tela * 0.8)
     altura = int(altura_tela * 0.8)
-
     janela.geometry(f"{largura}x{altura}")
     janela.grid_rowconfigure(0, weight=1)
     janela.grid_columnconfigure(0, weight=1)
-
-
-    bytes_per_row = 32  # Número de bytes por linha na matriz
+    bytes_per_row = 32  #Número de bytes por linha na matriz
     icon = converte_matrix_para_tkinter_imagem_icon(bytes_per_row)
     janela.iconbitmap(icon)
     janela.resizable(True, True)
 
-    # Função para alternar entre os frames
     def show_frame(frame):
         frame.tkraise()
 
@@ -70,18 +61,18 @@ def inicializar_interface():
             except ImportError as e:
                 popup_erro(f"Erro ao importar 'circuito_logico': {e}")
         
-        # Remove imagem antiga se existir
+        #Remove imagem antiga se existir
         caminho_imagem = os.path.join(ASSETS_PATH, "circuito.png")
         if os.path.exists(caminho_imagem):
             os.remove(caminho_imagem)
 
-        # Executa o Pygame em uma thread
+        #Executa o Pygame em uma thread
         thread = threading.Thread(target=rodar_pygame)
         thread.start()
 
-        # Espera a imagem ser criada antes de continuar
+        #Espera a imagem ser criada antes de continuar
         def aguardar_imagem():
-            tempo_max = 5  # segundos
+            tempo_max = 5  #segundos
             tempo_passado = 0
             while not os.path.exists(caminho_imagem) and tempo_passado < tempo_max:
                 time.sleep(0.1)
@@ -91,7 +82,7 @@ def inicializar_interface():
             else:
                 popup_erro("Erro: A imagem do circuito não foi criada a tempo.")
 
-        # Espera a imagem num thread separado para não travar a GUI
+        #Espera a imagem num thread separado para não travar a GUI
         threading.Thread(target=aguardar_imagem).start()
 
     def popup_erro(mensagem):
@@ -100,7 +91,7 @@ def inicializar_interface():
         popup.after(10, lambda: popup.attributes('-topmost', False))
         popup.title("Erro")
 
-        # Tamanho e centralização
+        #Tamanho e centralização
         largura_popup = 300
         altura_popup = 120
         popup.geometry(f"{largura_popup}x{altura_popup}")
@@ -109,34 +100,19 @@ def inicializar_interface():
         y = (popup.winfo_screenheight() // 2) - (altura_popup // 2)
         popup.geometry(f"{largura_popup}x{altura_popup}+{x}+{y}")
 
-        # Cor de fundo
-        popup.configure(fg_color="#1a1a1a")  # fundo escuro
+        #Cor de fundo
+        popup.configure(fg_color="#1a1a1a")  #fundo escuro
 
-        # Conteúdo
-        label = ctk.CTkLabel(
-            popup,
-            text=mensagem,
-            font=("Arial", 14),
-            text_color="white"
-        )
+        #Conteúdo
+        label = ctk.CTkLabel(popup, text=mensagem, font=("Arial", 14), text_color="white")
         label.pack(pady=(20, 10))
 
-        botao_ok = ctk.CTkButton(
-            popup,
-            text="OK",
-            fg_color="red",
-            text_color="white",
-            hover_color="#8B0000",
-            command=popup.destroy
-        )
+        botao_ok = ctk.CTkButton(popup, text="OK", fg_color="red", text_color="white", hover_color="#8B0000", command=popup.destroy)
         botao_ok.pack(pady=(0, 10))
-
 
     def trocar_para_abas():
         caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
-
         expressao = entrada.get().strip().upper().replace(" ", "")
-
         label_circuito_expressao.configure(text=f"Expressão Lógica Proposicional: {expressao}")
         
         with open(caminho_entrada, "w", encoding="utf-8") as file: 
@@ -149,17 +125,16 @@ def inicializar_interface():
         ver_circuito_pygame(saida)
         show_frame(frame_abas)
         def aguarda_e_mostra():
-            # espera o circuito ser salvo e imagem estar disponível
+            #espera o circuito ser salvo e imagem estar disponível
             caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
-            for _ in range(50):  # 50 tentativas ~5s
+            for _ in range(50):  #50 tentativas ~5s
                 if os.path.exists(caminho_img):
                     break
                 time.sleep(0.1)
             atualizar_imagem_circuito()
-            janela.after(0, lambda: show_frame(frame_abas))  # mostra o frame principal na thread da GUI
+            janela.after(0, lambda: show_frame(frame_abas))  #mostra o frame principal na thread da GUI
 
         threading.Thread(target=aguarda_e_mostra).start()
-
 
     def confirmar_expressao():
         global botao_ver_circuito
@@ -170,18 +145,8 @@ def inicializar_interface():
             popup_erro("A expressão não pode estar vazia.")
             return
         
-        botao_ver_circuito = ctk.CTkButton(
-            principal, 
-            text="Ver Circuito / Expressão", 
-            fg_color="#B0E0E6", 
-            text_color="#000080", 
-            hover_color="#8B008B", 
-            border_width=2,
-            border_color="#708090",
-            width=200, 
-            height=50, 
-            font=("Arial", 16), 
-            command=lambda: trocar_para_abas())
+        botao_ver_circuito = Button.botao_padrao("Ver circuito / Expressão", principal)
+        botao_ver_circuito.configure(command=lambda: trocar_para_abas())
         botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
 
 
@@ -249,35 +214,34 @@ def inicializar_interface():
             botao_ver_circuito.destroy()
             botao_ver_circuito = None
 
-        # limpa as entradas
+        #limpa as entradas
         if frame not in [frame_abas, frame_resolucao_direta, frame_educacional, frame_interativo]:
             entrada.delete(0, tk.END) 
 
-            
         entrada2.delete(0, tk.END)  
         entrada3.delete(0, tk.END) 
         
-        # escreve digite aqui
+        #escreve digite aqui
         entrada.configure(placeholder_text="Digite aqui")
         entrada2.configure(placeholder_text="Digite aqui")
         entrada3.configure(placeholder_text="Digite aqui")
         
-        # limpa o "é equivalente e o não é equivalente"
+        #limpa o "é equivalente e o não é equivalente"
         equivalente.place_forget()
         nao_equivalente.place_forget()
         
-        # Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
+        #Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
         if frame != frame_abas:
             label_convertida.pack_forget()
             log_simplificacao_textbox.pack_forget()
             botao_simplificacao.pack_forget()
 
-        show_frame(frame)  # troca o frame
+        show_frame(frame)  #troca o frame
 
-        # Força o foco para a janela (tira o foco de qualquer campo antigo)
+        #Força o foco para a janela (tira o foco de qualquer campo antigo)
         janela.focus_set()
 
-        # Se voltando para a tela principal, seta foco corretamente
+        #Se voltando para a tela principal, seta foco corretamente
         if frame == principal:
             entrada.focus_set()
         
@@ -288,15 +252,16 @@ def inicializar_interface():
         if os.path.exists(caminho_img):
             imagem_pil = Image.open(caminho_img)
 
-            # Adiciona borda branca de 10px
+            #Adiciona borda branca de 10px
             borda = 10
             imagem_com_borda = ImageOps.expand(imagem_pil, border=borda, fill="white")
 
             imagem_tk = ImageTk.PhotoImage(imagem_com_borda)
             imagem_circuito.configure(image=imagem_tk, text="")
-            imagem_circuito.image = imagem_tk  # Mantém uma referência à imagem para evitar que seja coletada pelo garbage collector
+            imagem_circuito.image = imagem_tk  #Mantém uma referência à imagem para evitar que seja coletada pelo garbage collector
     
-    # Definição de cada frame do app
+    #------------- DEFININDO OS FRAMES DA INTERFACE -------------
+    
     frame_inicio = ctk.CTkFrame(janela, fg_color="#000057")
     frame_inicio.grid(row=0, column=0, sticky="nsew")
 
@@ -315,13 +280,11 @@ def inicializar_interface():
     frame_educacional = ctk.CTkFrame(janela, fg_color="#000057")
     frame_educacional.grid(row=0, column=0, sticky="nsew")
 
-
     frame_resolucao_direta = ctk.CTkFrame(janela, fg_color="#000057")
     frame_resolucao_direta.grid(row=0, column=0, sticky="nsew")
 
     scroll_conteudo = ctk.CTkScrollableFrame(frame_resolucao_direta, fg_color="#000057")
     scroll_conteudo.pack(expand=True, fill="both", padx=20, pady=20)
-
 
     frame_interativo = ctk.CTkFrame(janela, fg_color="#000057")
     frame_interativo.grid(row=0, column=0, sticky="nsew")
@@ -332,235 +295,101 @@ def inicializar_interface():
     frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color="#000057")
     frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
+    #---------------- FRAME DE INÍCIO ----------------
 
-    # ---------------- Frame de Início ----------------
-    frame_inicio_conteudo = ctk.CTkFrame(
-        frame_inicio, 
-        fg_color="#000057", 
-        corner_radius=30)
-
+    frame_inicio_conteudo = ctk.CTkFrame(frame_inicio, fg_color="#000057", corner_radius=30)
     frame_inicio_conteudo.pack(expand=True)
-
-
-    frame_inicio_conteudo.place(
-        relx=0.5, 
-        rely=0.5, 
-        anchor="center")
-
-    caminho_fonte = os.path.join(ASSETS_PATH, "Momentz.ttf")
+    frame_inicio_conteudo.place(relx=0.5, rely=0.5, anchor="center")
+    #Configuração da fonte
     fonte_momentz = CTkFont(family="Momentz", size=30)
 
-    label_inicio = ctk.CTkLabel(
-        frame_inicio_conteudo,
-        text="LoZ Gates",
-        font=fonte_momentz,
-        text_color="white",
-        fg_color="#000057"
-    )
+    label_inicio = ctk.CTkLabel( frame_inicio_conteudo,text="LoZ Gates",font=fonte_momentz,text_color="white",fg_color="#000057")
     label_inicio.pack(pady=30)
 
-    botao_start = ctk.CTkButton(
-        frame_inicio_conteudo, 
-        text="Começar", 
-        fg_color="#B0E0E6", 
-        text_color="#000080", 
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: show_frame(frame_escolha))
+    botao_start = Button.botao_padrao("Começar", frame_inicio_conteudo)
+    botao_start.configure(command=lambda: show_frame(frame_escolha))
     botao_start.pack(pady=30)
 
-    botao_info = ctk.CTkButton(
-        frame_inicio_conteudo, 
-        text="Informações", 
-        fg_color="#B0E0E6", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: show_frame(frame_info))
+    botao_info = Button.botao_padrao("Informações", frame_inicio_conteudo)
+    botao_info.configure(command=lambda: show_frame(frame_info))
     botao_info.pack(pady=20)
 
-    # ---------------- Frame de Escolha ----------------
-    botao_tarefas = ctk.CTkButton(
-        frame_escolha,
-        text="Circuitos",
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        width=250,
-        height=50,
-        font=("Arial", 16),
-        command=lambda: show_frame(principal))
+    #---------------- FRAME DA ESCOLHA ----------------
+
+    botao_tarefas = Button.botao_padrao("Circuitos", frame_escolha)
+    botao_tarefas.configure(command=lambda: show_frame(principal), width=250, height=50)
     botao_tarefas.place(relx=0.5, y=300, anchor="center")
 
-    botao_equivalencia = ctk.CTkButton(
-            frame_escolha,
-            text="Equivalência",
-            fg_color="#B0E0E6",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=250,
-            height=50,
-            font=("Arial", 16),
-            command=lambda: show_frame(frame_equivalencia))
+    botao_equivalencia = Button.botao_padrao("Equivalência", frame_escolha)
+    botao_equivalencia.configure(command=lambda: show_frame(frame_equivalencia), width=250, height=50)
     botao_equivalencia.place(relx=0.5, y=400, anchor="center")    
         
-    botao_voltar4 = ctk.CTkButton(
-        frame_escolha,
-        text="Voltar", 
-        fg_color="goldenrod", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: voltar_para(frame_inicio))
-    botao_voltar4.place(relx=0.5, y=500, anchor="center")
+    botao_voltar_escolha = Button.botao_voltar("Voltar", frame_escolha)
+    botao_voltar_escolha.configure(command=lambda: voltar_para(frame_inicio))
+    botao_voltar_escolha.place(relx=0.5, y=500, anchor="center") 
+       
+    #---------------- FRAME DOS CIRCUITOS E DAS EXPRESSÕES ----------------
 
-    # ---------------- Frame dos Circuitos e expressões----------------
-    label_tarefas = ctk.CTkLabel(
-        principal, 
-        text="Digite a expressão em Lógica Proposicional:", 
-        font=("Arial Bold", 20), 
-        text_color="white", 
-        fg_color=None)
+    label_tarefas = ctk.CTkLabel(principal, text="Digite a expressão em Lógica Proposicional:", font=("Arial Bold", 20), text_color="white", fg_color=None)
     label_tarefas.place(relx=0.5, y=150, anchor="center")
 
-    entrada = ctk.CTkEntry(
-        principal, 
-        width=300, 
-        placeholder_text="Digite aqui", 
-        font=("Arial", 14))
+    entrada = ctk.CTkEntry(principal, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
     entrada.place(relx=0.5, y=200, anchor="center")
 
-    bot = ctk.CTkButton(
-        principal, 
-        text="Confirmar", 
-        fg_color="#B0E0E6", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command= confirmar_expressao)
-    bot.place(relx=0.5, y=300, anchor="center")
-
-    botao_problemas_reais = ctk.CTkButton(
-        principal,
-        text="Problemas Reais",
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        width=200,
-        height=50,
-        font=("Arial", 16),
-        command=lambda: (show_frame(frame_problemas_reais), problemas_reais())
-    )
+    botao_confirmar_expressao = Button.botao_padrao("Confirmar", principal)
+    botao_confirmar_expressao.configure(command=confirmar_expressao)
+    botao_confirmar_expressao.place(relx=0.5, y=300, anchor="center")
+    
+    botao_problemas_reais = Button.botao_padrao("Problemas Reais", principal)
+    botao_problemas_reais.configure(command=lambda:(show_frame(frame_problemas_reais), problemas_reais()))
     botao_problemas_reais.place(relx=0.5, y=400, anchor="center")
 
-    botao_voltar1 = ctk.CTkButton(
-        principal, 
-        text="Voltar", 
-        fg_color="goldenrod", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: voltar_para(frame_escolha))
-    botao_voltar1.place(relx=0.5, y=500, anchor="center")
-    # ---------------- Frames dos problemas reais ----------------
-     
+    botao_voltar_para_selecao = Button.botao_voltar("Voltar", principal)
+    botao_voltar_para_selecao.configure(command=lambda: voltar_para(frame_escolha))
+    botao_voltar_para_selecao.place(relx=0.5, y=500, anchor="center")
+    
+    #---------------- FRAME DOS PROBLEMAS REAIS ----------------
+
     def problemas_reais():
-
+        label = ctk.CTkLabel(frame_problemas_reais, text="", fg_color="#000057")
+        label.pack(pady=10)
         label_problemas = ctk.CTkLabel(frame_problemas_reais, text="Aqui você pode ver alguns problemas do mundo real que podem ser representados por circuitos lógicos e lógica proposicional.",
-                     font=("Arial", 18), text_color="white")
-        label_problemas.pack(pady=20)
+                     font=("Arial", 24), text_color="white")
+        label_problemas.pack(pady=10)
 
-        container_problemas = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#B7B7DD", height=1200, width=300)
-        container_problemas.pack(pady=20)
-
+        container_problemas = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#000000", height=600, width=250)
+        container_problemas.pack(pady=30)
 
         problemas = ["Problema 1", "Problema 2", "Problema 3", "Problema 4", "Problema 5", "Problema 6", "Problema 7", "Problema 8", "Problema 9", "Problema 10",
         "Problema 11", "Problema 12", "Problema 13", "Problema 14", "Problema 15", "Problema 16", "Problema 17", "Problema 18", "Problema 19", "Problema 20"]
-        # Ver um if pra ver se o problema é facil dificil ou medio, talvez ver a possibilidade de usar POO pra o problema
+        #Ver um if pra ver se o problema é facil dificil ou medio, talvez ver a possibilidade de usar POO pra o problema
         
         for problema in problemas:
-            botao_problema = ctk.CTkButton(
-                container_problemas,
-                text=problema,
-                fg_color="#B0E0E6",
-                text_color="#000080",
-                hover_color="#8B008B",
-                border_width=2,
-                border_color="#708090",
-                width=250,
-                height=50,
-                font=("Arial", 16),
-            )
+            botao_problema = Button.botao_padrao(problema, container_problemas)
+            #Adicionar logica do comando baseado nas classes problema
             botao_problema.pack(pady=10)
-            
-     
-        botao_voltar_problemas = ctk.CTkButton(
-            container_problemas,
-            text="Voltar",
-            fg_color="goldenrod",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=250,
-            height=50,
-            font=("Arial", 16),
-            command=lambda: voltar_para(principal)
-        )
-        botao_voltar_problemas.pack(pady=10)
-            
-        
-    # ---------------- Frame de Abas----------------
+
+        botao_voltar_problemas = Button.botao_voltar("Voltar", frame_problemas_reais)
+        botao_voltar_problemas.configure(command=lambda: (voltar_para(principal), label_problemas.pack_forget(), container_problemas.pack_forget(), botao_voltar_problemas.pack_forget()))
+        botao_voltar_problemas.pack(pady=10)     
+
+    #---------------- FRAME DE ABAS ----------------
+
     abas = ctk.CTkTabview(
-        master=frame_abas,
-        fg_color="#000057",
-        segmented_button_fg_color="#FFFFFF",
-        segmented_button_selected_color="#4441F7",
-        segmented_button_selected_hover_color="#0B1658",
-        segmented_button_unselected_color="#001E44",
+        master=frame_abas, fg_color="#000057", 
+        segmented_button_fg_color="#FFFFFF", segmented_button_selected_color="#4441F7",
+        segmented_button_selected_hover_color="#0B1658", segmented_button_unselected_color="#001E44",
         segmented_button_unselected_hover_color="#4682B4"
     )
     abas.pack(expand=True, fill="both")
 
-    from tkinter import filedialog  
+    #---------------------- ABA DO CIRCUITO ----------------------
 
-    # Aba do circuito
     aba_circuito = abas.add("      Circuito      ")
     scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color="#000057")
     scroll_frame1.pack(expand=True, fill="both")
 
-    label_circuito_expressao = ctk.CTkLabel(
-        scroll_frame1,
-        font=("Arial", 16, "bold"),
-        text_color="cyan",
-        text=""  
-    )
+    label_circuito_expressao = ctk.CTkLabel(scroll_frame1, font=("Arial", 16, "bold"), text_color="cyan", text="")
     label_circuito_expressao.pack(pady=10)
 
     imagem_circuito = ctk.CTkLabel(scroll_frame1, text="")
@@ -569,38 +398,22 @@ def inicializar_interface():
     def salvar_imagem():
         caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
         if os.path.exists(caminho_img):
-            caminho_salvar = filedialog.asksaveasfilename(
-                defaultextension=".png",
-                filetypes=[("Imagem PNG", "*.png")],
-                title="Salvar Circuito Como PNG"
-            )
+            caminho_salvar = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("Imagem PNG", "*.png")], title="Salvar Circuito Como PNG")
+            
             if caminho_salvar:
                 img = Image.open(caminho_img)
                 img.save(caminho_salvar)
         else:
             popup_erro("Imagem não encontrada.")
-
-    botao_salvar = ctk.CTkButton(
-        scroll_frame1,
-        text="Salvar Circuito como PNG",
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        width=220,
-        height=40,
-        font=("Arial", 16),
-        command=salvar_imagem
-    )
+    botao_salvar = Button.botao_padrao("Salvar circuito como PNG", scroll_frame1)
+    botao_salvar.configure(command=salvar_imagem)
     botao_salvar.pack(pady=20)
-
- # ------------------------------------------------ Aba de Expressão ----------------------------------------------
-
+    
+ #------------------------------------------------ ABA DE EXPRESSÃO  ----------------------------------------------
+ 
     aba_expressao = abas.add("      Expressão      ")
     scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color="#000057")
     scroll_frame2.pack(expand=True, fill="both")
-
     expressao_booleana_atual = ""
 
     class GUILogger:
@@ -616,7 +429,7 @@ def inicializar_interface():
                 if linha:
                     #queria que ele centralizasse o texto, mas não consegui
                     if len(linha) > self.largura_linha:
-                        # Divide a linha em partes menores
+                        #Divide a linha em partes menores
                         partes = [linha[i:i+self.largura_linha] for i in range(0, len(linha), self.largura_linha)]
                         for parte in partes:
                             self.textbox.insert("end", parte.strip() + "\n")
@@ -624,12 +437,7 @@ def inicializar_interface():
                         self.textbox.insert("end", linha.strip() + "\n")
             self.textbox.see("end")
 
-    frame_borda = ctk.CTkFrame(
-        master=scroll_conteudo,
-        fg_color="white", 
-        corner_radius=10  
-    )
-    
+    frame_borda = ctk.CTkFrame(master=scroll_conteudo,fg_color="white", corner_radius=10)
     label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 16, "bold"), text_color="white")
     log_simplificacao_textbox = ctk.CTkTextbox(frame_borda,  wrap="word", font=("Consolas", 18), height=600, width=900)
     log_simplificacao_textbox.configure(fg_color="#1c1c1c")
@@ -654,35 +462,27 @@ def inicializar_interface():
         
         botao_simplificacao.pack(pady=15)
 
-    label_solucao = ctk.CTkLabel(
-        scroll_conteudo,
-        text="Solução da expressão:",
-        font=("Arial", 20, "bold"),
-        text_color="white"
-    )
+    label_solucao = ctk.CTkLabel(scroll_conteudo, text="Solução da expressão:", font=("Arial", 20, "bold"), text_color="white")
 
     def expressao_simplificada():
         if not expressao_booleana_atual:
             popup_erro("Erro: Nenhuma expressão convertida encontrada.")
             return
-        # Solução talvez um pouco ineficiente, mas funciona
+        #Solução talvez um pouco ineficiente, mas funciona
         if label_solucao.winfo_ismapped():
             label_solucao.pack_forget()
             log_simplificacao_textbox.pack_forget()
             frame_borda.pack_forget()
-            botao_voltar8.pack_forget()
+            botao_voltar_ver_solucao.pack_forget()
 
         label_solucao.pack(pady=20)
         frame_borda.pack(pady=10)
         frame_borda.configure(width=800)
         log_simplificacao_textbox.pack(padx=10, pady=10, fill="both", expand=True)
-
         log_simplificacao_textbox.configure(state="normal")
         log_simplificacao_textbox.delete("1.0", "end")
         log_simplificacao_textbox.configure(text_color="#39FF14",spacing3=-27)
-
-        botao_voltar8.pack(pady=20)
-        
+        botao_voltar_ver_solucao.pack(pady=20)
         gui_logger = GUILogger(log_simplificacao_textbox)
 
         with redirect_stdout(gui_logger):
@@ -701,119 +501,46 @@ def inicializar_interface():
         url = f"https://chat.openai.com/?q={query}"
         webbrowser.open(url)
 
-    botao_conversao = ctk.CTkButton(
-        scroll_frame2,
-        text="Realizar conversão",
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        command=mostrar_expressao_convertida
-    )
-    botao_conversao.pack(pady=10)
+    botao_converter = Button.botao_padrao("Realizar conversão", scroll_frame2)
+    botao_converter.configure(command=mostrar_expressao_convertida)
+    botao_converter.pack(pady=10)
 
-    botao_simplificacao = ctk.CTkButton(
-        scroll_frame2,
-        text="Simplificar expressão",
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        command=lambda: show_frame(frame_educacional)
-    )
+    botao_simplificacao = Button.botao_padrao("Simplificar expressão", scroll_frame2)
+    botao_simplificacao.configure(command=lambda: show_frame(frame_educacional))
 
-    # Definição do frame educacional (frame pai aqui)
-    label_educacional = ctk.CTkLabel(
-        frame_educacional,
-        text="Escolha o que deseja fazer:",
-        font=("Arial Bold", 20),
-        text_color="white",
-        fg_color=None
-    )
+    #Definição do frame educacional (frame pai aqui)
+    label_educacional = ctk.CTkLabel(frame_educacional, text="Escolha o que deseja fazer:", font=("Arial Bold", 20), text_color="white",fg_color=None)
     label_educacional.pack(pady=100, padx=100)
 
     def go_to_interactive():
-        # Função wrapper para garantir a ordem correta das chamadas
+        #Função wrapper para garantir a ordem correta das chamadas
         show_frame(frame_interativo)
         parte_interativa()
 
-    botao_interativo = ctk.CTkButton(
-        frame_educacional,
-        text="Tentar Simplificar",
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        width=200,
-        height=50,
-        font=("Arial", 16),
-        command=go_to_interactive # Comando corrigido
-    )
+    botao_interativo = Button.botao_padrao("Tentar simplificar (interativo)", frame_educacional)
+    botao_interativo.configure(command=go_to_interactive)
     botao_interativo.pack(pady=(30, 10))
     
+    escolher_caminho = ctk.CTkFrame(frame_interativo, fg_color="#000033", corner_radius=10, height=800, width=280)
+    area_expressao = ctk.CTkTextbox(master=frame_interativo,fg_color="#1c1c1c", text_color="#39FF14", font=("Consolas", 16), wrap="word", width=800, height=800)
     
-    escolher_caminho = ctk.CTkFrame(
-            frame_interativo,
-            fg_color="#000033",
-            corner_radius=10,
-            height=800,
-            width=280
-        )
+    #---------------------- FRAME DA SIMPLFICAÇÃO ---------------------------------
     
-    area_expressao = ctk.CTkTextbox(
-        master=frame_interativo,
-        fg_color="#1c1c1c",
-        text_color="#39FF14",
-        font=("Consolas", 16),
-        wrap="word",
-        width=800,
-        height=800,
-    )
-    
-    # REMOVIDO: A criação do botão "Voltar" foi movida para dentro da função parte_interativa()
-    # para evitar o erro de widget destruído.
-
-    # Frame da resposta -----------------------------------------------
-    botao_solucao = ctk.CTkButton(
-        frame_educacional,
-        text="Ver Solução",
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        width=200,
-        height=50,
-        font=("Arial", 16),
-        border_color="#708090",
-        command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada())
-    )
+    botao_solucao = Button.botao_padrao("Ver solução", frame_educacional)
+    botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
     botao_solucao.pack(pady=10)
 
-    botao_voltar8 = ctk.CTkButton(
-        scroll_conteudo,
-        text="Voltar",
-        fg_color="goldenrod",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        width=200,
-        height=50,
-        font=("Arial", 16),
-        command=lambda: voltar_para(frame_educacional)
-    )
+    botao_voltar_ver_solucao = Button.botao_voltar("Voltar", scroll_conteudo)
+    botao_voltar_ver_solucao.configure(command = lambda: voltar_para(frame_educacional))
 
       #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
+      
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados
 
         if not passo_atual_info:
             return
 
-        no_antigo_str = str(passo_atual_info['no_atual'])
         lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
         
         nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
@@ -855,13 +582,10 @@ def inicializar_interface():
             area_expressao.insert("end", f"Analisando a sub-expressão: '{sub_expr}'\n")
             area_expressao.insert("end", "Qual lei deseja aplicar?")
             
-            #Habilita todos os botões de lei
-            for i, botao in enumerate(botoes_leis):
+            for botao in enumerate(botoes_leis):
                 botao.configure(state="normal")
             
-            #Habilita o botão pular
             botao_pular.configure(state="normal")
-
         else:
             #Nenhuma simplificação encontrada
             area_expressao.insert("end", "\n\n========================================\n")
@@ -899,13 +623,11 @@ def inicializar_interface():
         historico_interativo = [f"Expressão Inicial: {str(arvore_interativa)}"]
         nos_ignorados = set()
         passo_atual_info = None
-        
-        #Layout da UI
+
         escolher_caminho.pack_propagate(False)
         escolher_caminho.pack(side="right", fill="y", padx=20, pady=20)
         area_expressao.pack(side="left", fill="both", expand=True, padx=20, pady=20)
         
-        #Mapeamento de botões para índices de LEIS_LOGICAS
         botoes_info = [
             {"texto": "Inversa (A * ~A = 0)", "idx": 0},
             {"texto": "Nula (A * 0 = 0)", "idx": 1},
@@ -928,8 +650,7 @@ def inicializar_interface():
             btn = ctk.CTkButton(
                 escolher_caminho, text=info["texto"],
                 fg_color="#B0E0E6", text_color="#000080", hover_color="#8B008B",
-                border_width=2, border_color="#708090", width=250, height=45,
-                font=("Arial", 12),
+                border_width=2, border_color="#708090", width=250, height=45,font=("Arial", 12),
                 command=lambda idx=info["idx"]: on_lei_selecionada(idx)
             )
             btn.pack(pady=5, padx=10)
@@ -946,19 +667,8 @@ def inicializar_interface():
         botao_pular.pack(pady=(15, 5), padx=10)
         
         #Adiciona o botão de voltar no final
-        botao_voltar_interativo = ctk.CTkButton(
-            escolher_caminho,
-            text="Voltar",
-            fg_color="goldenrod",
-            text_color="#000080",
-            hover_color="#8B008B",
-            border_width=2,
-            border_color="#708090",
-            width=250,
-            height=45,
-            font=("Arial", 16),
-            command=lambda: voltar_para(frame_educacional)
-        )
+        botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
+        botao_voltar_interativo.configure(command=lambda: voltar_para(frame_educacional))
         botao_voltar_interativo.pack(side="bottom", pady=10, padx=10)
         
         #Inicia a primeira rodada
@@ -966,225 +676,68 @@ def inicializar_interface():
 
     #------------------------------------------------------------------------
     
-    botao_voltar7 = ctk.CTkButton(
-        frame_educacional,
-        text="Voltar",
-        fg_color="goldenrod",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",
-        width=200,
-        height=50,
-        font=("Arial", 16),
-        command=lambda: voltar_para(frame_abas)
-    )
-    botao_voltar7.pack(pady=(10))
+    botao_voltar_para_abas = Button.botao_voltar("Voltar", frame_educacional)
+    botao_voltar_para_abas.configure(command=lambda: voltar_para(frame_abas))
+    botao_voltar_para_abas.pack(pady=10)
 
-    botao_tabela = ctk.CTkButton(
-        scroll_frame2, 
-        text="Tabela Verdade", 
-        command=lambda:exibir_tabela_verdade(entrada.get().strip().upper()), 
-        fg_color="#B0E0E6",
-        text_color="#000080",
-        hover_color="#8B008B",
-        border_width=2,
-        border_color="#708090",) 
-    botao_tabela.pack(pady=10)
+    botao_tabela_verdade = Button.botao_padrao("Tabela Verdade", scroll_frame2)
+    botao_tabela_verdade.configure(command=lambda: exibir_tabela_verdade(entrada.get().strip().upper()))
+    botao_tabela_verdade.pack(pady=10)
 
-    botao_ia = ctk.CTkButton(
-    scroll_frame2,
-    text="Pedir ajuda à IA",
-    fg_color="#B0E0E6",
-    text_color="#000080",
-    hover_color="#8B008B",
-    border_width=2,
-    border_color="#708090",
-    command=lambda: abrir_duvida_expressao(entrada.get().strip().upper()))
-    botao_ia.pack(pady=10)
+    botao_pedir_ajuda_ia = Button.botao_padrao("Pedir ajuda à IA", scroll_frame2)
+    botao_pedir_ajuda_ia.configure(command=lambda: abrir_duvida_expressao(entrada.get().strip().upper()))
+    botao_pedir_ajuda_ia.pack(pady=10)
+    
+    #Botões das partes de abas que voltam pro frame de inserir a expressão para ver o circuito
+    botao_voltar_principal_2 = Button.botao_voltar("Voltar", scroll_frame2)
+    botao_voltar_principal_2.configure(command=lambda: voltar_para(principal))
+    botao_voltar_principal_2.pack(pady=30)
 
-    botao_voltar5 = ctk.CTkButton(
-        scroll_frame2,
-        text="Voltar", 
-        fg_color="goldenrod", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: voltar_para(principal))
-    botao_voltar5.pack(pady=30)
+    botao_voltar_principal = Button.botao_voltar("Voltar", scroll_frame1)
+    botao_voltar_principal.configure(command=lambda: voltar_para(principal))
+    botao_voltar_principal.pack(pady=30)
 
-    botao_voltar6 = ctk.CTkButton(
-        scroll_frame1,
-        text="Voltar", 
-        fg_color="goldenrod", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: voltar_para(principal))
-    botao_voltar6.pack(pady=30)
-
-    # ---------------- Frame de Informações ----------------
+    #---------------- FRAME DE INFORMAÇÕES ----------------
+    
     frame_info = ctk.CTkFrame(janela, fg_color="#000057")
     frame_info.grid(row=0, column=0, sticky="nsew")
 
-    textbox_info = ctk.CTkTextbox(
-        frame_info, 
-        font=("Arial", 20), 
-        text_color="white", 
-        fg_color="#000057"
-    )
+    textbox_info = ctk.CTkTextbox(frame_info, font=("Arial", 20), text_color="white", fg_color="#000057")
     textbox_info.pack(expand=True, fill="both", padx=20, pady=20)
-    textbox_info.configure(fg_color="#00002C", text_color="white")  # Permitir edição para inserir o texto
-    # Definindo o conteúdo do Textbox
-    info_text = """
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎓 Alunos responsáveis:
-- Larissa de Souza
-- Otávio Menezes
-- Zilderlan Santos
-- David Oliveira
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧪 Átomos aceitos:
-P, Q, R, S, T
+    textbox_info.configure(fg_color="#00002C", text_color="white")  #Permitir edição para inserir o texto
+    #Definindo o conteúdo do Textbox
+    info_text = informacoes
+    textbox_info.insert("0.0", info_text)  #Inserir o texto no Textbox
+    textbox_info.configure(state="disable")  #Desativar edição para evitar modificações
 
-🔣 Símbolos lógicos utilizados:
-- '&'  → E (conjunção)
-- '|'  → OU (disjunção)
-- '!'  → NÃO (negação)
-- '>'  → IMPLICA (condicional)
+    botao_voltar_info = Button.botao_voltar("Voltar", frame_info)
+    botao_voltar_info.configure(command=lambda: voltar_para(frame_inicio))
+    botao_voltar_info.pack(pady=20)
 
-⚠️ Atenção!
-Ao digitar a expressão, o usuário deve indicar **qual é a operação raiz** da expressão.
-
-📝 Exemplo:
-    (P & Q) | ((P | Q) & (R | S))
-
-- ((P > Q) & (R | S)) é uma subexpressão
-- (P & Q) é outra subexpressão
-➡ O operador que conecta as duas é o **'|'**, que representa a **operação raiz** da expressão.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🛠️ Funcionalidades disponíveis:
-1. Visualizar o circuito lógico equivalente
-2. Gerar a tabela verdade
-3. Converter a expressão para Álgebra Booleana e comparar
-4. Simplificar a expressão lógica proposicional
-5. Verificar se duas expressões são logicamente equivalentes
-6. Obter ajuda da IA para simplificação
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💡 Motivação:
-A proposta é desenvolver uma aplicação com interface amigável que ajude os alunos a compreenderem as interações entre **Lógica Proposicional** e **Circuitos Digitais**. Essa ferramenta visa promover o aprendizado prático e interdisciplinar, conectando conceitos de diferentes áreas.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🏛️ Universidade Federal de Alagoas  
-🏢 Instituto de Computação  
-👨‍🏫 Prof. Dr. Evandro de Barros Costa
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
-
-
-    textbox_info.insert("0.0", info_text)  # Inserir o texto no Textbox
-    textbox_info.configure(state="disable")  # Desativar edição para evitar modificações
-
-
-    botao_voltar2 = ctk.CTkButton(
-        frame_info, 
-        text="Voltar", 
-        fg_color="goldenrod", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: voltar_para(frame_inicio))
-    botao_voltar2.pack(pady=20)
-
-
-    # ---------------- Frame de Equivalência ----------------
-    label_escolha = ctk.CTkLabel(
-            frame_escolha, 
-            text="Escolha a opção desejada:", 
-            font=("Arial Bold", 20), 
-            text_color="white", 
-            fg_color=None)
+    #---------------- FRAME DE EQUIVALÊNCIA ----------------
+    
+    label_escolha = ctk.CTkLabel(frame_escolha, text="Escolha a opção desejada:", font=("Arial Bold", 20), text_color="white", fg_color=None)
     label_escolha.place(relx=0.5, y=200, anchor="center")
 
-    entrada2 = ctk.CTkEntry(
-            frame_equivalencia,
-            width=300,
-            placeholder_text="Digite aqui",
-            font=("Arial", 14))
+    entrada2 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
     entrada2.place(relx=0.5, y=200, anchor="center")
 
-    entrada3 = ctk.CTkEntry(
-            frame_equivalencia,
-            width=300,
-            placeholder_text="Digite aqui",
-            font=("Arial", 14))
+    entrada3 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
     entrada3.place(relx=0.5, y=250, anchor="center")
 
-    botao_comparar = ctk.CTkButton(
-            frame_equivalencia, 
-            text="Confirmar", 
-            fg_color="#B0E0E6", 
-            text_color="#000080", 
-            hover_color="#8B008B", 
-            border_width=2,
-            border_color="#708090",
-            width=200, 
-            height=50, 
-            font=("Arial", 16), 
-            command=comparar)
+    botao_comparar = Button.botao_padrao("Confirmar", frame_equivalencia)
+    botao_comparar.configure(command=comparar)
     botao_comparar.place(relx=0.5, y=350, anchor="center")
 
-    botao_voltar3 = ctk.CTkButton(
-        frame_equivalencia, 
-        text="Voltar", 
-        fg_color="goldenrod", 
-        text_color="#000080", 
-        hover_color="#8B008B", 
-        border_width=2,
-        border_color="#708090",
-        width=200, 
-        height=50, 
-        font=("Arial", 16), 
-        command=lambda: voltar_para(frame_escolha))
-    botao_voltar3.place(relx=0.5, y=420, anchor="center")
+    botao_voltar_equivalencia = Button.botao_voltar("Voltar", frame_equivalencia)
+    botao_voltar_equivalencia.configure(command=lambda: voltar_para(frame_escolha))
+    botao_voltar_equivalencia.place(relx=0.5, y=420, anchor="center")
 
-    titulo = ctk.CTkLabel(
-            frame_equivalencia, 
-            text="Digite as expressões que deseja comparar:", 
-            font=("Arial Bold", 20), 
-            text_color="white", 
-            fg_color=None)
+    titulo = ctk.CTkLabel(frame_equivalencia, text="Digite as expressões que deseja comparar:", font=("Arial Bold", 20), text_color="white", fg_color=None)
     titulo.place(relx=0.5, y=130, anchor="center")
 
-    equivalente = ctk.CTkLabel(
-            frame_equivalencia, 
-            text="É equivalente :)", 
-            font=("Arial Bold", 20), 
-            text_color="white", 
-            fg_color=None)
-
-    nao_equivalente = ctk.CTkLabel(
-            frame_equivalencia, 
-            text="Não é equivalente :(", 
-            font=("Arial Bold", 20), 
-            text_color="white", 
-            fg_color=None)
-
-    # Exibe o frame inicial
+    equivalente = ctk.CTkLabel(frame_equivalencia, text="É equivalente 😁", font=("Arial Bold", 20), text_color="white", fg_color=None)
+    nao_equivalente = ctk.CTkLabel(frame_equivalencia, text="Não é equivalente 😭", font=("Arial Bold", 20), text_color="white", fg_color=None)
+ 
     show_frame(frame_inicio)
-
-    # Loop principal
     janela.mainloop()
