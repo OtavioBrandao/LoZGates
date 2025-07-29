@@ -18,7 +18,7 @@ from BackEnd.identificar_lei import principal_simplificar
 from contextlib import redirect_stdout
 import BackEnd.simplificador_interativo as simpli
 from FrontEnd.buttons import Button
-from tkinter import filedialog 
+from tkinter import filedialog
 
 expressao_global = ""
 botao_ver_circuito = None
@@ -86,12 +86,13 @@ def inicializar_interface():
         threading.Thread(target=aguardar_imagem).start()
 
     def popup_erro(mensagem):
-        popup = ctk.CTkToplevel(janela)
+        popup = tk.Toplevel(janela)  # <- tk.Toplevel ao invés de ctk.CTkToplevel
         popup.attributes('-topmost', True)
         popup.after(10, lambda: popup.attributes('-topmost', False))
         popup.title("Erro")
+        popup.iconbitmap(os.path.join(ASSETS_PATH, "endeota.ico"))
 
-        #Tamanho e centralização
+        # Tamanho e centralização
         largura_popup = 300
         altura_popup = 120
         popup.geometry(f"{largura_popup}x{altura_popup}")
@@ -100,15 +101,17 @@ def inicializar_interface():
         y = (popup.winfo_screenheight() // 2) - (altura_popup // 2)
         popup.geometry(f"{largura_popup}x{altura_popup}+{x}+{y}")
 
-        #Cor de fundo
-        popup.configure(fg_color="#1a1a1a")  #fundo escuro
+        # Cor de fundo
+        popup.configure(bg="#1a1a1a")  # como é Tk puro, use 'bg' e não 'fg_color'
 
-        #Conteúdo
-        label = ctk.CTkLabel(popup, text=mensagem, font=("Arial", 14), text_color="white")
+        # Conteúdo
+        label = tk.Label(popup, text=mensagem, font=("Arial", 14), fg="white", bg="#1a1a1a")
         label.pack(pady=(20, 10))
 
-        botao_ok = ctk.CTkButton(popup, text="OK", fg_color="red", text_color="white", hover_color="#8B0000", command=popup.destroy)
+        botao_ok = tk.Button(popup, text="OK", bg="#7A2020", fg="white", command=popup.destroy)
+        botao_ok.configure(width=8, height=1)
         botao_ok.pack(pady=(0, 10))
+
 
     def trocar_para_abas():
         caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
@@ -468,7 +471,7 @@ def inicializar_interface():
         if not expressao_booleana_atual:
             popup_erro("Erro: Nenhuma expressão convertida encontrada.")
             return
-        #Solução talvez um pouco ineficiente, mas funciona
+
         if label_solucao.winfo_ismapped():
             label_solucao.pack_forget()
             log_simplificacao_textbox.pack_forget()
@@ -481,15 +484,20 @@ def inicializar_interface():
         log_simplificacao_textbox.pack(padx=10, pady=10, fill="both", expand=True)
         log_simplificacao_textbox.configure(state="normal")
         log_simplificacao_textbox.delete("1.0", "end")
-        log_simplificacao_textbox.configure(text_color="#39FF14",spacing3=-27)
+        log_simplificacao_textbox.configure(text_color="#39FF14", spacing3=-27)
         botao_voltar_ver_solucao.pack(pady=20)
+
         gui_logger = GUILogger(log_simplificacao_textbox)
 
-        with redirect_stdout(gui_logger):
-            try:
-                principal_simplificar(expressao_booleana_atual)
-            except Exception as e:
-                popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}")
+        def simplificar_thread():
+            with redirect_stdout(gui_logger):
+                try:
+                    principal_simplificar(expressao_booleana_atual)
+                except Exception as e:
+                    janela.after(0, lambda: popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}"))
+
+        threading.Thread(target=simplificar_thread).start()
+
 
     def abrir_duvida_expressao(expressao):
         if not expressao:
@@ -568,11 +576,9 @@ def inicializar_interface():
     def atualizar_ui_interativa():
         global botoes_leis
         
-        #Atualiza a área de texto principal
         area_expressao.configure(state="normal")
         area_expressao.delete("1.0", "end")
-        
-        #Junta o histórico com quebras de linha
+
         texto_historico = "\n".join(historico_interativo)
         area_expressao.insert("1.0", texto_historico)
 
@@ -582,18 +588,14 @@ def inicializar_interface():
             area_expressao.insert("end", f"Analisando a sub-expressão: '{sub_expr}'\n")
             area_expressao.insert("end", "Qual lei deseja aplicar?")
             
-            # --- CORREÇÃO APLICADA AQUI ---
-            # Removemos o enumerate() para iterar diretamente sobre os objetos de botão
             for botao in botoes_leis:
                 botao.configure(state="normal")
             
             botao_pular.configure(state="normal")
         else:
-            #Nenhuma simplificação encontrada
             area_expressao.insert("end", "\n\n========================================\n")
             area_expressao.insert("end", "Simplificação finalizada. Nenhuma outra lei pôde ser aplicada.")
             
-            # Este loop já estava correto
             for botao in botoes_leis:
                 botao.configure(state="disabled")
             botao_pular.configure(state="disabled")
@@ -741,7 +743,7 @@ def inicializar_interface():
     titulo.place(relx=0.5, y=130, anchor="center")
 
     equivalente = ctk.CTkLabel(frame_equivalencia, text="É equivalente 😁", font=("Arial Bold", 20), text_color="white", fg_color=None)
-    nao_equivalente = ctk.CTkLabel(frame_equivalencia, text="Não é equivalente 😭", font=("Arial Bold", 20), text_color="white", fg_color=None)
+    nao_equivalente = ctk.CTkLabel(frame_equivalencia, text="Não é equivalente 😩", font=("Arial Bold", 20), text_color="white", fg_color=None)
  
     show_frame(frame_inicio)
     janela.mainloop()
