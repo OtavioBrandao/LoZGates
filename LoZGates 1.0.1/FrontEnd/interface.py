@@ -93,7 +93,7 @@ def inicializar_interface():
         popup.iconbitmap(os.path.join(ASSETS_PATH, "endeota.ico"))
 
         # Tamanho e centralização
-        largura_popup = 300
+        largura_popup = 500
         altura_popup = 120
         popup.geometry(f"{largura_popup}x{altura_popup}")
         popup.update_idletasks()
@@ -105,7 +105,7 @@ def inicializar_interface():
         popup.configure(bg="#1a1a1a")  # como é Tk puro, use 'bg' e não 'fg_color'
 
         # Conteúdo
-        label = tk.Label(popup, text=mensagem, font=("Arial", 14), fg="white", bg="#1a1a1a")
+        label = tk.Label(popup, text=mensagem, font=("Arial", 12), fg="white", bg="#1a1a1a")
         label.pack(pady=(20, 10))
 
         botao_ok = tk.Button(popup, text="OK", bg="#7A2020", fg="white", command=popup.destroy)
@@ -295,6 +295,9 @@ def inicializar_interface():
     frame_problemas_reais = ctk.CTkFrame(janela, fg_color="#000057")
     frame_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
+    scroll_problemas_reais = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#000057")
+    scroll_problemas_reais.pack(expand=True, fill="both", padx=20, pady=20)
+
     frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color="#000057")
     frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
@@ -305,7 +308,6 @@ def inicializar_interface():
     frame_inicio_conteudo.place(relx=0.5, rely=0.5, anchor="center")
     #Configuração da fonte
     fonte_momentz = CTkFont(family="Momentz", size=30)
-
     label_inicio = ctk.CTkLabel( frame_inicio_conteudo,text="LoZ Gates",font=fonte_momentz,text_color="white",fg_color="#000057")
     label_inicio.pack(pady=30)
 
@@ -354,13 +356,13 @@ def inicializar_interface():
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
 
     def problemas_reais():
-        label = ctk.CTkLabel(frame_problemas_reais, text="", fg_color="#000057")
+        label = ctk.CTkLabel(scroll_problemas_reais, text="", fg_color="#000057")
         label.pack(pady=10)
-        label_problemas = ctk.CTkLabel(frame_problemas_reais, text="Aqui você pode ver alguns problemas do mundo real que podem ser representados por circuitos lógicos e lógica proposicional.",
-                     font=("Arial", 24), text_color="white")
+        label_problemas = ctk.CTkLabel(scroll_problemas_reais, text="Aqui você pode ver alguns problemas do mundo real que podem ser representados por circuitos lógicos e lógica proposicional.",
+                     font=("Arial", 18), text_color="white")
         label_problemas.pack(pady=10)
 
-        container_problemas = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#000000", height=600, width=250)
+        container_problemas = ctk.CTkScrollableFrame(scroll_problemas_reais, fg_color="#000000", height=600, width=250)
         container_problemas.pack(pady=30)
 
         problemas = ["Problema 1", "Problema 2", "Problema 3", "Problema 4", "Problema 5", "Problema 6", "Problema 7", "Problema 8", "Problema 9", "Problema 10",
@@ -372,7 +374,7 @@ def inicializar_interface():
             #Adicionar logica do comando baseado nas classes problema
             botao_problema.pack(pady=10)
 
-        botao_voltar_problemas = Button.botao_voltar("Voltar", frame_problemas_reais)
+        botao_voltar_problemas = Button.botao_voltar("Voltar", scroll_problemas_reais)
         botao_voltar_problemas.configure(command=lambda: (voltar_para(principal), label_problemas.pack_forget(), container_problemas.pack_forget(), botao_voltar_problemas.pack_forget()))
         botao_voltar_problemas.pack(pady=10)     
 

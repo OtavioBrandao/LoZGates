@@ -7,11 +7,12 @@
 # Simplificador Interativo
     - Tentar colocar uma explicação sobre o motivo de não conseguir usar determinada lei*
     - Colocar um botão " Voltar Sugestão " na parte interativa
+    - Verificar problemas de não aparecer o botão voltar em resoluções diferentes (urgente)
 
 # Tabela
     - Melhorar o print ✅
         - Printar de acordo com a quantidad de sub expressões ✅
 
 # Textbox
-    - Colocar a textbox do "Ver solução" scrollable
+    - Colocar a textbox do "Ver solução" scrollable ✅
     - Centralizar os textos
