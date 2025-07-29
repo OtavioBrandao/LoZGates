@@ -533,7 +533,7 @@ def inicializar_interface():
     botao_voltar_ver_solucao = Button.botao_voltar("Voltar", scroll_conteudo)
     botao_voltar_ver_solucao.configure(command = lambda: voltar_para(frame_educacional))
 
-      #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
+    #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
       
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados
@@ -582,7 +582,9 @@ def inicializar_interface():
             area_expressao.insert("end", f"Analisando a sub-expressão: '{sub_expr}'\n")
             area_expressao.insert("end", "Qual lei deseja aplicar?")
             
-            for botao in enumerate(botoes_leis):
+            # --- CORREÇÃO APLICADA AQUI ---
+            # Removemos o enumerate() para iterar diretamente sobre os objetos de botão
+            for botao in botoes_leis:
                 botao.configure(state="normal")
             
             botao_pular.configure(state="normal")
@@ -590,13 +592,15 @@ def inicializar_interface():
             #Nenhuma simplificação encontrada
             area_expressao.insert("end", "\n\n========================================\n")
             area_expressao.insert("end", "Simplificação finalizada. Nenhuma outra lei pôde ser aplicada.")
+            
+            # Este loop já estava correto
             for botao in botoes_leis:
                 botao.configure(state="disabled")
             botao_pular.configure(state="disabled")
 
         area_expressao.configure(state="disabled")
         area_expressao.see("end") #Rola para o final
-
+    
     def iniciar_rodada_interativa():
         global passo_atual_info
         #Procura o próximo passo possível, ignorando os nós que o usuário pulou
