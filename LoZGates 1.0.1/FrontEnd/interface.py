@@ -93,7 +93,7 @@ def inicializar_interface():
         popup.iconbitmap(os.path.join(ASSETS_PATH, "endeota.ico"))
 
         # Tamanho e centralização
-        largura_popup = 500
+        largura_popup = 400
         altura_popup = 120
         popup.geometry(f"{largura_popup}x{altura_popup}")
         popup.update_idletasks()
@@ -535,7 +535,7 @@ def inicializar_interface():
         show_frame(frame_interativo)
         parte_interativa()
 
-    botao_interativo = Button.botao_padrao("Tentar simplificar (interativo)", frame_educacional)
+    botao_interativo = Button.botao_padrao("Simplificar - interativo", frame_educacional)
     botao_interativo.configure(command=go_to_interactive)
     botao_interativo.pack(pady=(30, 10))
     
@@ -544,7 +544,7 @@ def inicializar_interface():
     
     #---------------------- FRAME DA SIMPLFICAÇÃO ---------------------------------
     
-    botao_solucao = Button.botao_padrao("Ver solução", frame_educacional)
+    botao_solucao = Button.botao_padrao("Simplificar - resultado", frame_educacional)
     botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
     botao_solucao.pack(pady=10)
 
@@ -573,7 +573,7 @@ def inicializar_interface():
             
             iniciar_rodada_interativa()
         else:
-            popup_erro("Não foi possível aplicar esta lei aqui.")
+            popup_erro("Não foi possível aplicar esta lei.")
 
     def on_pular_selecionado():
         global nos_ignorados, passo_atual_info, historico_interativo
