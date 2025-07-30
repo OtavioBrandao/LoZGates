@@ -297,6 +297,7 @@ def inicializar_interface():
 
     scroll_problemas_reais = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#000057")
     scroll_problemas_reais.pack(expand=True, fill="both", padx=20, pady=20)
+    scroll_problemas_reais._scrollbar.grid_remove()
 
     frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color="#000057")
     frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
@@ -361,18 +362,25 @@ def inicializar_interface():
         label_problemas = ctk.CTkLabel(scroll_problemas_reais, text="Aqui você pode ver alguns problemas do mundo real que podem ser representados por circuitos lógicos e lógica proposicional.",
                      font=("Arial", 18), text_color="white")
         label_problemas.pack(pady=10)
-
-        container_problemas = ctk.CTkScrollableFrame(scroll_problemas_reais, fg_color="#000000", height=600, width=250)
-        container_problemas.pack(pady=30)
+        
+        # Cria um frame de borda branca ao redor do container_problemas
+        borda_branca = ctk.CTkFrame(scroll_problemas_reais, fg_color="white", corner_radius=10)
+        borda_branca.pack(pady=10, padx=10)
+        container_problemas = ctk.CTkScrollableFrame(borda_branca, fg_color="#000000", height=275, width=800)
+        container_problemas.pack(padx=5, pady=5, fill="both", expand=True)
+        container_problemas._scrollbar.grid_remove()  # Hide the scrollbar visually
 
         problemas = ["Problema 1", "Problema 2", "Problema 3", "Problema 4", "Problema 5", "Problema 6", "Problema 7", "Problema 8", "Problema 9", "Problema 10",
         "Problema 11", "Problema 12", "Problema 13", "Problema 14", "Problema 15", "Problema 16", "Problema 17", "Problema 18", "Problema 19", "Problema 20"]
         #Ver um if pra ver se o problema é facil dificil ou medio, talvez ver a possibilidade de usar POO pra o problema
-        
-        for problema in problemas:
+        for idx, problema in enumerate(problemas):
             botao_problema = Button.botao_padrao(problema, container_problemas)
-            #Adicionar logica do comando baseado nas classes problema
-            botao_problema.pack(pady=10)
+            row = idx // 5
+            col = idx % 5
+            botao_problema.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
+            #colocar 5 por coluna
+        for i in range(5):
+            container_problemas.grid_columnconfigure(i, weight=1)
 
         botao_voltar_problemas = Button.botao_voltar("Voltar", scroll_problemas_reais)
         botao_voltar_problemas.configure(command=lambda: (voltar_para(principal), label_problemas.pack_forget(), container_problemas.pack_forget(), botao_voltar_problemas.pack_forget()))
