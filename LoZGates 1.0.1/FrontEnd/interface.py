@@ -347,7 +347,7 @@ def inicializar_interface():
     botao_confirmar_expressao.place(relx=0.5, y=300, anchor="center")
     
     botao_problemas_reais = Button.botao_padrao("Problemas Reais", principal)
-    botao_problemas_reais.configure(command=lambda:(show_frame(frame_problemas_reais), problemas_reais()))
+    botao_problemas_reais.configure(command=lambda: (show_frame(frame_problemas_reais)))
     botao_problemas_reais.place(relx=0.5, y=400, anchor="center")
 
     botao_voltar_para_selecao = Button.botao_voltar("Voltar", principal)
@@ -356,35 +356,34 @@ def inicializar_interface():
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
 
-    def problemas_reais():
-        label = ctk.CTkLabel(scroll_problemas_reais, text="", fg_color="#000057")
-        label.pack(pady=10)
-        label_problemas = ctk.CTkLabel(scroll_problemas_reais, text="Aqui você pode ver alguns problemas do mundo real que podem ser representados por circuitos lógicos e lógica proposicional.",
-                     font=("Arial", 18), text_color="white")
-        label_problemas.pack(pady=10)
-        
-        # Cria um frame de borda branca ao redor do container_problemas
-        borda_branca = ctk.CTkFrame(scroll_problemas_reais, fg_color="white", corner_radius=10)
-        borda_branca.pack(pady=10, padx=10)
-        container_problemas = ctk.CTkScrollableFrame(borda_branca, fg_color="#000000", height=275, width=800)
-        container_problemas.pack(padx=5, pady=5, fill="both", expand=True)
-        container_problemas._scrollbar.grid_remove()  # Hide the scrollbar visually
+    label = ctk.CTkLabel(scroll_problemas_reais, text="", fg_color="#000057")
+    label.pack(pady=10)
 
-        problemas = ["Problema 1", "Problema 2", "Problema 3", "Problema 4", "Problema 5", "Problema 6", "Problema 7", "Problema 8", "Problema 9", "Problema 10",
-        "Problema 11", "Problema 12", "Problema 13", "Problema 14", "Problema 15", "Problema 16", "Problema 17", "Problema 18", "Problema 19", "Problema 20"]
-        #Ver um if pra ver se o problema é facil dificil ou medio, talvez ver a possibilidade de usar POO pra o problema
-        for idx, problema in enumerate(problemas):
-            botao_problema = Button.botao_padrao(problema, container_problemas)
-            row = idx // 5
-            col = idx % 5
-            botao_problema.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
-            #colocar 5 por coluna
-        for i in range(5):
-            container_problemas.grid_columnconfigure(i, weight=1)
+    label_problemas = ctk.CTkLabel(scroll_problemas_reais, text="Aqui você pode ver alguns problemas do mundo real que podem ser representados por circuitos lógicos e lógica proposicional.",
+                    font=("Arial", 18), text_color="white")
+    label_problemas.pack(pady=10)
 
-        botao_voltar_problemas = Button.botao_voltar("Voltar", scroll_problemas_reais)
-        botao_voltar_problemas.configure(command=lambda: (voltar_para(principal), label_problemas.pack_forget(), container_problemas.pack_forget(), botao_voltar_problemas.pack_forget()))
-        botao_voltar_problemas.pack(pady=10)     
+    borda_branca = ctk.CTkFrame(scroll_problemas_reais, fg_color="white", corner_radius=10)
+    borda_branca.pack(pady=10, padx=10)
+
+    container_problemas = ctk.CTkScrollableFrame(borda_branca, fg_color="#000000", height=275, width=800)
+    container_problemas.pack(padx=5, pady=5, fill="both", expand=True)
+    container_problemas._scrollbar.grid_remove()
+
+    problemas = [f"Problema {i+1}" for i in range(20)]
+
+    for idx, problema in enumerate(problemas):
+        botao_problema = Button.botao_padrao(problema, container_problemas)
+        row = idx // 5
+        col = idx % 5
+        botao_problema.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
+
+    for i in range(5):
+        container_problemas.grid_columnconfigure(i, weight=1)
+
+    botao_voltar_problemas = Button.botao_voltar("Voltar", scroll_problemas_reais)
+    botao_voltar_problemas.configure(command=lambda: voltar_para(principal))
+    botao_voltar_problemas.pack(pady=10)
 
     #---------------- FRAME DE ABAS ----------------
 
