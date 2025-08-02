@@ -30,19 +30,16 @@ historico_interativo = []
 botoes_leis = []
 
 def inicializar_interface():
-    ctk.set_appearance_mode("dark")  #Modo escuro
-    ctk.set_default_color_theme("blue")  #Tema azul
+    ctk.set_appearance_mode("dark")
+    ctk.set_default_color_theme("blue")
     janela = ctk.CTk()
     janela.title("LoZ Gates")
     janela.configure(bg="#000057")
-    largura_tela = janela.winfo_screenwidth()
-    altura_tela = janela.winfo_screenheight()
-    largura = int(largura_tela * 0.8)
-    altura = int(altura_tela * 0.8)
-    janela.geometry(f"{largura}x{altura}")
+    janela.minsize(1280, 720)
+    janela.after(100, lambda: janela.state('zoomed'))
     janela.grid_rowconfigure(0, weight=1)
     janela.grid_columnconfigure(0, weight=1)
-    bytes_per_row = 32  #Número de bytes por linha na matriz
+    bytes_per_row = 32
     icon = converte_matrix_para_tkinter_imagem_icon(bytes_per_row)
     janela.iconbitmap(icon)
     janela.resizable(True, True)
