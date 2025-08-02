@@ -39,8 +39,13 @@ def inicializar_interface():
     janela = ctk.CTk()
     janela.title("LoZ Gates")
     janela.configure(bg="#000057")
-    janela.minsize(1280, 720)
-    janela.after(100, lambda: janela.state('zoomed'))
+    janela.minsize(1100, 650) 
+
+    def forcar_maximizar():
+        janela.update_idletasks()
+        janela.state('zoomed')
+
+    janela.after(200, forcar_maximizar)
     janela.grid_rowconfigure(0, weight=1)
     janela.grid_columnconfigure(0, weight=1)
     bytes_per_row = 32
