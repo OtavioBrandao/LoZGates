@@ -16,3 +16,6 @@
 # Textbox
     - Colocar a textbox do "Ver solução" scrollable ✅
     - Centralizar os textos
+
+# Problemas reais
+    - Consertar o scroll, o de dentro so vai quando o de fora chega no limite (container_problemas)

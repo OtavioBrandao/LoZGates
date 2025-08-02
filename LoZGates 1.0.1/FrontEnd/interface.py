@@ -1,24 +1,28 @@
 import customtkinter as ctk
+from customtkinter import CTkFont
 import threading
 import tkinter as tk
+from tkinter import filedialog, font
 import os
 import sys
 from PIL import Image, ImageTk, ImageOps
-from tkinter import font
+import time
+import webbrowser
+import urllib.parse
+from contextlib import redirect_stdout
+import copy
+
+from config import ASSETS_PATH, informacoes
+
 from BackEnd.imagem import converte_matrix_para_tkinter_imagem_icon
 from BackEnd.tabela import gerar_tabela_verdade, verificar_conclusao
 from BackEnd.converter import converter_para_algebra_booleana
 from BackEnd.equivalencia import tabela
-from config import ASSETS_PATH, informacoes
-import time
-from customtkinter import CTkFont
-import webbrowser
-import urllib.parse
 from BackEnd.identificar_lei import principal_simplificar
-from contextlib import redirect_stdout
 import BackEnd.simplificador_interativo as simpli
+
 from FrontEnd.buttons import Button
-from tkinter import filedialog
+
 
 expressao_global = ""
 botao_ver_circuito = None
@@ -338,6 +342,7 @@ def inicializar_interface():
 
     entrada = ctk.CTkEntry(principal, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
     entrada.place(relx=0.5, y=200, anchor="center")
+    entrada.bind("<Return>", lambda event: confirmar_expressao())
 
     botao_confirmar_expressao = Button.botao_padrao("Confirmar", principal)
     botao_confirmar_expressao.configure(command=confirmar_expressao)
@@ -548,35 +553,70 @@ def inicializar_interface():
     botao_voltar_ver_solucao.configure(command = lambda: voltar_para(frame_educacional))
 
     #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
+    def salvar_estado_atual():
+        """Salva o estado atual (árvore, histórico, ignorados) na pilha de histórico."""
+        global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info
+        
+        estado = {
+            'arvore': copy.deepcopy(arvore_interativa),
+            'historico': list(historico_interativo),
+            'ignorados': set(nos_ignorados),
+            'passo_info': copy.deepcopy(passo_atual_info)
+        }
+        historico_de_estados.append(estado)
+    
+    def on_desfazer_selecionado():
+        global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, botao_desfazer
+
+        if not historico_de_estados:
+            print("Nada para desfazer.") 
+            return
+
+        estado_anterior = historico_de_estados.pop()
+        arvore_interativa = estado_anterior['arvore']
+        historico_interativo = estado_anterior['historico']
+        nos_ignorados = estado_anterior['ignorados']
+        passo_atual_info = estado_anterior['passo_info']
+
+        if not historico_de_estados:
+            botao_desfazer.configure(state="disabled")
+
+        atualizar_ui_interativa()
       
     def on_lei_selecionada(indice_lei):
-        global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados
+        global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados, botao_desfazer
 
         if not passo_atual_info:
             return
 
+        salvar_estado_atual() 
+        botao_desfazer.configure(state="normal")
+
         lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
-        
         nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
 
         if sucesso:
             arvore_interativa = nova_arvore
             historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada.")
             historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
-            
-            #Reseta os nós ignorados pois a árvore mudou
             nos_ignorados = set()
-            
             iniciar_rodada_interativa()
         else:
+            historico_de_estados.pop()
+            if not historico_de_estados:
+                botao_desfazer.configure(state="disabled")
             popup_erro("Não foi possível aplicar esta lei.")
 
+
     def on_pular_selecionado():
-        global nos_ignorados, passo_atual_info, historico_interativo
+        global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer
         if passo_atual_info and passo_atual_info['no_atual']:
-            #Adiciona o nó atual à lista de ignorados e busca o próximo
+            
+            salvar_estado_atual()
+            botao_desfazer.configure(state="normal") 
+
             nos_ignorados.add(passo_atual_info['no_atual'])
-            historico_interativo.append(f"↷ Sub-expressão '{str(passo_atual_info['no_atual'])}' ignorada (você pulou).") 
+            historico_interativo.append(f"↷ Sub-expressão '{str(passo_atual_info['no_atual'])}' ignorada.")
             iniciar_rodada_interativa()
 
     def atualizar_ui_interativa():
@@ -611,18 +651,16 @@ def inicializar_interface():
     
     def iniciar_rodada_interativa():
         global passo_atual_info
-        #Procura o próximo passo possível, ignorando os nós que o usuário pulou
         passo_atual_info = simpli.encontrar_proximo_passo(arvore_interativa, nos_a_ignorar=nos_ignorados)
         atualizar_ui_interativa()
         
     def parte_interativa():
-        global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis
+        global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis, historico_de_estados
         
-        #Inicializa o estado
         if not expressao_global:
             popup_erro("Por favor, primeiro insira e converta uma expressão.")
             voltar_para(frame_abas)
-            show_frame(principal) #Volta para a tela principal de inserção
+            show_frame(principal) 
             return
             
         try:
@@ -635,6 +673,7 @@ def inicializar_interface():
         historico_interativo = [f"Expressão Inicial: {str(arvore_interativa)}"]
         nos_ignorados = set()
         passo_atual_info = None
+        historico_de_estados = []
 
         escolher_caminho.pack_propagate(False)
         escolher_caminho.pack(side="right", fill="y", padx=20, pady=20)
@@ -652,12 +691,10 @@ def inicializar_interface():
             {"texto": "Comutativa (B*A = A*B)", "idx": 8},
         ]
 
-        #Limpa botões antigos e a lista
         for widget in escolher_caminho.winfo_children():
             widget.destroy()
         botoes_leis = []
         
-        #Cria os botões de leis
         for info in botoes_info:
             btn = ctk.CTkButton(
                 escolher_caminho, text=info["texto"],
@@ -668,22 +705,29 @@ def inicializar_interface():
             btn.pack(pady=5, padx=10)
             botoes_leis.append(btn)
         
-        #Botão Pular
-        global botao_pular
+        global botao_pular, botao_desfazer
+        
         botao_pular = ctk.CTkButton(
             escolher_caminho, text="Pular Sugestão",
             fg_color="#DAA520", text_color="#000080", hover_color="#8B008B",
-            border_width=2, border_color="#708090", width=250, height=45,
+            border_width=2, border_color="#708090",
             font=("Arial", 16), command=on_pular_selecionado
         )
-        botao_pular.pack(pady=(15, 5), padx=10)
-        
-        #Adiciona o botão de voltar no final
+        botao_pular.pack(side="left", padx=10, pady=10)
+
+        botao_desfazer = ctk.CTkButton(
+            escolher_caminho, text="Desfazer",
+            fg_color="#C0C0C0", text_color="#000000", hover_color="#A9A9A9",
+            border_width=2, border_color="#696969",
+            font=("Arial", 16), command=on_desfazer_selecionado, state="disabled"
+        )
+        botao_desfazer.pack(side="left", padx=10, pady=10)
+            
+
         botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
         botao_voltar_interativo.configure(command=lambda: voltar_para(frame_educacional))
-        botao_voltar_interativo.pack(side="bottom", pady=10, padx=10)
+        botao_voltar_interativo.pack(pady=10, padx=10)
         
-        #Inicia a primeira rodada
         iniciar_rodada_interativa()
 
     #------------------------------------------------------------------------
