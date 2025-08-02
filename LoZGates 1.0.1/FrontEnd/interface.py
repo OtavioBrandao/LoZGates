@@ -40,7 +40,10 @@ def inicializar_interface():
     janela.title("LoZ Gates")
     janela.configure(bg="#000057")
     janela.minsize(1280, 720)
-    janela.after(100, lambda: janela.state('zoomed'))
+    try:
+        janela.wm_attributes('-zoomed', True)
+    except (tk.TclError, AttributeError):
+        janela.after(250, lambda: janela.state('zoomed'))
     janela.grid_rowconfigure(0, weight=1)
     janela.grid_columnconfigure(0, weight=1)
     bytes_per_row = 32
@@ -694,7 +697,7 @@ def inicializar_interface():
         for widget in escolher_caminho.winfo_children():
             widget.destroy()
         botoes_leis = []
-        
+
         for info in botoes_info:
             btn = ctk.CTkButton(
                 escolher_caminho, text=info["texto"],
@@ -704,9 +707,9 @@ def inicializar_interface():
             )
             btn.pack(pady=5, padx=10)
             botoes_leis.append(btn)
-        
+
         global botao_pular, botao_desfazer
-        
+
         botao_pular = ctk.CTkButton(
             escolher_caminho, text="Pular Sugestão",
             fg_color="#DAA520", text_color="#000080", hover_color="#8B008B",
@@ -722,16 +725,16 @@ def inicializar_interface():
             font=("Arial", 16), command=on_desfazer_selecionado, state="disabled"
         )
         botao_desfazer.pack(side="left", padx=10, pady=10)
-            
+
 
         botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
         botao_voltar_interativo.configure(command=lambda: voltar_para(frame_educacional))
         botao_voltar_interativo.pack(pady=10, padx=10)
-        
+
         iniciar_rodada_interativa()
 
     #------------------------------------------------------------------------
-    
+
     botao_voltar_para_abas = Button.botao_voltar("Voltar", frame_educacional)
     botao_voltar_para_abas.configure(command=lambda: voltar_para(frame_abas))
     botao_voltar_para_abas.pack(pady=10)
@@ -743,7 +746,7 @@ def inicializar_interface():
     botao_pedir_ajuda_ia = Button.botao_padrao("Pedir ajuda à IA", scroll_frame2)
     botao_pedir_ajuda_ia.configure(command=lambda: abrir_duvida_expressao(entrada.get().strip().upper()))
     botao_pedir_ajuda_ia.pack(pady=10)
-    
+
     #Botões das partes de abas que voltam pro frame de inserir a expressão para ver o circuito
     botao_voltar_principal_2 = Button.botao_voltar("Voltar", scroll_frame2)
     botao_voltar_principal_2.configure(command=lambda: voltar_para(principal))
@@ -754,14 +757,13 @@ def inicializar_interface():
     botao_voltar_principal.pack(pady=30)
 
     #---------------- FRAME DE INFORMAÇÕES ----------------
-    
+
     frame_info = ctk.CTkFrame(janela, fg_color="#000057")
     frame_info.grid(row=0, column=0, sticky="nsew")
 
     textbox_info = ctk.CTkTextbox(frame_info, font=("Arial", 20), text_color="white", fg_color="#000057")
     textbox_info.pack(expand=True, fill="both", padx=20, pady=20)
     textbox_info.configure(fg_color="#00002C", text_color="white")  #Permitir edição para inserir o texto
-    #Definindo o conteúdo do Textbox
     info_text = informacoes
     textbox_info.insert("0.0", info_text)  #Inserir o texto no Textbox
     textbox_info.configure(state="disable")  #Desativar edição para evitar modificações
@@ -771,7 +773,7 @@ def inicializar_interface():
     botao_voltar_info.pack(pady=20)
 
     #---------------- FRAME DE EQUIVALÊNCIA ----------------
-    
+
     label_escolha = ctk.CTkLabel(frame_escolha, text="Escolha a opção desejada:", font=("Arial Bold", 20), text_color="white", fg_color=None)
     label_escolha.place(relx=0.5, y=200, anchor="center")
 
