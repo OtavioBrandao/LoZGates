@@ -39,7 +39,7 @@ def inicializar_interface():
     ctk.set_default_color_theme("blue")  #Tema azul
     janela = ctk.CTk()
     janela.title("LoZ Gates")
-    janela.configure(bg="#000057")
+    janela.configure(bg="#082347")
     janela.minsize(1280, 720)
     try:
         janela.wm_attributes('-zoomed', True)
@@ -110,7 +110,7 @@ def inicializar_interface():
         popup.configure(bg="#1a1a1a")  # como é Tk puro, use 'bg' e não 'fg_color'
 
         # Conteúdo
-        label = tk.Label(popup, text=mensagem, font=("Arial", 12), fg="white", bg="#1a1a1a")
+        label = tk.Label(popup, text=mensagem, font=("Trebuchet MS", 12), fg="white", bg="#1a1a1a")
         label.pack(pady=(20, 10))
 
         botao_ok = tk.Button(popup, text="OK", bg="#7A2020", fg="white", command=popup.destroy)
@@ -178,7 +178,7 @@ def inicializar_interface():
         #Cria um frame para exibir a tabela verdade
         frame_tabela = ctk.CTkScrollableFrame(janela_tabela)
         frame_tabela.pack(pady=10, padx=10, fill="both", expand=True)
-        frame_tabela.configure(fg_color="#000057")
+        frame_tabela.configure(fg_color="#082347")
 
         cabecalho_str = " | ".join([f"{col:^10}" for col in colunas])
         label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho_str, font=("Consolas", 14, "bold"))
@@ -196,7 +196,7 @@ def inicializar_interface():
 
         #Verifica a conclusão da expressão (Tautologia, Contradição ou Satisfatível)
         conclusao = verificar_conclusao(resultados_finais)
-        label_conclusao = ctk.CTkLabel(frame_tabela, text=conclusao, font=("Arial", 16, "bold"))
+        label_conclusao = ctk.CTkLabel(frame_tabela, text=conclusao, font=("Trebuchet MS", 16, "bold"))
         label_conclusao.pack(pady=20)
 
     def comparar():
@@ -270,41 +270,41 @@ def inicializar_interface():
     
     #------------- DEFININDO OS FRAMES DA INTERFACE -------------
     
-    frame_inicio = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_inicio = ctk.CTkFrame(janela, fg_color="#082347")
     frame_inicio.grid(row=0, column=0, sticky="nsew")
 
-    principal = ctk.CTkFrame(janela, fg_color="#000057")
+    principal = ctk.CTkFrame(janela, fg_color="#082347")
     principal.grid(row=0, column=0, sticky="nsew")
 
-    frame_equivalencia = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_equivalencia = ctk.CTkFrame(janela, fg_color="#082347")
     frame_equivalencia.grid(row=0, column=0, sticky="nsew")
 
-    frame_abas = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_abas = ctk.CTkFrame(janela, fg_color="#082347")
     frame_abas.grid(row=0, column=0, sticky="nsew")
 
-    frame_resolucao_direta = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_resolucao_direta = ctk.CTkFrame(janela, fg_color="#082347")
     frame_resolucao_direta.grid(row=0, column=0, sticky="nsew")
 
-    scroll_conteudo = ctk.CTkScrollableFrame(frame_resolucao_direta, fg_color="#000057")
+    scroll_conteudo = ctk.CTkScrollableFrame(frame_resolucao_direta, fg_color="#082347")
     scroll_conteudo.pack(expand=True, fill="both", padx=20, pady=20)
 
-    frame_interativo = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_interativo = ctk.CTkFrame(janela, fg_color="#082347")
     frame_interativo.grid(row=0, column=0, sticky="nsew")
 
-    frame_problemas_reais = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_problemas_reais = ctk.CTkFrame(janela, fg_color="#232369")
     frame_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
-    scroll_problemas_reais = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#000057")
+    scroll_problemas_reais = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#082347")
     scroll_problemas_reais.pack(expand=True, fill="both", padx=20, pady=20)
     scroll_problemas_reais._scrollbar.grid_remove()
 
-    frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color="#082347")
     frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
     #---------------- FRAME DE INÍCIO ----------------
  
     fonte_momentz = CTkFont(family="Momentz", size=30)
-    label_inicio = ctk.CTkLabel(frame_inicio,text="<LoZ Gates>",font=fonte_momentz,text_color="white",fg_color="#000057")
+    label_inicio = ctk.CTkLabel(frame_inicio,text="<LoZ Gates>",font=fonte_momentz,text_color="white",fg_color="#082347")
     label_inicio.place(relx=0.5, y=200, anchor="center")
 
     botao_info = Button.botao_padrao("Ajuda", frame_inicio)
@@ -321,10 +321,10 @@ def inicializar_interface():
 
     #---------------- FRAME DOS CIRCUITOS E DAS EXPRESSÕES ----------------
 
-    label_tarefas = ctk.CTkLabel(principal, text="Digite a expressão em Lógica Proposicional:", font=("Arial Bold", 20), text_color="white", fg_color=None)
+    label_tarefas = ctk.CTkLabel(principal, text="Digite a expressão em Lógica Proposicional:", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
     label_tarefas.place(relx=0.5, y=150, anchor="center")
 
-    entrada = ctk.CTkEntry(principal, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
+    entrada = ctk.CTkEntry(principal, width=300, placeholder_text="Digite aqui", font=("Trebuchet MS", 14))
     entrada.place(relx=0.5, y=200, anchor="center")
     entrada.bind("<Return>", lambda event: confirmar_expressao())
 
@@ -342,11 +342,11 @@ def inicializar_interface():
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
 
-    label = ctk.CTkLabel(scroll_problemas_reais, text="", fg_color="#000057")
+    label = ctk.CTkLabel(scroll_problemas_reais, text="", fg_color="#082347")
     label.pack(pady=10)
 
     label_problemas = ctk.CTkLabel(scroll_problemas_reais, text="Aqui você pode ver alguns problemas do mundo real que podem ser representados por circuitos lógicos e lógica proposicional.",
-                    font=("Arial", 18), text_color="white")
+                    font=("Trebuchet MS", 18), text_color="white")
     label_problemas.pack(pady=10)
 
     borda_branca = ctk.CTkFrame(scroll_problemas_reais, fg_color="white", corner_radius=10)
@@ -374,7 +374,7 @@ def inicializar_interface():
     #---------------- FRAME DE ABAS ----------------
 
     abas = ctk.CTkTabview(
-        master=frame_abas, fg_color="#000057", 
+        master=frame_abas, fg_color="#082347", 
         segmented_button_fg_color="#FFFFFF", segmented_button_selected_color="#4441F7",
         segmented_button_selected_hover_color="#0B1658", segmented_button_unselected_color="#001E44",
         segmented_button_unselected_hover_color="#4682B4"
@@ -384,10 +384,10 @@ def inicializar_interface():
     #---------------------- ABA DO CIRCUITO ----------------------
 
     aba_circuito = abas.add("      Circuito      ")
-    scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color="#000057")
+    scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color="#082347")
     scroll_frame1.pack(expand=True, fill="both")
 
-    label_circuito_expressao = ctk.CTkLabel(scroll_frame1, font=("Arial", 16, "bold"), text_color="cyan", text="")
+    label_circuito_expressao = ctk.CTkLabel(scroll_frame1, font=("Trebuchet MS", 16, "bold"), text_color="cyan", text="")
     label_circuito_expressao.pack(pady=10)
 
     imagem_circuito = ctk.CTkLabel(scroll_frame1, text="")
@@ -410,7 +410,7 @@ def inicializar_interface():
  #------------------------------------------------ ABA DE EXPRESSÃO  ----------------------------------------------
  
     aba_expressao = abas.add("      Expressão      ")
-    scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color="#000057")
+    scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color="#082347")
     scroll_frame2.pack(expand=True, fill="both")
     expressao_booleana_atual = ""
 
@@ -436,7 +436,7 @@ def inicializar_interface():
             self.textbox.see("end")
 
     frame_borda = ctk.CTkFrame(master=scroll_conteudo,fg_color="white", corner_radius=10)
-    label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Arial", 16, "bold"), text_color="white")
+    label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Trebuchet MS", 16, "bold"), text_color="white")
     log_simplificacao_textbox = ctk.CTkTextbox(frame_borda,  wrap="word", font=("Consolas", 18), height=600, width=900)
     log_simplificacao_textbox.configure(fg_color="#1c1c1c")
 
@@ -458,7 +458,7 @@ def inicializar_interface():
         label_convertida.pack(pady=10)
         
 
-    label_solucao = ctk.CTkLabel(scroll_conteudo, text="Solução da expressão:", font=("Arial", 20, "bold"), text_color="white")
+    label_solucao = ctk.CTkLabel(scroll_conteudo, text="Solução da expressão:", font=("Trebuchet MS", 20, "bold"), text_color="white")
 
     def expressao_simplificada():
         if not expressao_booleana_atual:
@@ -526,7 +526,7 @@ def inicializar_interface():
     botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
 
     botao_voltar_para_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
-    botao_voltar_para_aba2.configure(command = lambda: voltar_para(scroll_frame2))
+    botao_voltar_para_aba2.configure(command = lambda: voltar_para(frame_abas))
     
 
     #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
@@ -676,34 +676,37 @@ def inicializar_interface():
             btn = ctk.CTkButton(
                 escolher_caminho, text=info["texto"],
                 fg_color="#B0E0E6", text_color="#000080", hover_color="#8B008B",
-                border_width=2, border_color="#708090", width=250, height=45,font=("Arial", 12),
+                border_width=2, border_color="#708090", width=250, height=45,font=("Trebuchet MS", 12),
                 command=lambda idx=info["idx"]: on_lei_selecionada(idx)
             )
             btn.pack(pady=5, padx=10)
             botoes_leis.append(btn)
-
+        
         global botao_pular, botao_desfazer
 
+        botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
+        botao_voltar_interativo.configure(command=lambda: voltar_para(frame_abas), width=250, height=45)
+        botao_voltar_interativo.pack(pady=5, padx=10)
+
         botao_pular = ctk.CTkButton(
-            escolher_caminho, text="Pular Sugestão",
+            escolher_caminho, text="Pular ↪",
             fg_color="#DAA520", text_color="#000080", hover_color="#8B008B",
             border_width=2, border_color="#708090",
-            font=("Arial", 16), command=on_pular_selecionado
+            font=("Trebuchet MS", 16), command=on_pular_selecionado, width=100
         )
-        botao_pular.pack(side="left", padx=10, pady=10)
+        botao_pular.pack(side="left", padx=20, pady=10)
 
         botao_desfazer = ctk.CTkButton(
-            escolher_caminho, text="Desfazer",
+            escolher_caminho, text="Desfazer ↩",
             fg_color="#C0C0C0", text_color="#000000", hover_color="#A9A9A9",
             border_width=2, border_color="#696969",
-            font=("Arial", 16), command=on_desfazer_selecionado, state="disabled"
+            font=("Trebuchet MS", 16), command=on_desfazer_selecionado, state="disabled", width=100
         )
-        botao_desfazer.pack(side="left", padx=10, pady=10)
+        botao_desfazer.pack(side="right", padx=20, pady=10)
 
 
-        botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
-        botao_voltar_interativo.configure(command=lambda: voltar_para(scroll_frame2))
-        botao_voltar_interativo.pack(pady=10, padx=10)
+
+       
 
         iniciar_rodada_interativa()
 
@@ -728,10 +731,10 @@ def inicializar_interface():
 
     #---------------- FRAME DE INFORMAÇÕES ----------------
 
-    frame_info = ctk.CTkFrame(janela, fg_color="#000057")
+    frame_info = ctk.CTkFrame(janela, fg_color="#082347")
     frame_info.grid(row=0, column=0, sticky="nsew")
 
-    textbox_info = ctk.CTkTextbox(frame_info, font=("Arial", 20), text_color="white", fg_color="#000057")
+    textbox_info = ctk.CTkTextbox(frame_info, font=("Trebuchet MS", 20), text_color="white", fg_color="#082347")
     textbox_info.pack(expand=True, fill="both", padx=20, pady=20)
     textbox_info.configure(fg_color="#00002C", text_color="white")  #Permitir edição para inserir o texto
     info_text = informacoes
@@ -744,10 +747,10 @@ def inicializar_interface():
 
     #---------------- FRAME DE EQUIVALÊNCIA ----------------
 
-    entrada2 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
+    entrada2 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Trebuchet MS", 14))
     entrada2.place(relx=0.5, y=200, anchor="center")
 
-    entrada3 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
+    entrada3 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Trebuchet MS", 14))
     entrada3.place(relx=0.5, y=250, anchor="center")
 
     botao_comparar = Button.botao_padrao("Confirmar", frame_equivalencia)
@@ -758,11 +761,11 @@ def inicializar_interface():
     botao_voltar_equivalencia.configure(command=lambda: voltar_para(frame_inicio))
     botao_voltar_equivalencia.place(relx=0.5, y=420, anchor="center")
 
-    titulo = ctk.CTkLabel(frame_equivalencia, text="Digite as expressões que deseja comparar:", font=("Arial Bold", 20), text_color="white", fg_color=None)
+    titulo = ctk.CTkLabel(frame_equivalencia, text="Digite as expressões que deseja comparar:", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
     titulo.place(relx=0.5, y=130, anchor="center")
 
-    equivalente = ctk.CTkLabel(frame_equivalencia, text="É equivalente 😁", font=("Arial Bold", 20), text_color="white", fg_color=None)
-    nao_equivalente = ctk.CTkLabel(frame_equivalencia, text="Não é equivalente 😩", font=("Arial Bold", 20), text_color="white", fg_color=None)
+    equivalente = ctk.CTkLabel(frame_equivalencia, text="É equivalente 😁", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
+    nao_equivalente = ctk.CTkLabel(frame_equivalencia, text="Não é equivalente 😩", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
  
     show_frame(frame_inicio)
     janela.mainloop()

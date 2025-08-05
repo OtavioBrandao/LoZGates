@@ -19,7 +19,7 @@ class Button:
             border_color="#708090",
             width=200,
             height=50,
-            font=("Arial", 16),
+            font=("Trebuchet MS", 16),
         )
         return botao
     
@@ -35,7 +35,7 @@ class Button:
             border_color="#708090",
             width=200,
             height=50,
-            font=("Arial", 16),
+            font=("Trebuchet MS", 16),
         )
         return botao
     
