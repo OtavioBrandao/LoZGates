@@ -223,7 +223,7 @@ def inicializar_interface():
             botao_ver_circuito = None
 
         #limpa as entradas
-        if frame not in [frame_abas, frame_resolucao_direta, frame_educacional, frame_interativo]:
+        if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
             entrada.delete(0, tk.END) 
 
         entrada2.delete(0, tk.END)  
@@ -242,7 +242,7 @@ def inicializar_interface():
         if frame != frame_abas:
             label_convertida.pack_forget()
             log_simplificacao_textbox.pack_forget()
-            botao_simplificacao.pack_forget()
+
 
         show_frame(frame)  #troca o frame
 
@@ -279,14 +279,8 @@ def inicializar_interface():
     frame_equivalencia = ctk.CTkFrame(janela, fg_color="#000057")
     frame_equivalencia.grid(row=0, column=0, sticky="nsew")
 
-    frame_escolha = ctk.CTkFrame(janela, fg_color="#000057")
-    frame_escolha.grid(row=0, column=0, sticky="nsew")
-
     frame_abas = ctk.CTkFrame(janela, fg_color="#000057")
     frame_abas.grid(row=0, column=0, sticky="nsew")
-
-    frame_educacional = ctk.CTkFrame(janela, fg_color="#000057")
-    frame_educacional.grid(row=0, column=0, sticky="nsew")
 
     frame_resolucao_direta = ctk.CTkFrame(janela, fg_color="#000057")
     frame_resolucao_direta.grid(row=0, column=0, sticky="nsew")
@@ -308,37 +302,23 @@ def inicializar_interface():
     frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
     #---------------- FRAME DE INÍCIO ----------------
-
-    frame_inicio_conteudo = ctk.CTkFrame(frame_inicio, fg_color="#000057", corner_radius=30)
-    frame_inicio_conteudo.pack(expand=True)
-    frame_inicio_conteudo.place(relx=0.5, rely=0.5, anchor="center")
-    #Configuração da fonte
+ 
     fonte_momentz = CTkFont(family="Momentz", size=30)
-    label_inicio = ctk.CTkLabel( frame_inicio_conteudo,text="LoZ Gates",font=fonte_momentz,text_color="white",fg_color="#000057")
-    label_inicio.pack(pady=30)
+    label_inicio = ctk.CTkLabel(frame_inicio,text="<LoZ Gates>",font=fonte_momentz,text_color="white",fg_color="#000057")
+    label_inicio.place(relx=0.5, y=200, anchor="center")
 
-    botao_start = Button.botao_padrao("Começar", frame_inicio_conteudo)
-    botao_start.configure(command=lambda: show_frame(frame_escolha))
-    botao_start.pack(pady=30)
-
-    botao_info = Button.botao_padrao("Informações", frame_inicio_conteudo)
+    botao_info = Button.botao_padrao("Ajuda", frame_inicio)
     botao_info.configure(command=lambda: show_frame(frame_info))
-    botao_info.pack(pady=20)
 
-    #---------------- FRAME DA ESCOLHA ----------------
+    botao_circuitos = Button.botao_padrao("Circuitos e Expressões", frame_inicio)
+    botao_circuitos.configure(command=lambda: show_frame(principal))
+    botao_circuitos.place(relx=0.5, y=300, anchor="center")
 
-    botao_tarefas = Button.botao_padrao("Circuitos", frame_escolha)
-    botao_tarefas.configure(command=lambda: show_frame(principal), width=250, height=50)
-    botao_tarefas.place(relx=0.5, y=300, anchor="center")
-
-    botao_equivalencia = Button.botao_padrao("Equivalência", frame_escolha)
-    botao_equivalencia.configure(command=lambda: show_frame(frame_equivalencia), width=250, height=50)
+    botao_equivalencia = Button.botao_padrao("Equivalência Lógica", frame_inicio)
+    botao_equivalencia.configure(command=lambda: show_frame(frame_equivalencia))
     botao_equivalencia.place(relx=0.5, y=400, anchor="center")    
-        
-    botao_voltar_escolha = Button.botao_voltar("Voltar", frame_escolha)
-    botao_voltar_escolha.configure(command=lambda: voltar_para(frame_inicio))
-    botao_voltar_escolha.place(relx=0.5, y=500, anchor="center") 
-       
+    botao_info.place(relx=0.5, y=500, anchor="center")
+
     #---------------- FRAME DOS CIRCUITOS E DAS EXPRESSÕES ----------------
 
     label_tarefas = ctk.CTkLabel(principal, text="Digite a expressão em Lógica Proposicional:", font=("Arial Bold", 20), text_color="white", fg_color=None)
@@ -356,9 +336,9 @@ def inicializar_interface():
     botao_problemas_reais.configure(command=lambda: (show_frame(frame_problemas_reais)))
     botao_problemas_reais.place(relx=0.5, y=400, anchor="center")
 
-    botao_voltar_para_selecao = Button.botao_voltar("Voltar", principal)
-    botao_voltar_para_selecao.configure(command=lambda: voltar_para(frame_escolha))
-    botao_voltar_para_selecao.place(relx=0.5, y=500, anchor="center")
+    botao_voltar_para_inicio = Button.botao_voltar("Voltar", principal)
+    botao_voltar_para_inicio.configure(command=lambda: voltar_para(frame_inicio))
+    botao_voltar_para_inicio.place(relx=0.5, y=500, anchor="center")
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
 
@@ -461,7 +441,6 @@ def inicializar_interface():
     log_simplificacao_textbox.configure(fg_color="#1c1c1c")
 
     def mostrar_expressao_convertida():
-        botao_simplificacao.pack_forget()
         log_simplificacao_textbox.pack_forget()
         
         nonlocal expressao_booleana_atual
@@ -478,7 +457,6 @@ def inicializar_interface():
         label_convertida.configure(text=f"Expressão em Álgebra Booleana: {saida_booleana}")
         label_convertida.pack(pady=10)
         
-        botao_simplificacao.pack(pady=15)
 
     label_solucao = ctk.CTkLabel(scroll_conteudo, text="Solução da expressão:", font=("Arial", 20, "bold"), text_color="white")
 
@@ -491,7 +469,6 @@ def inicializar_interface():
             label_solucao.pack_forget()
             log_simplificacao_textbox.pack_forget()
             frame_borda.pack_forget()
-            botao_voltar_ver_solucao.pack_forget()
 
         label_solucao.pack(pady=20)
         frame_borda.pack(pady=10)
@@ -500,8 +477,8 @@ def inicializar_interface():
         log_simplificacao_textbox.configure(state="normal")
         log_simplificacao_textbox.delete("1.0", "end")
         log_simplificacao_textbox.configure(text_color="#39FF14", spacing3=-27)
-        botao_voltar_ver_solucao.pack(pady=20)
-
+        botao_voltar_para_aba2.pack(pady=10)
+  
         gui_logger = GUILogger(log_simplificacao_textbox)
 
         def simplificar_thread():
@@ -525,36 +502,32 @@ def inicializar_interface():
         webbrowser.open(url)
 
     botao_converter = Button.botao_padrao("Realizar conversão", scroll_frame2)
-    botao_converter.configure(command=mostrar_expressao_convertida)
+    botao_converter.configure(command=lambda: (mostrar_expressao_convertida(), mostrar_botoes_simplificar()))
     botao_converter.pack(pady=10)
-
-    botao_simplificacao = Button.botao_padrao("Simplificar expressão", scroll_frame2)
-    botao_simplificacao.configure(command=lambda: show_frame(frame_educacional))
-
-    #Definição do frame educacional (frame pai aqui)
-    label_educacional = ctk.CTkLabel(frame_educacional, text="Escolha o que deseja fazer:", font=("Arial Bold", 20), text_color="white",fg_color=None)
-    label_educacional.pack(pady=100, padx=100)
 
     def go_to_interactive():
         #Função wrapper para garantir a ordem correta das chamadas
         show_frame(frame_interativo)
         parte_interativa()
 
-    botao_interativo = Button.botao_padrao("Simplificar - interativo", frame_educacional)
+    botao_interativo = Button.botao_padrao("Simplificar - interativo", scroll_frame2)
     botao_interativo.configure(command=go_to_interactive)
-    botao_interativo.pack(pady=(30, 10))
+
     
     escolher_caminho = ctk.CTkFrame(frame_interativo, fg_color="#000033", corner_radius=10, height=800, width=280)
     area_expressao = ctk.CTkTextbox(master=frame_interativo,fg_color="#1c1c1c", text_color="#39FF14", font=("Consolas", 16), wrap="word", width=800, height=800)
     
-    #---------------------- FRAME DA SIMPLFICAÇÃO ---------------------------------
-    
-    botao_solucao = Button.botao_padrao("Simplificar - resultado", frame_educacional)
-    botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
-    botao_solucao.pack(pady=10)
+    #---------------------- PARTE DA SIMPLFICAÇÃO ---------------------------------
+    def mostrar_botoes_simplificar():
+        botao_solucao.pack(pady=10)
+        botao_interativo.pack(pady=10)
 
-    botao_voltar_ver_solucao = Button.botao_voltar("Voltar", scroll_conteudo)
-    botao_voltar_ver_solucao.configure(command = lambda: voltar_para(frame_educacional))
+    botao_solucao = Button.botao_padrao("Simplificar - resultado", scroll_frame2)
+    botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
+
+    botao_voltar_para_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
+    botao_voltar_para_aba2.configure(command = lambda: voltar_para(scroll_frame2))
+    
 
     #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
     def salvar_estado_atual():
@@ -671,7 +644,7 @@ def inicializar_interface():
             arvore_interativa = simpli.construir_arvore(expressao_global)
         except Exception as e:
             popup_erro(f"Erro ao construir a expressão: {e}")
-            voltar_para(frame_educacional)
+            voltar_para(scroll_frame2)
             return
 
         historico_interativo = [f"Expressão Inicial: {str(arvore_interativa)}"]
@@ -729,16 +702,12 @@ def inicializar_interface():
 
 
         botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
-        botao_voltar_interativo.configure(command=lambda: voltar_para(frame_educacional))
+        botao_voltar_interativo.configure(command=lambda: voltar_para(scroll_frame2))
         botao_voltar_interativo.pack(pady=10, padx=10)
 
         iniciar_rodada_interativa()
 
     #------------------------------------------------------------------------
-
-    botao_voltar_para_abas = Button.botao_voltar("Voltar", frame_educacional)
-    botao_voltar_para_abas.configure(command=lambda: voltar_para(frame_abas))
-    botao_voltar_para_abas.pack(pady=10)
 
     botao_tabela_verdade = Button.botao_padrao("Tabela Verdade", scroll_frame2)
     botao_tabela_verdade.configure(command=lambda: exibir_tabela_verdade(entrada.get().strip().upper()))
@@ -775,9 +744,6 @@ def inicializar_interface():
 
     #---------------- FRAME DE EQUIVALÊNCIA ----------------
 
-    label_escolha = ctk.CTkLabel(frame_escolha, text="Escolha a opção desejada:", font=("Arial Bold", 20), text_color="white", fg_color=None)
-    label_escolha.place(relx=0.5, y=200, anchor="center")
-
     entrada2 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Arial", 14))
     entrada2.place(relx=0.5, y=200, anchor="center")
 
@@ -789,7 +755,7 @@ def inicializar_interface():
     botao_comparar.place(relx=0.5, y=350, anchor="center")
 
     botao_voltar_equivalencia = Button.botao_voltar("Voltar", frame_equivalencia)
-    botao_voltar_equivalencia.configure(command=lambda: voltar_para(frame_escolha))
+    botao_voltar_equivalencia.configure(command=lambda: voltar_para(frame_inicio))
     botao_voltar_equivalencia.place(relx=0.5, y=420, anchor="center")
 
     titulo = ctk.CTkLabel(frame_equivalencia, text="Digite as expressões que deseja comparar:", font=("Arial Bold", 20), text_color="white", fg_color=None)
