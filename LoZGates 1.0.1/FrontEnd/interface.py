@@ -181,17 +181,17 @@ def inicializar_interface():
         frame_tabela.configure(fg_color="#082347")
 
         cabecalho_str = " | ".join([f"{col:^10}" for col in colunas])
-        label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho_str, font=("Consolas", 14, "bold"))
+        label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho_str, font=("Trebuchet MS", 14, "bold"))
         label_cabecalho.pack(pady=(5, 0))
 
         separador_str = "-".join(["-" * 10 for _ in colunas])
-        separador = ctk.CTkLabel(frame_tabela, text=separador_str, font=("Consolas", 14))
+        separador = ctk.CTkLabel(frame_tabela, text=separador_str, font=("Trebuchet MS", 14))
         separador.pack()
 
         #Adiciona as linhas da tabela
         for linha_valores in tabela:
             linha_str = " | ".join([f"{str(val):^10}" for val in linha_valores])
-            label_linha = ctk.CTkLabel(frame_tabela, text=linha_str, font=("Consolas", 14))
+            label_linha = ctk.CTkLabel(frame_tabela, text=linha_str, font=("Trebuchet MS", 14))
             label_linha.pack()
 
         #Verifica a conclusão da expressão (Tautologia, Contradição ou Satisfatível)
@@ -437,7 +437,7 @@ def inicializar_interface():
 
     frame_borda = ctk.CTkFrame(master=scroll_conteudo,fg_color="white", corner_radius=10)
     label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Trebuchet MS", 16, "bold"), text_color="white")
-    log_simplificacao_textbox = ctk.CTkTextbox(frame_borda,  wrap="word", font=("Consolas", 18), height=600, width=900)
+    log_simplificacao_textbox = ctk.CTkTextbox(frame_borda,  wrap="word", font=("Trebuchet MS", 18), height=600, width=900)
     log_simplificacao_textbox.configure(fg_color="#1c1c1c")
 
     def mostrar_expressao_convertida():
@@ -515,7 +515,7 @@ def inicializar_interface():
 
     
     escolher_caminho = ctk.CTkFrame(frame_interativo, fg_color="#000033", corner_radius=10, height=800, width=280)
-    area_expressao = ctk.CTkTextbox(master=frame_interativo,fg_color="#1c1c1c", text_color="#39FF14", font=("Consolas", 16), wrap="word", width=800, height=800)
+    area_expressao = ctk.CTkTextbox(master=frame_interativo,fg_color="#1c1c1c", text_color="#39FF14", font=("Trebuchet MS", 16), wrap="word", width=800, height=800)
     
     #---------------------- PARTE DA SIMPLFICAÇÃO ---------------------------------
     def mostrar_botoes_simplificar():
