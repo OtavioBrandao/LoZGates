@@ -129,72 +129,107 @@ def draw_not_gate(x, y):
     pygame.draw.circle(screen, ORANGE, (x + 38, center_y), 8, 3)
     return (x + 46, center_y)
 
-def draw_wire(start_pos, end_pos, color=WIRE_COLOR):
-    (x1, y1), (x2, y2) = start_pos, end_pos
-    mid_x = x1 + (x2 - x1) * 0.5
-    pygame.draw.line(screen, color, (x1, y1), (mid_x, y1), 2)
-    pygame.draw.line(screen, color, (mid_x, y1), (mid_x, y2), 2)
-    pygame.draw.line(screen, color, (mid_x, y2), (x2, y2), 2)
+def draw_routed_wire(start_pos, end_pos, routing_x, color=WIRE_COLOR):
+    (x1, y1), (x2, y2) = start_pos, end_pos 
+    pygame.draw.line(screen, color, (x1, y1), (routing_x, y1), 2)
+    pygame.draw.line(screen, color, (routing_x, y1), (routing_x, y2), 2)
+    pygame.draw.line(screen, color, (routing_x, y2), (x2, y2), 2)
 
 def draw_connection_dot(pos, color=WIRE_COLOR, radius=5):
     pygame.draw.circle(screen, color, pos, radius)
 
 
 # --- LÓGICA DE DESENHO RECURSIVO ---
-def processa_subexpressao(node, x_pos, y_pos, bus_x_coords):
+def calcular_layout(node, y_start=0):
     """
-    Processa recursivamente um nó da AST para desenhar o circuito.
-    Retorna a coordenada (x, y) de sua conexão de saída.
+    PASSAGEM 1: Percorre a AST para calcular a posição e o tamanho vertical de cada nó.
+    Retorna um dicionário representando o layout da sub-árvore.
     """
-    # CASO BASE 1: Variável simples (ex: 'P')
-    if isinstance(node, VariableNode):
-        return ('bus', node.name)
+    # CASO BASE: Uma variável é uma "folha" e ocupa uma única pista vertical.
+    if isinstance(node, VariableNode) or \
+       (isinstance(node, OperatorNode) and node.op == '~' and isinstance(node.children[0], VariableNode)):
+        
+        #Define o nome do barramento, ex: "P" ou "~P"
+        bus_name = node.name if isinstance(node, VariableNode) else f"~{node.children[0].name}"
 
-    # CASO BASE 2: NOT em uma variável simples (ex: '~P')
-    if isinstance(node, OperatorNode) and node.op == '~' and isinstance(node.children[0], VariableNode):
-        var_name = node.children[0].name
-        return ('bus', f"~{var_name}")
+        return {
+            'type': 'leaf',
+            'bus_name': bus_name,
+            'y_pos': y_start + NODE_V_SPACING / 2, 
+            'height': NODE_V_SPACING           
+        }
 
-    # PASSO RECURSIVO: Nó de operador com sub-expressões
+    # PASSO RECURSIVO: Um operador (porta lógica)
     if isinstance(node, OperatorNode):
-        num_children = len(node.children)
-        y_offset_start = y_pos - (num_children - 1) * NODE_V_SPACING / 2
-        child_outputs = []
-        for i, child_node in enumerate(node.children):
-            y_child = y_offset_start + i * NODE_V_SPACING
-            output = processa_subexpressao(child_node, x_pos - NODE_H_SPACING, y_child, bus_x_coords)
-            child_outputs.append(output)
+        child_layouts = []
+        current_y_offset = 0
+        for child_node in node.children:
+            # Calcula o layout para cada filho, um abaixo do outro
+            child_layout = calcular_layout(child_node, y_start + current_y_offset)
+            child_layouts.append(child_layout)
+            current_y_offset += child_layout['height'] # Aumenta o deslocamento para o próximo filho
 
-        gate_y_pos = y_pos - GATE_HEIGHT / 2
+        total_height = current_y_offset
+        # A porta fica no centro vertical do espaço ocupado por todos os seus filhos
+        gate_y_pos = y_start + total_height / 2
+
+        return {
+            'type': 'gate',
+            'op': node.op,
+            'y_pos': gate_y_pos,
+            'height': total_height,
+            'children': child_layouts
+        }
+    return {}
+
+def desenhar_circuito_recursivo(layout, x_pos, bus_x_coords):
+    """
+    PASSAGEM 2: Desenha o circuito usando layout pré-calculado e canais de roteamento.
+    """
+    if layout.get('type') == 'leaf':
+        return ('bus', layout['bus_name'], layout['y_pos'])
+
+    if layout.get('type') == 'gate':
+        gate_center_y = layout['y_pos']
+        gate_top_y = gate_center_y - GATE_HEIGHT / 2
+        
         output_pos = None
-        if node.op == '*':
-            output_pos = draw_and_gate(x_pos, gate_y_pos)
-        elif node.op == '+':
-            output_pos = draw_or_gate(x_pos, gate_y_pos)
-        elif node.op == '~': # Para negações complexas como ~(P*Q)
-            output_pos = draw_not_gate(x_pos, gate_y_pos)
-        else:
-            raise ValueError(f"Operador desconhecido: {node.op}")
+        if layout['op'] == '*':
+            output_pos = draw_and_gate(x_pos, gate_top_y)
+        elif layout['op'] == '+':
+            output_pos = draw_or_gate(x_pos, gate_top_y)
+        elif layout['op'] == '~':
+            output_pos = draw_not_gate(x_pos, gate_top_y)
 
-        gate_inputs_y = [y_pos]
+        num_children = len(layout['children'])
+        gate_inputs_y = [gate_center_y]
         if num_children > 1:
-            gate_inputs_y = [gate_y_pos + 20, gate_y_pos + GATE_HEIGHT - 20]
+            gate_inputs_y = [gate_top_y + 20, gate_top_y + GATE_HEIGHT - 20]
 
-        for i, child_out in enumerate(child_outputs):
+        # --- LÓGICA DE ROTEAMENTO ---
+        # Define um canal vertical único para TODOS os fios que chegam nesta porta.
+        # Ele ficará exatamente no meio do caminho entre este estágio e o anterior.
+        routing_x = x_pos - (NODE_H_SPACING / 2)
+
+        for i, child_layout in enumerate(layout['children']):
+            child_output = desenhar_circuito_recursivo(child_layout, x_pos - NODE_H_SPACING, bus_x_coords)
+            
             input_pos = (x_pos, gate_inputs_y[i])
 
-            if isinstance(child_out, tuple) and child_out[0] == 'bus':
-                bus_name = child_out[1]
+            if isinstance(child_output, tuple) and child_output[0] == 'bus':
+                bus_name = child_output[1]
                 bus_x = bus_x_coords[bus_name]
-                start_pos = (bus_x, input_pos[1])
-                draw_wire(start_pos, input_pos)
+                wire_y = child_output[2]
+                start_pos = (bus_x, wire_y)
+
+                draw_routed_wire(start_pos, input_pos, routing_x)
                 draw_connection_dot(start_pos)
-            else: # A entrada vem de outra porta, não de um barramento
-                start_pos = child_out
-                draw_wire(start_pos, input_pos)
-
+            else:
+                start_pos = child_output
+                draw_routed_wire(start_pos, input_pos, routing_x)
+        
         return output_pos
-
+    return None
 def _coletar_variaveis(node):
     if isinstance(node, VariableNode):
         return {node.name}
@@ -217,51 +252,47 @@ def plotar_circuito_logico(expressao_booleana):
         screen.blit(text, text_rect)
         return
 
+    # Parte de desenhar os barramentos
     variaveis = sorted(list(_coletar_variaveis(ast_root)))
     bus_x_coords = {}
     font = pygame.font.Font(None, 36)
 
-    bus_x_start = 80
-    bus_pair_spacing = 100 # Espaço entre pares de variáveis (ex: entre 'A' e 'B')
-    negated_line_offset = 50 # Espaço entre a linha 'A' e '~A'
+    bus_x_start = 30
+    bus_pair_spacing = 80
+    negated_line_offset = 50
 
     for i, var_name in enumerate(variaveis):
-        # 1. Desenha o barramento principal (variável verdadeira)
         true_bus_x = bus_x_start
         pygame.draw.line(screen, WHITE, (true_bus_x, 40), (true_bus_x, screen_height - 40), 2)
         text = font.render(var_name, True, LABEL_COLOR)
         screen.blit(text, (true_bus_x - text.get_width() / 2, 10))
         bus_x_coords[var_name] = true_bus_x
 
-        # 2. Desenha o barramento negado (sem a porta NOT)
         negated_bus_x = true_bus_x + negated_line_offset
         pygame.draw.line(screen, WHITE, (negated_bus_x, 40), (negated_bus_x, screen_height - 40), 2)
         text = font.render(f"~{var_name}", True, LABEL_COLOR)
         screen.blit(text, (negated_bus_x - text.get_width() / 2, 10))
         bus_x_coords[f"~{var_name}"] = negated_bus_x
 
-        # 3. Ajusta a posição para o próximo par de barramentos
         bus_x_start = negated_bus_x + bus_pair_spacing
+    
 
-    # Inicia o processo de desenho recursivo
+    layout_final = calcular_layout(ast_root, y_start=60)
     x_final_gate = screen_width - NODE_H_SPACING
-    y_final_gate = screen_height / 2
-    final_output_pos = processa_subexpressao(ast_root, x_final_gate, y_final_gate, bus_x_coords)
+    final_output_pos = desenhar_circuito_recursivo(layout_final, x_final_gate, bus_x_coords)
 
     # Desenha o fio de saída final
     if final_output_pos:
-        # Se a saída for apenas uma variável vinda de um barramento
+        # Se a saída for apenas uma variável vinda de um barramento (ex: expressao = "P")
         if isinstance(final_output_pos, tuple) and final_output_pos[0] == 'bus':
             bus_name = final_output_pos[1]
             bus_x = bus_x_coords[bus_name]
+            y_final_gate = final_output_pos[2] # Usar a coordenada Y do layout
             start_pos = (bus_x, y_final_gate)
-            # Desenha o fio de saída
             pygame.draw.line(screen, WHITE, start_pos, (screen_width - 20, y_final_gate), 3)
-            # NOVA ALTERAÇÃO: Adiciona o ponto de conexão na saída final
             draw_connection_dot(start_pos, color=WHITE)
         else: # Se a saída vem de uma porta
             pygame.draw.line(screen, WHITE, final_output_pos, (final_output_pos[0] + 50, final_output_pos[1]), 3)
-
 
 # --- EXECUÇÃO PRINCIPAL ---
 expressao_booleana = converter_para_algebra_booleana(expressao)

@@ -527,6 +527,7 @@ def inicializar_interface():
 
     botao_voltar_para_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
     botao_voltar_para_aba2.configure(command = lambda: voltar_para(frame_abas))
+    botao_voltar_para_aba2.pack(side="bottom", pady = 10)
     
 
     #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------

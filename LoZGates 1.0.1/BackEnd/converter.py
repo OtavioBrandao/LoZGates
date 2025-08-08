@@ -1,3 +1,26 @@
+'''
+def substituir_bi_implica(expr):
+    i = 0
+    while i < len(expr):
+        if expr[i] == '<': #primeira parte para o bi implica
+            j = i - 1
+            if expr[j] == ')':
+                count = 1
+                j -= 1
+                while j >= 0 and count > 0:
+                    if expr[j] == ')':
+                        count += 1
+                    elif expr[j] == '(':
+                        count -= 1
+                    j -= 1
+                a = expr[j+1:i]
+                a_start = j+1
+            else:
+                a = expr[j]
+                a_start = j
+                            
+'''            
+
 def substituir_implicacoes(expr): 
     i = 0
     while i < len(expr):
