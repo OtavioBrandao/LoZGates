@@ -461,10 +461,16 @@ def inicializar_interface():
     label_solucao = ctk.CTkLabel(scroll_conteudo, text="Solução da expressão:", font=("Trebuchet MS", 20, "bold"), text_color="white")
 
     def expressao_simplificada():
-        if not expressao_booleana_atual:
-            popup_erro("Erro: Nenhuma expressão convertida encontrada.")
+        # 1. Pega a expressão mais recente direto da caixa de entrada principal
+        entrada_txt = entrada.get().strip().upper()
+        if not entrada_txt:
+            popup_erro("A expressão na tela principal está vazia.")
             return
 
+        # 2. Converte para o formato de álgebra booleana
+        expressao_para_simplificar = converter_para_algebra_booleana(entrada_txt)
+        
+        # O resto da função continua igual, mas usando a nova variável
         if label_solucao.winfo_ismapped():
             label_solucao.pack_forget()
             log_simplificacao_textbox.pack_forget()
@@ -478,18 +484,18 @@ def inicializar_interface():
         log_simplificacao_textbox.delete("1.0", "end")
         log_simplificacao_textbox.configure(text_color="#39FF14", spacing3=-27)
         botao_voltar_para_aba2.pack(pady=10)
-  
+
         gui_logger = GUILogger(log_simplificacao_textbox)
 
         def simplificar_thread():
             with redirect_stdout(gui_logger):
                 try:
-                    principal_simplificar(expressao_booleana_atual)
+                    # 3. Usa a expressão recém-capturada e convertida
+                    principal_simplificar(expressao_para_simplificar)
                 except Exception as e:
                     janela.after(0, lambda: popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}"))
 
         threading.Thread(target=simplificar_thread).start()
-
 
     def abrir_duvida_expressao(expressao):
         if not expressao:
