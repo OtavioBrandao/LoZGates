@@ -1,0 +1,4 @@
+customtkinter
+pygame
+Pillow
+numpy
