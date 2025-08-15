@@ -52,7 +52,11 @@ Siga os passos abaixo para executar a aplicação em sua máquina local.
 
 ### Instalação
 
-COLOCAR AQUI OS PASSOS
+Para instalar as dependências necessárias, utilize o seguinte comando:
+
+```bash
+pip install -r requirements.txt
+```
 
 
 ### Execução
