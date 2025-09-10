@@ -24,7 +24,7 @@ import BackEnd.simplificador_interativo as simpli
 from FrontEnd.buttons import Button
 
 # Importar o módulo de circuito corrigido
-import BackEnd.circuito_logico as circuito_integrado
+import BackEnd.principal as circuito_integrado
 
 expressao_global = ""
 botao_ver_circuito = None
