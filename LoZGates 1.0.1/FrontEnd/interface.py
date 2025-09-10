@@ -12,7 +12,7 @@ import urllib.parse
 from contextlib import redirect_stdout
 import copy
 
-from config import ASSETS_PATH, informacoes
+from config import ASSETS_PATH, informacoes, duvida_circuitos
 
 from BackEnd.imagem import converte_matrix_para_tkinter_imagem_icon
 from BackEnd.tabela import gerar_tabela_verdade, verificar_conclusao
@@ -117,6 +117,29 @@ def inicializar_interface():
         botao_ok.configure(width=8, height=1)
         botao_ok.pack(pady=(0, 10))
 
+    def popup_duvida(mensagem):
+        popup = tk.Toplevel(janela)  # <- tk.Toplevel ao invés de ctk.CTkToplevel
+        popup.attributes('-topmost', True)
+        popup.after(10, lambda: popup.attributes('-topmost', False))
+        popup.title("Ajuda")
+        popup.iconbitmap(os.path.join(ASSETS_PATH, "endeota.ico"))
+        popup.configure(bg="#1a1a1a")
+        # Cria o textbox e insere a mensagem de ajuda/informação
+        textbox = tk.Text(popup, wrap="word", font=("Trebuchet MS", 12), fg="white", bg="#1a1a1a", borderwidth=0)
+        textbox.pack(padx=10, pady=10, fill="both", expand=True)
+        # Escreve a mensagem recebida + informações extras
+        info_extra = "\n\nLoZ Gates - Ajuda\nEste aplicativo permite criar, visualizar e simplificar expressões de lógica proposicional.\nUse as abas para acessar circuitos, expressões e problemas reais."
+        textbox.insert("1.0", info_extra + mensagem)
+        textbox.configure(state="disabled")
+
+        # Tamanho e centralização
+        largura_popup = 400
+        altura_popup = 400
+        popup.geometry(f"{largura_popup}x{altura_popup}")
+        popup.update_idletasks()
+        x = (popup.winfo_screenwidth() // 2) - (largura_popup // 2)
+        y = (popup.winfo_screenheight() // 2) - (altura_popup // 2)
+        popup.geometry(f"{largura_popup}x{altura_popup}+{x}+{y}")
 
     def trocar_para_abas():
         caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
@@ -389,6 +412,10 @@ def inicializar_interface():
 
     label_circuito_expressao = ctk.CTkLabel(scroll_frame1, font=("Trebuchet MS", 16, "bold"), text_color="cyan", text="")
     label_circuito_expressao.pack(pady=10)
+
+    botao_duvida1 = Button.botao_duvida(scroll_frame1)
+    botao_duvida1.place(relx=0.95, y=5, anchor="ne")
+    botao_duvida1.configure(command=lambda: popup_duvida(duvida_circuitos))
 
     imagem_circuito = ctk.CTkLabel(scroll_frame1, text="")
     imagem_circuito.pack(pady=10)
@@ -710,10 +737,6 @@ def inicializar_interface():
             font=("Trebuchet MS", 16), command=on_desfazer_selecionado, state="disabled", width=100
         )
         botao_desfazer.pack(side="right", padx=20, pady=10)
-
-
-
-       
 
         iniciar_rodada_interativa()
 
