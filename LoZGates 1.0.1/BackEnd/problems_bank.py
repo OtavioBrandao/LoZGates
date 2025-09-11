@@ -53,7 +53,7 @@ Problems_bank = [
         O veículo deve estar em movimento (V),o passageiro deve estar no carro (P)
         e o sensor de impacto deve estar ativado (I).
         """,
-        answer = "(V ^ P ^ I)",
+        answer = "(V & P & I)",
         difficulty = "Fácil"
     ),
     Problems(
@@ -70,7 +70,7 @@ Problems_bank = [
         sistema NEURAL EVA deve estar atualizado (E). Contudo, se tiver um 
         acompanhante habilitado (A) então o banco da frente pode ser acessado. 
         """,
-    answer = "(~I ∧ M ∧ E) V (A)",
+    answer = "(!I & M & E) | (A)",
     difficulty = "Fácil"
     ),
     Problems(
@@ -92,7 +92,7 @@ Problems_bank = [
         verdadeiras.
         Ajude a equipe Iron Mind a desenvolver esse sistema lógico antes do próximo round!
         """,
-    answer = "(S ∧ B ∧ D) ∧ H",
+    answer = "(S & B & D) & H",
     difficulty = "Fácil"
     ),
     Problems(
@@ -115,7 +115,7 @@ Problems_bank = [
 
         Ajude a equipe da Nex Eva a desenvolver o circuito digital que representa esse sistema.
         """,
-    answer = "(T ∧ C ∧ M) ∧ H",
+    answer = "(T & C & M) & H",
     difficulty = "Fácil"
     ),
     Problems (
@@ -129,7 +129,7 @@ Problems_bank = [
             - Ou ele pode fazer o saque tendo a digital e a leitura de retina 
         Ajude a turma de engenharia a ganhar esse empate.
         """,
-    answer = "(D ∧ C) V (D ∧ R)",
+    answer = "(D & C) | (D & R)",
     difficulty = "Fácil"
     ),
     Problems(
@@ -144,7 +144,7 @@ Problems_bank = [
         seu próprio circuito disjuntor.
 
         """,
-    answer = "(C ∧ St)  C é a corrente e St é sobretensão",
+    answer = "(C & T)",
     difficulty = "Fácil"
     ),
     Problems(
@@ -161,13 +161,13 @@ Problems_bank = [
             - Q: O usuário está acessando a partir de um IP confiável.
 
         O sistema só libera o acesso se pelo menos uma dessas condições for 
-        verdadeira (ou seja, P ∨ Q) e, ao mesmo tempo, garantir que caso o token seja 
+        verdadeira (ou seja, P | Q) e, ao mesmo tempo, garantir que caso o token seja 
         válido (P = 1), então obrigatoriamente o IP deve ser confiável (Q = 1). Isso evita 
         que usuários com token roubado acessem de redes inseguras. Ajude a equipe da Otávio 
         Tech a desenvolver esse circuito.
 
         """,
-    answer = "S=(P∨Q)∧(P→Q)",
+    answer = "(P|Q)&(P>Q)",
     difficulty = "Fácil"
     ),
     Problems(
@@ -186,7 +186,7 @@ Problems_bank = [
         ambos os sensores estiverem sincronizados, ou seja, os dois ativos ao mesmo 
         tempo, ou os dois inativos ao mesmo tempo.
         """,
-    answer = "F=¬(P⊕Q)",
+    answer = "!(P>Q)&(Q>P)",
     difficulty = "Fácil"
     ),
     Problems(
@@ -209,7 +209,7 @@ Problems_bank = [
         Dica: Todos os termos são necessários e o protocolo só é ativado se o sistema 
         estiver offline.
         """,
-    answer = "O∧Z∧C∧K∧¬M",
+    answer = "O&Z&C&K&!M",
     difficulty = "Fácil"
     ),
     Problems(
@@ -231,7 +231,7 @@ Problems_bank = [
         pode ir para a UDN mesmo com febre).
         Monte a função booleana que representa o envio para a UDN.
         """,
-    answer = "(N ^ H ^ B)V(~F V I)",
+    answer = "(N & H & B)|(!F | I)",
     difficulty = "Média"
     ),
     Problems(
@@ -252,7 +252,7 @@ Problems_bank = [
 
         Monte a função que define o acionamento da contenção.
         """,
-    answer = "[(R ∧ B ∧ E) ∧ ¬(G ∧ P)]",
+    answer = "[(R & B & E) & !(G & P)]",
     difficulty = "Média"
     ),
     Problems(
@@ -271,7 +271,7 @@ Problems_bank = [
 
         Monte a função booleana que representa esse sistema.
         """,
-    answer = "(B∧Z∧A)∧(¬T∨M)",
+    answer = "(B&Z&A)&(!T|M)",
     difficulty = "Média"
     ),
     Problems(
@@ -288,7 +288,7 @@ Problems_bank = [
 
         Monte a função booleana que represente as condições de lançamento.
         """,
-    answer = "(C∧F∧¬S)∧(I→L)",
+    answer = "(C&F&!S)&(I>L)",
     difficulty = "Média"
     ),
     Problems(
@@ -304,7 +304,7 @@ Problems_bank = [
         condições.
         Monte a função booleana que represente a abertura do cofre.
         """,
-    answer = "(G∧B)∧¬(R∨X)",
+    answer = "(G&B)&!(R|X)",
     difficulty = "Média"
     ),
     Problems(
@@ -323,7 +323,7 @@ Problems_bank = [
 
         Monte a função booleana que represente o sistema.
         """,
-        answer = "C↔B",
+        answer = "(C>B)&(B>C)",
         difficulty = "Fácil"
     ),
     Problems(
@@ -339,7 +339,7 @@ Problems_bank = [
 
         Monte a função booleana do sistema.
         """,
-        answer = "(N∧Q)∧(¬P→M)",
+        answer = "(N&Q)&(!P>M)",
         difficulty = "Média"
     ),
     Problems(
@@ -354,7 +354,7 @@ Problems_bank = [
         Se houver vento lateral forte (V), a aterrissagem assistida é cancelada, exceto se o 
         piloto ativar o modo de correção automática (C).
         """,
-        answer= "(A∧T∧P)∧(¬V∨C)",
+        answer= "(A&T&P)&(!V|C)",
         difficulty= "Média"
     ),
     Problems(
@@ -369,7 +369,7 @@ Problems_bank = [
         Além disso, se o submarino estiver em modo de alerta (L), então o scanner de 
         retina (R) também deve validar.
         """,
-        answer = "(K∧F)∧(L→R)",
+        answer = "(K&F)&(L>R)",
         difficulty = "Média"
     ),
     Problems(
@@ -383,7 +383,7 @@ Problems_bank = [
         Se a temperatura ambiente for extrema (E), a coleta só continua se o módulo de 
         resfriamento estiver ligado (M).
         """,
-        answer = "(P∧B)∧(¬E∨M)",
+        answer = "(P&B)&(!E|M)",
         difficulty = "Média"
     ),
     Problems(
@@ -397,7 +397,7 @@ Problems_bank = [
         Além disso, o sistema só é ativado se e somente se a antena de comunicação 
         estiver desligada (A = 0).
         """,
-        answer = "(C∧I)∧¬A",
+        answer = "(C&I)&!A",
         difficulty = "Média"
     ),
     Problems(
@@ -412,7 +412,7 @@ Problems_bank = [
         bloqueada, a menos que a estufa esteja no modo de emergência (E).
 
         """,
-        answer = "(U∧R)∧(¬T∨E)",
+        answer = "(U&R)&(!T|E)",
         difficulty = "Média"
     ),
     Problems(
@@ -434,7 +434,7 @@ Problems_bank = [
         de combate (C) só é válido se o sistema de verificação biométrica do 
         comandante estiver ativo (B).
         """,
-        answer = "(R∧G∧C∧(¬K∨F))∧(S→B)",
+        answer = "(R&G&C&(!K|F))&(S>B)",
         difficulty = "Difícil"
     ),
     Problems(
@@ -454,7 +454,7 @@ Problems_bank = [
         obrigatório que ele tenha passado pelo scanner de integridade quântica (I).
 
         """,
-        answer = "(A∧M∧E∧(¬P∨Q))∧(L→I)",
+        answer = "(A&M&E&(!P|Q))&(L>I)",
         difficulty = "Difícil"
     ),
     Problems(
@@ -475,7 +475,7 @@ Problems_bank = [
         Além disso, se a cidade estiver sob ataque terrestre (T), então o voo só é 
         liberado se o modo de evasão estiver ativo (V).
         """,
-        answer = "(D∧N∧F∧(¬B∨(E∧O)))∧(T→V)",
+        answer = "(D&N&F&(!B|(E&O)))&(T>V)",
         difficulty = "Difícil"
     ),
     Problems(
@@ -494,7 +494,7 @@ Problems_bank = [
         Por protocolo, se o diretor de segurança estiver presente (S), então o operador 
         principal (O) deve ter sua assinatura digital validada (V).
         """,
-        answer = "(H∧M∧O∧(¬G∨C))∧(S→V)",
+        answer = "(H&M&O&(!G|C))&(S>V)",
         difficulty = "Difícil"
     ),
     Problems(
@@ -515,7 +515,7 @@ Problems_bank = [
         acionado se o protocolo diplomático com criaturas inteligentes (D) estiver 
         desativado.
         """,
-        answer = "X∧P∧R∧(¬S∨E))∧(M→¬D)",
+        answer = "X&P&R&(!S|E))&(M>!D)",
         difficulty = "Difícil"
     ),
         Problems(
@@ -535,7 +535,7 @@ Problems_bank = [
         Além disso, se o governador estiver presente (V), então o protocolo de 
         evacuação de emergência (E) deve estar ativo antes da barreira ser acionada.
         """,
-        answer = "(P∧G∧M∧(¬S∨D))∧(V→E)",
+        answer = "(P&G&M&(!S|D))&(V>E)",
         difficulty = "Difícil"
     ),
         Problems(
@@ -555,7 +555,7 @@ Problems_bank = [
         Por segurança, se um visitante diplomático estiver presente (D), então o sistema
         de escudo dimensional (S) deve estar ativo antes da abertura.
         """,
-        answer = "(Q∧F∧A∧(¬T∨C))∧(D→S)",
+        answer = "(Q&F&A&(!T|C))&(D>S)",
         difficulty = "Difícil"
     ),
         Problems(
@@ -574,7 +574,7 @@ Problems_bank = [
         Por protocolo, se o presidente da companhia estiver a bordo (P), então o módulo 
         de segurança VIP (V) deve estar ativado.
         """,
-        answer = "(L∧H∧E∧(¬C∨S))∧(P→V)",
+        answer = "(L&H&E&(!C|S))&(P>V)",
         difficulty = "Difícil"
     ),
         Problems(
@@ -599,7 +599,7 @@ Problems_bank = [
 
             Desafio: monte a função booleana e um circuito que representa todo o sistema.
         """,
-        answer = "(A∧H∧R∧(¬C∨S)∧(G↔T))∧(M→D)",
+        answer = "(A&H&R&(!C|S)&(G↔T))&(M>D)",
         difficulty = "Difícil"
     ),
 
