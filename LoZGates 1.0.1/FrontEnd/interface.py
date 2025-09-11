@@ -23,7 +23,6 @@ import BackEnd.simplificador_interativo as simpli
 
 from FrontEnd.buttons import Button
 
-# Importar o módulo de circuito corrigido
 import BackEnd.principal as circuito_integrado
 
 expressao_global = ""
@@ -35,6 +34,7 @@ nos_ignorados = set()
 historico_interativo = []
 botoes_leis = []
 circuito_interativo_instance = None
+does_it_has_interactveon = False
 
 def inicializar_interface():
 
@@ -154,8 +154,8 @@ def inicializar_interface():
             # Gerar circuito pygame
             ver_circuito_pygame(saida)
             
-            # Criar circuito interativo na nova aba
-            criar_circuito_interativo(expressao)
+            # Criar circuito interativo
+            create_interactive_circuit(expressao)   
             
             # Mostrar frame das abas
             show_frame(frame_abas)
@@ -164,20 +164,85 @@ def inicializar_interface():
             popup_erro(f"Erro ao processar expressão: {e}")
             print(f"Erro detalhado: {e}")
 
-    def confirmar_expressao():
-        global botao_ver_circuito
-        if botao_ver_circuito:  
-            botao_ver_circuito.destroy()
-
-        if not entrada.get().strip():
-            popup_erro("A expressão não pode estar vazia.")
-            return
+    #Detecta mudança de aba e recria o circuito se necessário
+    def on_tab_change():
+        """Callback chamado quando a aba é alterada"""
+        global does_it_have_interaction
+        try:
+            atual_tab = abas.get()
+            if atual_tab == "  Circuito Interativo  ":
+                # Se mudou para a aba do circuito interativo, garante que ele existe
+                if expressao_global:
+                    if_necessary_create_a_circuit()
+            else:
+                # Se saiu da aba do circuito interativo e não há interação, pode limpar
+                if not does_it_have_interaction and circuito_interativo_instance:
+                    print("Saiu da aba do circuito sem interação - pode ser limpo posteriormente")
+        except Exception as e:
+            print(f"Erro ao detectar mudança de aba: {e}")
+    
+    def if_necessary_create_a_circuit():
+        """Cria o circuito interativo apenas se ele não existir ou estiver vazio"""
+        global circuito_interativo_instance, does_it_have_interaction
         
-        botao_ver_circuito = Button.botao_padrao("Ver circuito / Expressão", principal)
-        botao_ver_circuito.configure(command=lambda: trocar_para_abas())
-        botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
+        # Verifica se o frame está vazio ou se a instância não existe
+        frame_vazio = len(frame_circuito_interativo.winfo_children()) == 0
+        instancia_inexistente = circuito_interativo_instance is None
+        
+        # Só recria se não houver interação ativa OU se realmente não existir
+        if (frame_vazio or instancia_inexistente) and not does_it_have_interaction:
+            print("Recriando circuito interativo...")
+            create_interactive_circuit(entrada.get().strip().upper().replace(" ", ""))
+        elif does_it_have_interaction and circuito_interativo_instance:
+            print("Circuito interativo já existe e há interação ativa - mantendo")
 
-    def exibir_tabela_verdade(expressao):
+    def create_interactive_circuit(expressao):
+        """Cria o circuito interativo na aba correspondente"""
+        global circuito_interativo_instance, does_it_have_interaction
+        
+        # Limpar instância anterior se existir
+        if circuito_interativo_instance:
+            try:
+                circuito_interativo_instance.stop()
+            except:
+                pass
+        
+        # Limpar o frame antes de criar novo circuito
+        for widget in frame_circuito_interativo.winfo_children():
+            widget.destroy()
+        
+        # Criar novo circuito interativo
+        try:
+            circuito_interativo_instance = circuito_integrado.criar_circuito_integrado(
+                frame_circuito_interativo, expressao
+            )
+            does_it_have_interaction = True  # Marca que há interação ativa
+            print("Circuito interativo criado com sucesso!")
+        except Exception as e:
+            print(f"Erro ao criar circuito interativo: {e}")
+            does_it_have_interaction = False  # Marca que não há interação
+            # Mostrar mensagem de erro no frame
+            error_label = ctk.CTkLabel(
+                frame_circuito_interativo,
+                text=f"Erro ao criar circuito interativo: {e}",
+                text_color="red"
+            )
+            error_label.pack(expand=True)   
+    
+    def confirmar_expressao():
+            global botao_ver_circuito
+            if botao_ver_circuito:  
+                botao_ver_circuito.destroy()
+
+            if not entrada.get().strip():
+                popup_erro("A expressão não pode estar vazia.")
+                return
+            
+            botao_ver_circuito = Button.botao_padrao("Ver circuito / Expressão", principal)
+            botao_ver_circuito.configure(command=lambda: trocar_para_abas())
+            botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
+
+    def show_truth_table(expressao):
         try:
             janela_tabela = ctk.CTkToplevel(janela)
             janela_tabela.title("Tabela Verdade")
@@ -243,52 +308,61 @@ def inicializar_interface():
         except Exception as e:
             popup_erro(f"Erro ao comparar expressões: {e}")
             
-    def voltar_para(frame):
-        global botao_ver_circuito, circuito_interativo_instance
+    def go_back_to(frame):
+        global botao_ver_circuito, circuito_interativo_instance, does_it_have_interaction
+        
         if botao_ver_circuito:
             botao_ver_circuito.destroy()
             botao_ver_circuito = None
 
-        # Parar circuito interativo se estiver rodando
+        # Parar o circuito interativo baseado na flag e destino
         if circuito_interativo_instance:
-            try:
-                circuito_interativo_instance.stop()
-                circuito_interativo_instance = None
-            except:
-                pass
+            # Se estiver voltando para frame_abas E houver interação, NÃO para o circuito
+            if frame == frame_abas and does_it_have_interaction:
+                print("Mantendo circuito interativo ativo - há interação do usuário")
+            # Se estiver voltando para qualquer outro frame OU não houver interação, para o circuito
+            elif frame != frame_abas or not does_it_have_interaction:
+                try:
+                    circuito_interativo_instance.stop()
+                    circuito_interativo_instance = None
+                    does_it_have_interaction = False
+                    print("Circuito interativo parado")
+                except Exception as e:
+                    print(f"Erro ao parar circuito: {e}")
 
-        #limpa as entradas
+        # Limpa as entradas apenas se não for para certas telas
         if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
             entrada.delete(0, tk.END) 
+            does_it_have_interaction = False  # Reset da flag ao limpar entrada
 
         entrada2.delete(0, tk.END)  
         entrada3.delete(0, tk.END) 
         
-        #escreve digite aqui
         entrada.configure(placeholder_text="Digite aqui")
         entrada2.configure(placeholder_text="Digite aqui")
         entrada3.configure(placeholder_text="Digite aqui")
         
-        #limpa o "é equivalente e o não é equivalente"
         equivalente.place_forget()
         nao_equivalente.place_forget()
         
-        #Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
+        # Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
         if frame != frame_abas:
             label_convertida.pack_forget()
             log_simplificacao_textbox.pack_forget()
 
-        show_frame(frame)  #troca o frame
-
-        #Força o foco para a janela (tira o foco de qualquer campo antigo)
+        show_frame(frame)
         janela.focus_set()
 
-        #Se voltando para a tela principal, seta foco corretamente
         if frame == principal:
             entrada.focus_set()
         
-        label_convertida.pack_forget()
-    
+        # Se voltando para frame_abas, garante que o circuito interativo esteja funcionando
+        if frame == frame_abas:
+            janela.after(100, if_necessary_create_a_circuit)
+        
+        if frame != frame_abas:
+            label_convertida.pack_forget()     
+                 
     def atualizar_imagem_circuito():
         try:
             caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
@@ -307,36 +381,6 @@ def inicializar_interface():
         except Exception as e:
             print(f"Erro ao atualizar imagem: {e}")
             imagem_circuito.configure(text=f"Erro ao carregar imagem: {e}", image="")
-    
-    def criar_circuito_interativo(expressao):
-        """Cria o circuito interativo na aba correspondente"""
-        global circuito_interativo_instance
-        
-        # Limpar instância anterior se existir
-        if circuito_interativo_instance:
-            try:
-                circuito_interativo_instance.stop()
-            except:
-                pass
-        
-        # Limpar o frame antes de criar novo circuito
-        for widget in frame_circuito_interativo.winfo_children():
-            widget.destroy()
-        
-        # Criar novo circuito interativo
-        try:
-            circuito_interativo_instance = circuito_integrado.criar_circuito_integrado(
-                frame_circuito_interativo, expressao
-            )
-        except Exception as e:
-            print(f"Erro ao criar circuito interativo: {e}")
-            # Mostrar mensagem de erro no frame
-            error_label = ctk.CTkLabel(
-                frame_circuito_interativo,
-                text=f"Erro ao criar circuito interativo: {e}",
-                text_color="red"
-            )
-            error_label.pack(expand=True)
     
     #------------- DEFININDO OS FRAMES DA INTERFACE -------------
     
@@ -407,7 +451,7 @@ def inicializar_interface():
     botao_problemas_reais.place(relx=0.5, y=400, anchor="center")
 
     botao_voltar_para_inicio = Button.botao_voltar("Voltar", principal)
-    botao_voltar_para_inicio.configure(command=lambda: voltar_para(frame_inicio))
+    botao_voltar_para_inicio.configure(command=lambda: go_back_to(frame_inicio))
     botao_voltar_para_inicio.place(relx=0.5, y=500, anchor="center")
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
@@ -438,7 +482,7 @@ def inicializar_interface():
         container_problemas.grid_columnconfigure(i, weight=1)
 
     botao_voltar_problemas = Button.botao_voltar("Voltar", scroll_problemas_reais)
-    botao_voltar_problemas.configure(command=lambda: voltar_para(principal))
+    botao_voltar_problemas.configure(command=lambda: go_back_to(principal))
     botao_voltar_problemas.pack(pady=10)
 
     #---------------- FRAME DE ABAS ----------------
@@ -447,7 +491,7 @@ def inicializar_interface():
         master=frame_abas, fg_color="#082347", 
         segmented_button_fg_color="#FFFFFF", segmented_button_selected_color="#4441F7",
         segmented_button_selected_hover_color="#0B1658", segmented_button_unselected_color="#001E44",
-        segmented_button_unselected_hover_color="#4682B4"
+        segmented_button_unselected_hover_color="#4682B4", command=on_tab_change
     )
     abas.pack(expand=True, fill="both")
 
@@ -627,7 +671,7 @@ def inicializar_interface():
     botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
 
     botao_voltar_para_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
-    botao_voltar_para_aba2.configure(command = lambda: voltar_para(frame_abas))
+    botao_voltar_para_aba2.configure(command = lambda: go_back_to(frame_abas))
     botao_voltar_para_aba2.pack(side="bottom", pady = 10)
     
 
@@ -738,7 +782,7 @@ def inicializar_interface():
         
         if not expressao_global:
             popup_erro("Por favor, primeiro insira e converta uma expressão.")
-            voltar_para(frame_abas)
+            go_back_to(frame_abas)
             show_frame(principal) 
             return
             
@@ -746,7 +790,7 @@ def inicializar_interface():
             arvore_interativa = simpli.construir_arvore(expressao_global)
         except Exception as e:
             popup_erro(f"Erro ao construir a expressão: {e}")
-            voltar_para(scroll_frame2)
+            go_back_to(scroll_frame2)
             return
 
         historico_interativo = [f"Expressão Inicial: {str(arvore_interativa)}"]
@@ -787,7 +831,7 @@ def inicializar_interface():
         global botao_pular, botao_desfazer
 
         botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
-        botao_voltar_interativo.configure(command=lambda: voltar_para(frame_abas), width=250, height=45)
+        botao_voltar_interativo.configure(command=lambda: go_back_to(frame_abas), width=250, height=45)
         botao_voltar_interativo.pack(pady=5, padx=10)
 
         botao_pular = ctk.CTkButton(
@@ -815,7 +859,7 @@ def inicializar_interface():
     #------------------------------------------------------------------------
 
     botao_tabela_verdade = Button.botao_padrao("Tabela Verdade", scroll_frame2)
-    botao_tabela_verdade.configure(command=lambda: exibir_tabela_verdade(entrada.get().strip().upper()))
+    botao_tabela_verdade.configure(command=lambda: show_truth_table(entrada.get().strip().upper()))
     botao_tabela_verdade.pack(pady=10)
 
     botao_pedir_ajuda_ia = Button.botao_padrao("Pedir ajuda à IA", scroll_frame2)
@@ -824,11 +868,11 @@ def inicializar_interface():
 
     #Botões das partes de abas que voltam pro frame de inserir a expressão para ver o circuito
     botao_voltar_principal_2 = Button.botao_voltar("Voltar", scroll_frame2)
-    botao_voltar_principal_2.configure(command=lambda: voltar_para(principal))
+    botao_voltar_principal_2.configure(command=lambda: go_back_to(principal))
     botao_voltar_principal_2.pack(pady=30)
 
     botao_voltar_principal = Button.botao_voltar("Voltar", scroll_frame1)
-    botao_voltar_principal.configure(command=lambda: voltar_para(principal))
+    botao_voltar_principal.configure(command=lambda: go_back_to(principal))
     botao_voltar_principal.pack(pady=30)
 
     #---------------- FRAME DE INFORMAÇÕES ----------------
@@ -844,7 +888,7 @@ def inicializar_interface():
     textbox_info.configure(state="disable")  #Desativar edição para evitar modificações
 
     botao_voltar_info = Button.botao_voltar("Voltar", frame_info)
-    botao_voltar_info.configure(command=lambda: voltar_para(frame_inicio))
+    botao_voltar_info.configure(command=lambda: go_back_to(frame_inicio))
     botao_voltar_info.pack(pady=20)
 
     #---------------- FRAME DE EQUIVALÊNCIA ----------------
@@ -860,7 +904,7 @@ def inicializar_interface():
     botao_comparar.place(relx=0.5, y=350, anchor="center")
 
     botao_voltar_equivalencia = Button.botao_voltar("Voltar", frame_equivalencia)
-    botao_voltar_equivalencia.configure(command=lambda: voltar_para(frame_inicio))
+    botao_voltar_equivalencia.configure(command=lambda: go_back_to(frame_inicio))
     botao_voltar_equivalencia.place(relx=0.5, y=420, anchor="center")
 
     titulo = ctk.CTkLabel(frame_equivalencia, text="Digite as expressões que deseja comparar:", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
