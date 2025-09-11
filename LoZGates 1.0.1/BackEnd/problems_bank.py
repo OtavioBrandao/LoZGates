@@ -252,7 +252,7 @@ Problems_bank = [
 
         Monte a função que define o acionamento da contenção.
         """,
-    answer = "[(R & B & E) & !(G & P)]",
+    answer = "((R & B & E) & !(G & P))",
     difficulty = "Média"
     ),
     Problems(
@@ -599,7 +599,7 @@ Problems_bank = [
 
             Desafio: monte a função booleana e um circuito que representa todo o sistema.
         """,
-        answer = "(A&H&R&(!C|S)&(G↔T))&(M>D)",
+        answer = "(A&H&R&(!C|S)&((G>T)&(T>G))&(M>D)",
         difficulty = "Difícil"
     ),
 
