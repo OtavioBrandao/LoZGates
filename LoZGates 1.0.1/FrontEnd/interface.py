@@ -260,7 +260,6 @@ def inicializar_interface():
         botao_ver_circuito.configure(command=lambda: trocar_para_abas())
         botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
 
-
     def exibir_tabela_verdade(expressao):
         try:
             janela_tabela = ctk.CTkToplevel(janela)
@@ -329,59 +328,63 @@ def inicializar_interface():
             print(f"Erro detalhado: {e}")  
               
     def go_back_to(frame):
-        global botao_ver_circuito, circuito_interativo_instance, does_it_have_interaction
-        
-        if botao_ver_circuito:
-            botao_ver_circuito.destroy()
-            botao_ver_circuito = None
+        try:
+            global botao_ver_circuito, circuito_interativo_instance, does_it_have_interaction
+            
+            if botao_ver_circuito:
+                botao_ver_circuito.destroy()
+                botao_ver_circuito = None
 
-        # Parar o circuito interativo baseado na flag e destino
-        if circuito_interativo_instance:
-            # Se estiver voltando para frame_abas E houver interação, NÃO para o circuito
-            if frame == frame_abas and does_it_have_interaction:
-                print("Mantendo circuito interativo ativo - há interação do usuário")
-            # Se estiver voltando para qualquer outro frame OU não houver interação, para o circuito
-            elif frame != frame_abas or not does_it_have_interaction:
-                try:
-                    circuito_interativo_instance.stop()
-                    circuito_interativo_instance = None
-                    does_it_have_interaction = False
-                    print("Circuito interativo parado")
-                except Exception as e:
-                    print(f"Erro ao parar circuito: {e}")
+            # Parar o circuito interativo baseado na flag e destino
+            if circuito_interativo_instance:
+                # Se estiver voltando para frame_abas E houver interação, NÃO para o circuito
+                if frame == frame_abas and does_it_have_interaction:
+                    print("Mantendo circuito interativo ativo - há interação do usuário")
+                # Se estiver voltando para qualquer outro frame OU não houver interação, para o circuito
+                elif frame != frame_abas or not does_it_have_interaction:
+                    try:
+                        circuito_interativo_instance.stop()
+                        circuito_interativo_instance = None
+                        does_it_have_interaction = False
+                        print("Circuito interativo parado")
+                    except Exception as e:
+                        print(f"Erro ao parar circuito: {e}")
 
-        # Limpa as entradas apenas se não for para certas telas
-        if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
-            entrada.delete(0, tk.END) 
-            does_it_have_interaction = False  # Reset da flag ao limpar entrada
+            # Limpa as entradas apenas se não for para certas telas
+            if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
+                entrada.delete(0, tk.END) 
+                does_it_have_interaction = False  # Reset da flag ao limpar entrada
 
-        entrada2.delete(0, tk.END)  
-        entrada3.delete(0, tk.END) 
-        
-        entrada.configure(placeholder_text="Digite aqui")
-        entrada2.configure(placeholder_text="Digite aqui")
-        entrada3.configure(placeholder_text="Digite aqui")
-        
-        equivalente.place_forget()
-        nao_equivalente.place_forget()
-        
-        # Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
-        if frame != frame_abas:
-            label_convertida.pack_forget()
-            log_simplificacao_textbox.pack_forget()
+            entrada2.delete(0, tk.END)  
+            entrada3.delete(0, tk.END) 
+            
+            entrada.configure(placeholder_text="Digite aqui")
+            entrada2.configure(placeholder_text="Digite aqui")
+            entrada3.configure(placeholder_text="Digite aqui")
+            
+            equivalente.place_forget()
+            nao_equivalente.place_forget()
+            
+            # Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
+            if frame != frame_abas:
+                label_convertida.pack_forget()
+                log_simplificacao_textbox.pack_forget()
 
-        show_frame(frame)
-        janela.focus_set()
+            show_frame(frame)
+            janela.focus_set()
 
-        if frame == principal:
-            entrada.focus_set()
-        
-        # Se voltando para frame_abas, garante que o circuito interativo esteja funcionando
-        if frame == frame_abas:
-            janela.after(100, if_necessary_create_a_circuit)
-        
-        if frame != frame_abas:
-            label_convertida.pack_forget()     
+            if frame == principal:
+                entrada.focus_set()
+            
+            # Se voltando para frame_abas, garante que o circuito interativo esteja funcionando
+            if frame == frame_abas:
+                janela.after(100, if_necessary_create_a_circuit)
+            
+            if frame != frame_abas:
+                label_convertida.pack_forget()
+        except Exception as e:
+            popup_erro(f"Erro ao voltar: {e}")
+            print(f"Erro detalhado: {e}")  
        
     def atualizar_imagem_circuito():
         try:
