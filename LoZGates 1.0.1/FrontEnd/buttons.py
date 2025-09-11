@@ -28,7 +28,7 @@ class Button:
     def botao_voltar(nome, frame):
         botao = ctk.CTkButton(
             frame,
-            text=nome,
+            text="← " + nome,
             fg_color="goldenrod",
             text_color="#000080",
             hover_color="#8B008B",

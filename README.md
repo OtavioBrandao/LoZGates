@@ -1,84 +1,107 @@
-# LoZ Gates: Ferramenta Educacional de Lógica
+# LoZ Gates: Educational Logic Tool
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![CustomTkinter](https://img.shields.io/badge/CustomTkinter-5.2.0-blue)
 ![Pygame](https://img.shields.io/badge/Pygame-2.5.2-green)
 ![Pillow](https://img.shields.io/badge/Pillow-10.0-orange)
 
-Uma aplicação desktop desenvolvida para auxiliar no estudo da Lógica Proposicional, Álgebra Booleana e Circuitos Digitais. A ferramenta oferece uma interface gráfica amigável onde os usuários podem inserir expressões lógicas e visualizar suas representações, simplificações e propriedades de forma interativa.
+A desktop application developed to assist in the study of Propositional Logic, Boolean Algebra, and Digital Circuits. The tool offers a user-friendly graphical interface where users can input logical expressions and visualize their representations, simplifications, and properties in an interactive way.
 
-## 📜 Sumário
+## 📜 Table of Contents
 
-- [Visão Geral](#-visão-geral)
-- [Funcionalidades Principais](#-funcionalidades-principais)
-- [Tecnologias Utilizadas](#-tecnologias-utilizadas)
-- [Como Executar o Projeto](#-como-executar-o-projeto)
-  - [Pré-requisitos](#pré-requisitos)
-  - [Instalação](#instalação)
-  - [Execução](#execução)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Autores](#-autores)
-- [Agradecimentos](#-agradecimentos)
+- [Overview](#-overview)
+- [Main Features](#-main-features)
+- [Technologies Used](#-technologies-used)
+- [How to Run the Project](#-how-to-run-the-project)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Execution](#execution)
+- [Project Structure](#-project-structure)
+- [Authors](#-authors)
+- [Acknowledgments](#-acknowledgments)
 
-## 🖼️ Visão Geral
+## 🖼️ Overview
 
-O "LoZ Gates" foi criado como uma ferramenta de apoio ao aprendizado, permitindo que estudantes possam praticar e compreender melhor os conceitos que interligam a lógica matemática e a eletrônica digital.
+"LoZ Gates" was created as a learning support tool, allowing students to practice and better understand the concepts that connect mathematical logic and digital electronics.
 
-## ✨ Funcionalidades Principais
+## ✨ Main Features
 
--   **Visualização de Circuitos Lógicos:** Gera e exibe o circuito digital correspondente a uma expressão lógica proposicional.
--   **Tabela Verdade:** Cria a tabela verdade completa para qualquer expressão, identificando se é uma tautologia, contradição ou contingência.
--   **Simplificação de Expressões:** Simplifica expressões lógicas passo a passo, mostrando as leis de equivalência (De Morgan, Distributiva, etc.) aplicadas em cada etapa.
--   **Verificação de Equivalência:** Compara duas expressões lógicas e determina se são equivalentes.
--   **Conversão para Álgebra Booleana:** Converte expressões da lógica proposicional (com símbolos como `&`, `|`, `!`) para o formato de Álgebra Booleana (`*`, `+`, `~`).
--   **Interface Gráfica Intuitiva:** Todas as funcionalidades são acessíveis através de uma interface moderna e fácil de usar.
--   **Ajuda com IA:** Integração com um clique para enviar a expressão a uma IA (como o ChatGPT) para obter explicações detalhadas.
+-   **Logic Circuit Visualization:** Generates and displays the digital circuit corresponding to a propositional logic expression.
+-   **Truth Table:** Creates the complete truth table for any expression, identifying whether it's a tautology, contradiction, or contingency.
+-   **Expression Simplification:** Simplifies logical expressions step by step, showing the equivalence laws (De Morgan, Distributive, etc.) applied at each stage.
+-   **Equivalence Verification:** Compares two logical expressions and determines if they are equivalent.
+-   **Boolean Algebra Conversion:** Converts expressions from propositional logic (with symbols like `&`, `|`, `!`) to Boolean Algebra format (`*`, `+`, `~`).
+-   **Intuitive Graphical Interface:** All functionalities are accessible through a modern and easy-to-use interface.
+-   **AI Help:** One-click integration to send the expression to an AI (like ChatGPT) for detailed explanations.
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Technologies Used
 
--   **Python:** Linguagem principal do projeto.
--   **CustomTkinter:** Biblioteca para a criação da interface gráfica moderna.
--   **Pygame:** Utilizado para desenhar e renderizar os circuitos lógicos dinamicamente.
--   **Pillow (PIL):** Usado para manipulação de imagens, como salvar os circuitos gerados e criar ícones.
+-   **Python:** Main programming language of the project.
+-   **CustomTkinter:** Library for creating modern graphical interfaces.
+-   **Pygame:** Used to draw and dynamically render logic circuits.
+-   **Pillow (PIL):** Used for image manipulation, such as saving generated circuits and creating icons.
 
-## 🚀 Como Executar o Projeto
+## 🚀 How to Run the Project
 
-Siga os passos abaixo para executar a aplicação em sua máquina local.
+Follow the steps below to run the application on your local machine.
 
-### Pré-requisitos
+### Prerequisites
 
--   Python 3.8 ou superior
--   `pip` (gerenciador de pacotes do Python)
+-   Python 3.8 or higher
+-   `pip` (Python package manager)
 
-### Instalação
+### Installation
 
-Para instalar as dependências necessárias, utilize o seguinte comando:
+To install the necessary dependencies, use the following command:
 
 ```bash
 pip install -r requirements.txt
 ```
 
+### Execution
 
-### Execução
-
-Para iniciar a aplicação, execute o arquivo de interface principal:
+To start the application, run the main interface file:
 
 ```bash
 python main.py
 ```
 
+## 📁 Project Structure
 
-## 👨‍💻 Autores
+```
+LoZ-Gates/
+├── main.py                 # Main application file
+├── requirements.txt        # Project dependencies
+├── assets/                 # Images and icons
+├── modules/               # Core logic modules
+│   ├── circuit_generator.py
+│   ├── truth_table.py
+│   └── expression_parser.py
+└── gui/                   # Interface components
+    ├── main_window.py
+    └── dialogs.py
+```
 
-Larissa de Souza
+## 👨‍💻 Authors
 
-Otávio Menezes
+**Larissa de Souza**
 
-Zilderlan Santos
+**Otávio Menezes**
 
-David Oliveira
+**Zilderlan Santos**
 
-## 🙏 Agradecimentos
+**David Oliveira**
 
-Um agradecimento especial ao Professor Doutor Evandro de Barros Costa e à Universidade Federal de Alagoas (UFAL) - Instituto de Computação, pelo apoio e orientação durante o desenvolvimento deste projeto.
+## 🙏 Acknowledgments
 
+Special thanks to Professor Dr. Evandro de Barros Costa and the Federal University of Alagoas (UFAL) - Institute of Computing, for their support and guidance during the development of this project.
+
+---
+
+<div align="center">
+
+**📚 Educational Tool | 🎓 UFAL | 💻 Open Source**
+
+*Bridging the gap between theoretical logic and practical digital circuits*
+
+</div>
