@@ -23,6 +23,7 @@ import BackEnd.simplificador_interativo as simpli
 
 from FrontEnd.buttons import Button
 from FrontEnd.problems_interface import IntegratedProblemsInterface, setup_problems_interface
+from FrontEnd.generate_log import generate_html_log, update_log
 
 expressao_global = ""
 botao_ver_circuito = None
@@ -523,7 +524,7 @@ def inicializar_interface():
     escolher_caminho = ctk.CTkFrame(frame_interativo, fg_color="#000033", corner_radius=10, height=800, width=280)
     area_expressao = ctk.CTkTextbox(master=frame_interativo,fg_color="#1c1c1c", text_color="#39FF14", font=("Trebuchet MS", 16), wrap="word", width=800, height=800)
     
-    #---------------------- PARTE DA SIMPLFICAÇÃO ---------------------------------
+#---------------------- PARTE DA SIMPLFICAÇÃO ---------------------------------
     def mostrar_botoes_simplificar():
         botao_solucao.pack(pady=10)
         botao_interativo.pack(pady=10)
@@ -536,7 +537,130 @@ def inicializar_interface():
     botao_voltar_para_aba2.pack(side="bottom", pady = 10)
     
 
-    #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
+#------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
+
+    import json
+    import time
+    from datetime import datetime
+
+    # Variáveis globais para controle de tempo
+    tempo_inicio_sessao = None
+    tempo_inicio_expressao = None
+    tentativas_atuais = 0
+
+    # Função para carregar ou criar o JSON de registro
+    def load_log(caminho_log="logs.json"):
+        try:
+            with open(caminho_log, "r", encoding='utf-8') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {
+                "expressoes": {},
+                "estatisticas_gerais": {
+                    "total_sessoes": 0,
+                    "expressoes_mais_tentadas": {},
+                    "leis_mais_usadas": {},
+                    "tempo_medio_por_expressao": 0
+                }
+            }
+
+    # Função para registrar o uso de uma lei
+    def register_law(expression, law_name, success=True, tempo_gasto=0, log_path="logs.json"):
+        logs = load_log(log_path)
+        
+        # Inicializa a expressão se não existir
+        if expression not in logs["expressoes"]:
+            logs["expressoes"][expression] = {
+                "leis_usadas": {},
+                "tentativas_totais": 0,
+                "sucessos_totais": 0,
+                "tempo_total_gasto": 0,
+                "tempo_medio": 0,
+                "simplificavel": None,  # None = ainda não determinado
+                "caminho_solucao": [],  # Sequência de leis que levaram ao sucesso
+                "primeira_tentativa": datetime.now().isoformat(),
+                "ultima_tentativa": datetime.now().isoformat(),
+                "sessoes": []
+            }
+        
+        # Atualiza dados da expressão
+        logs["expressoes"][expression]["tentativas_totais"] += 1
+        logs["expressoes"][expression]["tempo_total_gasto"] += tempo_gasto
+        logs["expressoes"][expression]["ultima_tentativa"] = datetime.now().isoformat()
+        
+        if tempo_gasto > 0:
+            logs["expressoes"][expression]["tempo_medio"] = (
+                logs["expressoes"][expression]["tempo_total_gasto"] / 
+                logs["expressoes"][expression]["tentativas_totais"]
+            )
+        
+        # Inicializa a lei se não existir
+        if law_name not in logs["expressoes"][expression]["leis_usadas"]:
+            logs["expressoes"][expression]["leis_usadas"][law_name] = {
+                "usos_sucesso": 0,
+                "tentativas_falha": 0,
+                "tempo_gasto": 0
+            }
+        
+        # Atualiza dados da lei
+        if success:
+            logs["expressoes"][expression]["leis_usadas"][law_name]["usos_sucesso"] += 1
+            logs["expressoes"][expression]["sucessos_totais"] += 1
+            logs["expressoes"][expression]["caminho_solucao"].append(law_name)
+            if logs["expressoes"][expression]["simplificavel"] is None:
+                logs["expressoes"][expression]["simplificavel"] = True
+        else:
+            logs["expressoes"][expression]["leis_usadas"][law_name]["tentativas_falha"] += 1
+        
+        logs["expressoes"][expression]["leis_usadas"][law_name]["tempo_gasto"] += tempo_gasto
+        
+        # Atualiza estatísticas gerais
+        if law_name not in logs["estatisticas_gerais"]["leis_mais_usadas"]:
+            logs["estatisticas_gerais"]["leis_mais_usadas"][law_name] = 0
+        logs["estatisticas_gerais"]["leis_mais_usadas"][law_name] += 1
+        
+        if expression not in logs["estatisticas_gerais"]["expressoes_mais_tentadas"]:
+            logs["estatisticas_gerais"]["expressoes_mais_tentadas"][expression] = 0
+        logs["estatisticas_gerais"]["expressoes_mais_tentadas"][expression] += 1
+        
+        # Salvar os dados no arquivo
+        with open(log_path, "w", encoding='utf-8') as f:
+            json.dump(logs, f, indent=4, ensure_ascii=False)
+
+    def iniciar_sessao_expressao(expression):
+        """Inicia o cronômetro para uma nova expressão"""
+        global tempo_inicio_expressao, tentativas_atuais
+        tempo_inicio_expressao = time.time()
+        tentativas_atuais = 0
+
+    def finalizar_sessao_expressao(expression, resolvida=False):
+        """Finaliza a sessão e registra os dados finais"""
+        global tempo_inicio_expressao, tentativas_atuais
+        
+        if tempo_inicio_expressao is None:
+            return
+            
+        tempo_total = time.time() - tempo_inicio_expressao
+        
+        logs = load_log()
+        if expression in logs["expressoes"]:
+            sessao_atual = {
+                "timestamp": datetime.now().isoformat(),
+                "tempo_gasto": tempo_total,
+                "tentativas_na_sessao": tentativas_atuais,
+                "resolvida": resolvida,
+                "caminho_usado": logs["expressoes"][expression]["caminho_solucao"][-tentativas_atuais:] if tentativas_atuais > 0 else []
+            }
+            logs["expressoes"][expression]["sessoes"].append(sessao_atual)
+            
+            # Salvar
+            with open("logs.json", "w", encoding='utf-8') as f:
+                json.dump(logs, f, indent=4, ensure_ascii=False)
+        
+        tempo_inicio_expressao = None
+        tentativas_atuais = 0
+
+#------------------ MODO INTERATIVO LÓGICA E FUNÇÕES MODIFICADAS ----------------------
     def salvar_estado_atual():
         """Salva o estado atual (árvore, histórico, ignorados) na pilha de histórico."""
         global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info
@@ -548,7 +672,7 @@ def inicializar_interface():
             'passo_info': copy.deepcopy(passo_atual_info)
         }
         historico_de_estados.append(estado)
-    
+
     def on_desfazer_selecionado():
         global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, botao_desfazer
 
@@ -564,11 +688,11 @@ def inicializar_interface():
 
         if not historico_de_estados:
             botao_desfazer.configure(state="disabled")
-
         atualizar_ui_interativa()
-      
+  
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados, botao_desfazer
+        global tentativas_atuais, tempo_inicio_expressao, expressao_global
 
         if not passo_atual_info:
             return
@@ -577,20 +701,31 @@ def inicializar_interface():
         botao_desfazer.configure(state="normal")
 
         lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
+        tempo_antes = time.time()
         nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
+        tempo_gasto = time.time() - tempo_antes
+        
+        tentativas_atuais += 1
 
         if sucesso:
             arvore_interativa = nova_arvore
-            historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada.")
+            historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada com sucesso.")
             historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
             nos_ignorados = set()
+            
+            # Registra o sucesso no log
+            register_law(str(expressao_global), lei_usada, success=True, tempo_gasto=tempo_gasto)
+            
             iniciar_rodada_interativa()
         else:
             historico_de_estados.pop()
             if not historico_de_estados:
                 botao_desfazer.configure(state="disabled")
+                
+            # Registra a falha no log
+            register_law(str(expressao_global), lei_usada, success=False, tempo_gasto=tempo_gasto)
+            
             popup_erro("Não foi possível aplicar esta lei.")
-
 
     def on_pular_selecionado():
         global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer
@@ -626,13 +761,16 @@ def inicializar_interface():
             area_expressao.insert("end", "\n\n========================================\n")
             area_expressao.insert("end", "Simplificação finalizada. Nenhuma outra lei pôde ser aplicada.")
             
+            # Finaliza a sessão quando não há mais possibilidades
+            finalizar_sessao_expressao(str(expressao_global), resolvida=True)
+            
             for botao in botoes_leis:
                 botao.configure(state="disabled")
             botao_pular.configure(state="disabled")
 
         area_expressao.configure(state="disabled")
-        area_expressao.see("end") #Rola para o final
-    
+        area_expressao.see("end")
+
     def iniciar_rodada_interativa():
         global passo_atual_info
         passo_atual_info = simpli.encontrar_proximo_passo(arvore_interativa, nos_a_ignorar=nos_ignorados)
@@ -653,6 +791,9 @@ def inicializar_interface():
             popup_erro(f"Erro ao construir a expressão: {e}")
             voltar_para(scroll_frame2)
             return
+
+        # Inicia o cronômetro para esta expressão
+        iniciar_sessao_expressao(str(expressao_global))
 
         historico_interativo = [f"Expressão Inicial: {str(arvore_interativa)}"]
         nos_ignorados = set()
@@ -692,7 +833,10 @@ def inicializar_interface():
         global botao_pular, botao_desfazer
 
         botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
-        botao_voltar_interativo.configure(command=lambda: voltar_para(frame_abas), width=250, height=45)
+        botao_voltar_interativo.configure(
+            command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), voltar_para(frame_abas)], 
+            width=250, height=45
+        )
         botao_voltar_interativo.pack(pady=5, padx=10)
 
         botao_pular = ctk.CTkButton(
@@ -712,8 +856,14 @@ def inicializar_interface():
         botao_desfazer.pack(side="right", padx=20, pady=10)
 
         iniciar_rodada_interativa()
-
     #------------------------------------------------------------------------
+    # Adicione um botão simples no seu frontend:
+    botao_relatorio = ctk.CTkButton(
+    frame_inicio,
+    text="Gerar Relatório HTML",
+    command=generate_html_log  # Chama a função quando clica
+    )
+    botao_relatorio.pack(pady=10)
 
     botao_tabela_verdade = Button.botao_padrao("🔢Tabela Verdade", scroll_frame2)
     botao_tabela_verdade.configure(command=lambda: exibir_tabela_verdade(entrada.get().strip().upper()))

@@ -1,0 +1,95 @@
+{
+    "expressoes": {
+        "(~(P+Q)+~P)*P": {
+            "leis_usadas": {
+                "De Morgan (~(A*B) = ~A+~B)": {
+                    "usos_sucesso": 2,
+                    "tentativas_falha": 4,
+                    "tempo_gasto": 2.288818359375e-05
+                },
+                "Associativa ((A*B)*C = A*(B*C))": {
+                    "usos_sucesso": 3,
+                    "tentativas_falha": 2,
+                    "tempo_gasto": 2.4318695068359375e-05
+                },
+                "Distributiva ((A+B)*(A+C) = A+(B*C))": {
+                    "usos_sucesso": 2,
+                    "tentativas_falha": 3,
+                    "tempo_gasto": 2.8133392333984375e-05
+                },
+                "Inversa (A * ~A = 0)": {
+                    "usos_sucesso": 3,
+                    "tentativas_falha": 1,
+                    "tempo_gasto": 2.9087066650390625e-05
+                },
+                "Comutativa (B*A = A*B)": {
+                    "usos_sucesso": 2,
+                    "tentativas_falha": 0,
+                    "tempo_gasto": 1.621246337890625e-05
+                },
+                "Absorção (A * (A+B) = A)": {
+                    "usos_sucesso": 1,
+                    "tentativas_falha": 2,
+                    "tempo_gasto": 1.4543533325195312e-05
+                },
+                "Idempotente (A * A = A)": {
+                    "usos_sucesso": 0,
+                    "tentativas_falha": 1,
+                    "tempo_gasto": 5.7220458984375e-06
+                }
+            },
+            "tentativas_totais": 26,
+            "sucessos_totais": 13,
+            "tempo_total_gasto": 0.00014090538024902344,
+            "tempo_medio": 5.419437701885517e-06,
+            "simplificavel": true,
+            "caminho_solucao": [
+                "De Morgan (~(A*B) = ~A+~B)",
+                "Distributiva ((A+B)*(A+C) = A+(B*C))",
+                "Inversa (A * ~A = 0)",
+                "Associativa ((A*B)*C = A*(B*C))",
+                "Comutativa (B*A = A*B)",
+                "Associativa ((A*B)*C = A*(B*C))",
+                "Distributiva ((A+B)*(A+C) = A+(B*C))",
+                "Inversa (A * ~A = 0)",
+                "Associativa ((A*B)*C = A*(B*C))",
+                "Comutativa (B*A = A*B)",
+                "De Morgan (~(A*B) = ~A+~B)",
+                "Absorção (A * (A+B) = A)",
+                "Inversa (A * ~A = 0)"
+            ],
+            "primeira_tentativa": "2025-09-11T00:26:32.225971",
+            "ultima_tentativa": "2025-09-11T00:32:15.455688",
+            "sessoes": [
+                {
+                    "timestamp": "2025-09-11T00:28:02.909581",
+                    "tempo_gasto": 105.26709485054016,
+                    "tentativas_na_sessao": 6,
+                    "resolvida": true,
+                    "caminho_usado": [
+                        "De Morgan (~(A*B) = ~A+~B)",
+                        "Distributiva ((A+B)*(A+C) = A+(B*C))",
+                        "Inversa (A * ~A = 0)",
+                        "Associativa ((A*B)*C = A*(B*C))"
+                    ]
+                }
+            ]
+        }
+    },
+    "estatisticas_gerais": {
+        "total_sessoes": 0,
+        "expressoes_mais_tentadas": {
+            "(~(P+Q)+~P)*P": 26
+        },
+        "leis_mais_usadas": {
+            "De Morgan (~(A*B) = ~A+~B)": 6,
+            "Associativa ((A*B)*C = A*(B*C))": 5,
+            "Distributiva ((A+B)*(A+C) = A+(B*C))": 5,
+            "Inversa (A * ~A = 0)": 4,
+            "Comutativa (B*A = A*B)": 2,
+            "Absorção (A * (A+B) = A)": 3,
+            "Idempotente (A * A = A)": 1
+        },
+        "tempo_medio_por_expressao": 0
+    }
+}
