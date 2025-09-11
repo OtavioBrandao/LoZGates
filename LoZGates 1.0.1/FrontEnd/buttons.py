@@ -6,6 +6,23 @@ class Button:
         self.nome = nome
         self.comando = comando
         self.botao = botao
+    
+    @staticmethod
+    def botao_duvida(frame):
+        botao = ctk.CTkButton(
+            frame,
+            text="❓",
+            fg_color="#ADD8E6",
+            text_color="#000080",
+            hover_color="#8B008B",
+            border_width=2,
+            border_color="#708090",
+            width=50,
+            height=50,
+            font=("Trebuchet MS", 16),
+            corner_radius=25,  
+        )
+        return botao
 
     @staticmethod
     def botao_voltar(nome, frame):

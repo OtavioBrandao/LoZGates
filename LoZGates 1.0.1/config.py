@@ -48,3 +48,15 @@ A proposta é desenvolver uma aplicação com interface amigável que ajude os a
 👨‍🏫 Prof. Dr. Evandro de Barros Costa
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
+
+duvida_circuitos = """
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- O termo '~' corresponde ao '!' que é uma NEGAÇÃO.
+- O implica é representado por '>' e pode ser escrito como NOT P or Q no caso de 'P>Q'
+- O circuito abaixo está sendo representado no formato de corda de violão para melhor entendimento
+- AND (*): A saída é verdadeira apenas quando todas as entradas forem verdadeiras.
+- OR (+): A saída é verdadeira quando pelo menos uma entrada for verdadeira.
+- NOT (!): Inverte o valor lógico da entrada.
+- Dica: Para entender o comportamento do circuito, use a tabela verdade para visualizar como diferentes combinações de entradas afetam a saída.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
