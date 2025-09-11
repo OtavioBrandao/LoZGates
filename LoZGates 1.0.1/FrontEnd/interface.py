@@ -20,6 +20,7 @@ from BackEnd.converter import converter_para_algebra_booleana
 from BackEnd.equivalencia import tabela
 from BackEnd.identificar_lei import principal_simplificar
 import BackEnd.simplificador_interativo as simpli
+import BackEnd.principal as circuito_integrado
 
 from FrontEnd.buttons import Button
 from FrontEnd.problems_interface import IntegratedProblemsInterface, setup_problems_interface
@@ -33,6 +34,8 @@ passo_atual_info = None
 nos_ignorados = set()
 historico_interativo = []
 botoes_leis = []
+circuito_interativo_instance = None
+does_it_has_interactveon = False
 
 def inicializar_interface():
 
@@ -59,18 +62,20 @@ def inicializar_interface():
     def ver_circuito_pygame(expressao):
         def rodar_pygame():
             try:
-                import BackEnd.circuito_logico
-                if hasattr(BackEnd.circuito_logico, "plotar_circuito_logico"):
-                    BackEnd.circuito_logico.plotar_circuito_logico(expressao)
-                else:
-                    popup_erro("Erro: A função 'plotar_circuito_logico' não foi encontrada no módulo 'circuito_logico'.")
-            except ImportError as e:
-                popup_erro(f"Erro ao importar 'circuito_logico': {e}")
+                # Chamada corrigida para a função de plotagem
+                circuito_integrado.plotar_circuito_logico(expressao, 0, 1200, 800)
+                print("Circuito gerado com sucesso!")
+            except Exception as e:
+                print(f"Erro ao gerar circuito: {e}")
+                janela.after(0, lambda: popup_erro(f"Erro ao gerar circuito: {e}"))
         
         #Remove imagem antiga se existir
         caminho_imagem = os.path.join(ASSETS_PATH, "circuito.png")
         if os.path.exists(caminho_imagem):
-            os.remove(caminho_imagem)
+            try:
+                os.remove(caminho_imagem)
+            except Exception as e:
+                print(f"Aviso: Não foi possível remover imagem anterior: {e}")
 
         #Executa o Pygame em uma thread
         thread = threading.Thread(target=rodar_pygame)
@@ -78,15 +83,16 @@ def inicializar_interface():
 
         #Espera a imagem ser criada antes de continuar
         def aguardar_imagem():
-            tempo_max = 5  #segundos
+            tempo_max = 10  # Aumentado para 10 segundos
             tempo_passado = 0
             while not os.path.exists(caminho_imagem) and tempo_passado < tempo_max:
-                time.sleep(0.1)
-                tempo_passado += 0.1
+                time.sleep(0.2)
+                tempo_passado += 0.2
+            
             if os.path.exists(caminho_imagem):
-                atualizar_imagem_circuito()
+                janela.after(0, atualizar_imagem_circuito)
             else:
-                popup_erro("Erro: A imagem do circuito não foi criada a tempo.")
+                janela.after(0, lambda: popup_erro("Erro: A imagem do circuito não foi criada a tempo."))
 
         #Espera a imagem num thread separado para não travar a GUI
         threading.Thread(target=aguardar_imagem).start()
@@ -143,30 +149,103 @@ def inicializar_interface():
         popup.geometry(f"{largura_popup}x{altura_popup}+{x}+{y}")
 
     def trocar_para_abas():
-        caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
-        expressao = entrada.get().strip().upper().replace(" ", "")
-        label_circuito_expressao.configure(text=f"Expressão Lógica Proposicional: {expressao}")
+        try:
+            caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
+            expressao = entrada.get().strip().upper().replace(" ", "")
+            
+            if not expressao:
+                popup_erro("A expressão não pode estar vazia.")
+                return
+                
+            label_circuito_expressao.configure(text=f"Expressão Lógica Proposicional: {expressao}")
+            
+            # Criar diretório se não existir
+            os.makedirs(ASSETS_PATH, exist_ok=True)
+            
+            with open(caminho_entrada, "w", encoding="utf-8") as file: 
+                file.write(expressao) 
+
+            saida = converter_para_algebra_booleana(expressao)
+            global expressao_global
+            expressao_global = saida
+
+            # Gerar circuito pygame
+            ver_circuito_pygame(saida)
+            
+            # Criar circuito interativo
+            create_interactive_circuit(expressao)   
+            
+            # Mostrar frame das abas
+            show_frame(frame_abas)
+            
+        except Exception as e:
+            popup_erro(f"Erro ao processar expressão: {e}")
+            print(f"Erro detalhado: {e}")
+
+    #Detecta mudança de aba e recria o circuito se necessário
+    def on_tab_change():
+        """Callback chamado quando a aba é alterada"""
+        global does_it_have_interaction
+        try:
+            atual_tab = abas.get()
+            if atual_tab == "  Circuito Interativo  ":
+                # Se mudou para a aba do circuito interativo, garante que ele existe
+                if expressao_global:
+                    if_necessary_create_a_circuit()
+            else:
+                # Se saiu da aba do circuito interativo e não há interação, pode limpar
+                if not does_it_have_interaction and circuito_interativo_instance:
+                    print("Saiu da aba do circuito sem interação - pode ser limpo posteriormente")
+        except Exception as e:
+            print(f"Erro ao detectar mudança de aba: {e}")
+    
+    def if_necessary_create_a_circuit():
+        """Cria o circuito interativo apenas se ele não existir ou estiver vazio"""
+        global circuito_interativo_instance, does_it_have_interaction
         
-        with open(caminho_entrada, "w", encoding="utf-8") as file: 
-            file.write(expressao) 
+        # Verifica se o frame está vazio ou se a instância não existe
+        frame_vazio = len(frame_circuito_interativo.winfo_children()) == 0
+        instancia_inexistente = circuito_interativo_instance is None
+        
+        # Só recria se não houver interação ativa OU se realmente não existir
+        if (frame_vazio or instancia_inexistente) and not does_it_have_interaction:
+            print("Recriando circuito interativo...")
+            create_interactive_circuit(entrada.get().strip().upper().replace(" ", ""))
+        elif does_it_have_interaction and circuito_interativo_instance:
+            print("Circuito interativo já existe e há interação ativa - mantendo")
 
-        saida = converter_para_algebra_booleana(expressao)
-        global expressao_global
-        expressao_global = saida
-
-        ver_circuito_pygame(saida)
-        show_frame(frame_abas)
-        def aguarda_e_mostra():
-            #espera o circuito ser salvo e imagem estar disponível
-            caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
-            for _ in range(50):  #50 tentativas ~5s
-                if os.path.exists(caminho_img):
-                    break
-                time.sleep(0.1)
-            atualizar_imagem_circuito()
-            janela.after(0, lambda: show_frame(frame_abas))  #mostra o frame principal na thread da GUI
-
-        threading.Thread(target=aguarda_e_mostra).start()
+    def create_interactive_circuit(expressao):
+        """Cria o circuito interativo na aba correspondente"""
+        global circuito_interativo_instance, does_it_have_interaction
+        
+        # Limpar instância anterior se existir
+        if circuito_interativo_instance:
+            try:
+                circuito_interativo_instance.stop()
+            except:
+                pass
+        
+        # Limpar o frame antes de criar novo circuito
+        for widget in frame_circuito_interativo.winfo_children():
+            widget.destroy()
+        
+        # Criar novo circuito interativo
+        try:
+            circuito_interativo_instance = circuito_integrado.criar_circuito_integrado(
+                frame_circuito_interativo, expressao
+            )
+            does_it_have_interaction = True  # Marca que há interação ativa
+            print("Circuito interativo criado com sucesso!")
+        except Exception as e:
+            print(f"Erro ao criar circuito interativo: {e}")
+            does_it_have_interaction = False  # Marca que não há interação
+            # Mostrar mensagem de erro no frame
+            error_label = ctk.CTkLabel(
+                frame_circuito_interativo,
+                text=f"Erro ao criar circuito interativo: {e}",
+                text_color="red"
+            )
+            error_label.pack(expand=True)   
 
     def confirmar_expressao():
         global botao_ver_circuito
@@ -183,114 +262,145 @@ def inicializar_interface():
 
 
     def exibir_tabela_verdade(expressao):
-        janela_tabela = ctk.CTkToplevel(janela)
-        janela_tabela.title("Tabela Verdade")
-        janela_tabela.geometry("800x600") #Aumentei a largura para caber, ja que nao sei colocar scroll pro lado
-        janela_tabela.lift()
-        janela_tabela.attributes('-topmost', True)
-        janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
-        janela_tabela.configure(fg_color="#FFFFFF")
+        try:
+            janela_tabela = ctk.CTkToplevel(janela)
+            janela_tabela.title("Tabela Verdade")
+            janela_tabela.geometry("800x600") #Aumentei a largura para caber, ja que nao sei colocar scroll pro lado
+            janela_tabela.lift()
+            janela_tabela.attributes('-topmost', True)
+            janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
+            janela_tabela.configure(fg_color="#FFFFFF")
 
-        #Gera a tabela verdade usando a função do backend
-        dados_tabela = gerar_tabela_verdade(expressao)
-        
-        #Extrai os dados do dicionário retornado
-        colunas = dados_tabela["colunas"]
-        tabela = dados_tabela["tabela"]
-        resultados_finais = dados_tabela["resultados_finais"]
+            #Gera a tabela verdade usando a função do backend
+            dados_tabela = gerar_tabela_verdade(expressao)
+            
+            #Extrai os dados do dicionário retornado
+            colunas = dados_tabela["colunas"]
+            tabela = dados_tabela["tabela"]
+            resultados_finais = dados_tabela["resultados_finais"]
 
-        #Cria um frame para exibir a tabela verdade
-        frame_tabela = ctk.CTkScrollableFrame(janela_tabela)
-        frame_tabela.pack(pady=10, padx=10, fill="both", expand=True)
-        frame_tabela.configure(fg_color="#082347")
+            #Cria um frame para exibir a tabela verdade
+            frame_tabela = ctk.CTkScrollableFrame(janela_tabela)
+            frame_tabela.pack(pady=10, padx=10, fill="both", expand=True)
+            frame_tabela.configure(fg_color="#082347")
 
-        cabecalho_str = " | ".join([f"{col:^10}" for col in colunas])
-        label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho_str, font=("Trebuchet MS", 14, "bold"))
-        label_cabecalho.pack(pady=(5, 0))
+            cabecalho_str = " | ".join([f"{col:^10}" for col in colunas])
+            label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho_str, font=("Trebuchet MS", 14, "bold"))
+            label_cabecalho.pack(pady=(5, 0))
 
-        separador_str = "-".join(["-" * 10 for _ in colunas])
-        separador = ctk.CTkLabel(frame_tabela, text=separador_str, font=("Trebuchet MS", 14))
-        separador.pack()
+            separador_str = "-".join(["-" * 10 for _ in colunas])
+            separador = ctk.CTkLabel(frame_tabela, text=separador_str, font=("Trebuchet MS", 14))
+            separador.pack()
 
-        #Adiciona as linhas da tabela
-        for linha_valores in tabela:
-            linha_str = " | ".join([f"{str(val):^10}" for val in linha_valores])
-            label_linha = ctk.CTkLabel(frame_tabela, text=linha_str, font=("Trebuchet MS", 14))
-            label_linha.pack()
+            #Adiciona as linhas da tabela
+            for linha_valores in tabela:
+                linha_str = " | ".join([f"{str(val):^10}" for val in linha_valores])
+                label_linha = ctk.CTkLabel(frame_tabela, text=linha_str, font=("Trebuchet MS", 14))
+                label_linha.pack()
 
-        #Verifica a conclusão da expressão (Tautologia, Contradição ou Satisfatível)
-        conclusao = verificar_conclusao(resultados_finais)
-        label_conclusao = ctk.CTkLabel(frame_tabela, text=conclusao, font=("Trebuchet MS", 16, "bold"))
-        label_conclusao.pack(pady=20)
+            #Verifica a conclusão da expressão (Tautologia, Contradição ou Satisfatível)
+            conclusao = verificar_conclusao(resultados_finais)
+            label_conclusao = ctk.CTkLabel(frame_tabela, text=conclusao, font=("Trebuchet MS", 16, "bold"))
+            label_conclusao.pack(pady=20)
+            
+        except Exception as e:
+            popup_erro(f"Erro ao gerar tabela verdade: {e}")
+            print(f"Erro detalhado: {e}")
 
     def comparar():
-        expressao2 = entrada2.get().strip().upper()
-        expressao3 = entrada3.get().strip().upper()
-        
-        if not expressao2 or not expressao3:
-            popup_erro("As expressões não podem estar vazias.")
-            return
-        
-        valor = tabela(expressao2, expressao3)
-        
-        if valor == 1:
-            equivalente.place(relx=0.5, y=300, anchor="center")
-            nao_equivalente.place_forget()
-        else:
-            nao_equivalente.place(relx=0.5, y=300, anchor="center")
-            equivalente.place_forget()
+        try:
+            expressao2 = entrada2.get().strip().upper()
+            expressao3 = entrada3.get().strip().upper()
             
-    def voltar_para(frame):
-        global botao_ver_circuito
+            if not expressao2 or not expressao3:
+                popup_erro("As expressões não podem estar vazias.")
+                return
+            
+            valor = tabela(expressao2, expressao3)
+            
+            if valor == 1:
+                equivalente.place(relx=0.5, y=300, anchor="center")
+                nao_equivalente.place_forget()
+            else:
+                nao_equivalente.place(relx=0.5, y=300, anchor="center")
+                equivalente.place_forget()
+        except Exception as e:
+            popup_erro(f"Erro ao comparar expressões: {e}")
+            print(f"Erro detalhado: {e}")  
+              
+    def go_back_to(frame):
+        global botao_ver_circuito, circuito_interativo_instance, does_it_have_interaction
+        
         if botao_ver_circuito:
             botao_ver_circuito.destroy()
             botao_ver_circuito = None
 
-        #limpa as entradas
+        # Parar o circuito interativo baseado na flag e destino
+        if circuito_interativo_instance:
+            # Se estiver voltando para frame_abas E houver interação, NÃO para o circuito
+            if frame == frame_abas and does_it_have_interaction:
+                print("Mantendo circuito interativo ativo - há interação do usuário")
+            # Se estiver voltando para qualquer outro frame OU não houver interação, para o circuito
+            elif frame != frame_abas or not does_it_have_interaction:
+                try:
+                    circuito_interativo_instance.stop()
+                    circuito_interativo_instance = None
+                    does_it_have_interaction = False
+                    print("Circuito interativo parado")
+                except Exception as e:
+                    print(f"Erro ao parar circuito: {e}")
+
+        # Limpa as entradas apenas se não for para certas telas
         if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
             entrada.delete(0, tk.END) 
+            does_it_have_interaction = False  # Reset da flag ao limpar entrada
 
         entrada2.delete(0, tk.END)  
         entrada3.delete(0, tk.END) 
         
-        #escreve digite aqui
         entrada.configure(placeholder_text="Digite aqui")
         entrada2.configure(placeholder_text="Digite aqui")
         entrada3.configure(placeholder_text="Digite aqui")
         
-        #limpa o "é equivalente e o não é equivalente"
         equivalente.place_forget()
         nao_equivalente.place_forget()
         
-        #Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
+        # Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
         if frame != frame_abas:
             label_convertida.pack_forget()
             log_simplificacao_textbox.pack_forget()
 
-
-        show_frame(frame)  #troca o frame
-
-        #Força o foco para a janela (tira o foco de qualquer campo antigo)
+        show_frame(frame)
         janela.focus_set()
 
-        #Se voltando para a tela principal, seta foco corretamente
         if frame == principal:
             entrada.focus_set()
         
-        label_convertida.pack_forget()
-    
+        # Se voltando para frame_abas, garante que o circuito interativo esteja funcionando
+        if frame == frame_abas:
+            janela.after(100, if_necessary_create_a_circuit)
+        
+        if frame != frame_abas:
+            label_convertida.pack_forget()     
+       
     def atualizar_imagem_circuito():
-        caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
-        if os.path.exists(caminho_img):
-            imagem_pil = Image.open(caminho_img)
+        try:
+            caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
+            if os.path.exists(caminho_img):
+                imagem_pil = Image.open(caminho_img)
 
-            #Adiciona borda branca de 10px
-            borda = 10
-            imagem_com_borda = ImageOps.expand(imagem_pil, border=borda, fill="white")
+                #Adiciona borda branca de 10px
+                borda = 10
+                imagem_com_borda = ImageOps.expand(imagem_pil, border=borda, fill="white")
 
-            imagem_tk = ImageTk.PhotoImage(imagem_com_borda)
-            imagem_circuito.configure(image=imagem_tk, text="")
-            imagem_circuito.image = imagem_tk  #Mantém uma referência à imagem para evitar que seja coletada pelo garbage collector
+                imagem_tk = ImageTk.PhotoImage(imagem_com_borda)
+                imagem_circuito.configure(image=imagem_tk, text="")
+                imagem_circuito.image = imagem_tk  #Mantém uma referência à imagem
+            else:
+                imagem_circuito.configure(text="Imagem do circuito não encontrada", image="")
+        except Exception as e:
+            print(f"Erro ao atualizar imagem: {e}")
+            imagem_circuito.configure(text=f"Erro ao carregar imagem: {e}", image="")
     
     #------------- DEFININDO OS FRAMES DA INTERFACE -------------
     
@@ -360,13 +470,13 @@ def inicializar_interface():
     botao_problemas_reais.configure(command=lambda: (show_frame(frame_problemas_reais)))
     botao_problemas_reais.place(relx=0.5, y=400, anchor="center")
 
-    botao_voltar_para_inicio = Button.botao_voltar("Voltar", principal)
-    botao_voltar_para_inicio.configure(command=lambda: voltar_para(frame_inicio))
-    botao_voltar_para_inicio.place(relx=0.5, y=500, anchor="center")
+    botao_go_back_to_inicio = Button.botao_voltar("Voltar", principal)
+    botao_go_back_to_inicio.configure(command=lambda: go_back_to(frame_inicio))
+    botao_go_back_to_inicio.place(relx=0.5, y=500, anchor="center")
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
 
-    setup_problems_interface(scroll_problemas_reais, voltar_para, principal, Button)
+    setup_problems_interface(scroll_problemas_reais, go_back_to, principal, Button)
     
     #---------------- FRAME DE ABAS ----------------
 
@@ -374,7 +484,7 @@ def inicializar_interface():
         master=frame_abas, fg_color="#082347", 
         segmented_button_fg_color="#FFFFFF", segmented_button_selected_color="#4441F7",
         segmented_button_selected_hover_color="#0B1658", segmented_button_unselected_color="#001E44",
-        segmented_button_unselected_hover_color="#4682B4"
+        segmented_button_unselected_hover_color="#4682B4", command=on_tab_change
     )
     abas.pack(expand=True, fill="both")
 
@@ -395,18 +505,31 @@ def inicializar_interface():
     imagem_circuito.pack(pady=10)
 
     def salvar_imagem():
-        caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
-        if os.path.exists(caminho_img):
-            caminho_salvar = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("Imagem PNG", "*.png")], title="Salvar Circuito Como PNG")
+        try:
+            caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
+            if os.path.exists(caminho_img):
+                caminho_salvar = filedialog.asksaveasfilename(
+                    defaultextension=".png", 
+                    filetypes=[("Imagem PNG", "*.png")], 
+                    title="Salvar Circuito Como PNG"
+                )
+                
+                if caminho_salvar:
+                    img = Image.open(caminho_img)
+                    img.save(caminho_salvar)
+                    popup_erro("Imagem salva com sucesso!")
+            else:
+                popup_erro("Imagem não encontrada.")
+        except Exception as e:
+            popup_erro(f"Erro ao salvar imagem: {e}")
             
-            if caminho_salvar:
-                img = Image.open(caminho_img)
-                img.save(caminho_salvar)
-        else:
-            popup_erro("Imagem não encontrada.")
     botao_salvar = Button.botao_padrao("Salvar circuito como PNG", scroll_frame1)
     botao_salvar.configure(command=salvar_imagem)
     botao_salvar.pack(pady=20)
+ #------------------------------------------------ ABA DO CIRCUITO INTERATIVO  ----------------------------------------------
+    aba_circuito_interativo = abas.add("  Circuito Interativo  ")
+    frame_circuito_interativo = tk.Frame(aba_circuito_interativo, bg="#082347")
+    frame_circuito_interativo.pack(expand=True, fill="both", padx=10, pady=10)
     
  #------------------------------------------------ ABA DE EXPRESSÃO  ----------------------------------------------
  
@@ -421,20 +544,22 @@ def inicializar_interface():
             self.largura_linha = 150
 
         def write(self, text):
-            linhas = text.splitlines()
-            self.textbox.configure(state="normal")
-            for linha in linhas:
-                linha = linha.strip()
-                if linha:
-                    #queria que ele centralizasse o texto, mas não consegui
-                    if len(linha) > self.largura_linha:
-                        #Divide a linha em partes menores
-                        partes = [linha[i:i+self.largura_linha] for i in range(0, len(linha), self.largura_linha)]
-                        for parte in partes:
-                            self.textbox.insert("end", parte.strip() + "\n")
-                    else:
-                        self.textbox.insert("end", linha.strip() + "\n")
-            self.textbox.see("end")
+            try:
+                linhas = text.splitlines()
+                self.textbox.configure(state="normal")
+                for linha in linhas:
+                    linha = linha.strip()
+                    if linha:
+                        if len(linha) > self.largura_linha:
+                            #Divide a linha em partes menores
+                            partes = [linha[i:i+self.largura_linha] for i in range(0, len(linha), self.largura_linha)]
+                            for parte in partes:
+                                self.textbox.insert("end", parte.strip() + "\n")
+                        else:
+                            self.textbox.insert("end", linha.strip() + "\n")
+                self.textbox.see("end")
+            except Exception as e:
+                print(f"Erro no logger: {e}")
 
     frame_borda = ctk.CTkFrame(master=scroll_conteudo,fg_color="white", corner_radius=10)
     label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Trebuchet MS", 16, "bold"), text_color="white")
@@ -442,71 +567,80 @@ def inicializar_interface():
     log_simplificacao_textbox.configure(fg_color="#1c1c1c")
 
     def mostrar_expressao_convertida():
-        log_simplificacao_textbox.pack_forget()
-        
-        nonlocal expressao_booleana_atual
+        try:
+            log_simplificacao_textbox.pack_forget()
+            
+            nonlocal expressao_booleana_atual
 
-        entrada_txt = entrada.get().strip().upper()
-        if not entrada_txt:
-            popup_erro("Digite uma expressão primeiro.")
-            return
+            entrada_txt = entrada.get().strip().upper()
+            if not entrada_txt:
+                popup_erro("Digite uma expressão primeiro.")
+                return
 
-        saida_booleana = converter_para_algebra_booleana(entrada_txt)
-        
-        expressao_booleana_atual = saida_booleana
-        
-        label_convertida.configure(text=f"Expressão em Álgebra Booleana: {saida_booleana}")
-        label_convertida.pack(pady=10)
+            saida_booleana = converter_para_algebra_booleana(entrada_txt)
+            
+            expressao_booleana_atual = saida_booleana
+            
+            label_convertida.configure(text=f"Expressão em Álgebra Booleana: {saida_booleana}")
+            label_convertida.pack(pady=10)
+        except Exception as e:
+            popup_erro(f"Erro ao converter expressão: {e}")
         
 
     label_solucao = ctk.CTkLabel(scroll_conteudo, text="Solução da expressão:", font=("Trebuchet MS", 20, "bold"), text_color="white")
 
     def expressao_simplificada():
-        # 1. Pega a expressão mais recente direto da caixa de entrada principal
-        entrada_txt = entrada.get().strip().upper()
-        if not entrada_txt:
-            popup_erro("A expressão na tela principal está vazia.")
-            return
+        try:
+            # 1. Pega a expressão mais recente direto da caixa de entrada principal
+            entrada_txt = entrada.get().strip().upper()
+            if not entrada_txt:
+                popup_erro("A expressão na tela principal está vazia.")
+                return
 
-        # 2. Converte para o formato de álgebra booleana
-        expressao_para_simplificar = converter_para_algebra_booleana(entrada_txt)
-        
-        # O resto da função continua igual, mas usando a nova variável
-        if label_solucao.winfo_ismapped():
-            label_solucao.pack_forget()
-            log_simplificacao_textbox.pack_forget()
-            frame_borda.pack_forget()
+            # 2. Converte para o formato de álgebra booleana
+            expressao_para_simplificar = converter_para_algebra_booleana(entrada_txt)
+            
+            # O resto da função continua igual, mas usando a nova variável
+            if label_solucao.winfo_ismapped():
+                label_solucao.pack_forget()
+                log_simplificacao_textbox.pack_forget()
+                frame_borda.pack_forget()
 
-        label_solucao.pack(pady=20)
-        frame_borda.pack(pady=10)
-        frame_borda.configure(width=800)
-        log_simplificacao_textbox.pack(padx=10, pady=10, fill="both", expand=True)
-        log_simplificacao_textbox.configure(state="normal")
-        log_simplificacao_textbox.delete("1.0", "end")
-        log_simplificacao_textbox.configure(text_color="#39FF14", spacing3=-27)
-        botao_voltar_para_aba2.pack(pady=10)
+            label_solucao.pack(pady=20)
+            frame_borda.pack(pady=10)
+            frame_borda.configure(width=800)
+            log_simplificacao_textbox.pack(padx=10, pady=10, fill="both", expand=True)
+            log_simplificacao_textbox.configure(state="normal")
+            log_simplificacao_textbox.delete("1.0", "end")
+            log_simplificacao_textbox.configure(text_color="#39FF14", spacing3=-27)
+            botao_go_back_to_aba2.pack(pady=10)
 
-        gui_logger = GUILogger(log_simplificacao_textbox)
+            gui_logger = GUILogger(log_simplificacao_textbox)
 
-        def simplificar_thread():
-            with redirect_stdout(gui_logger):
-                try:
-                    # 3. Usa a expressão recém-capturada e convertida
-                    principal_simplificar(expressao_para_simplificar)
-                except Exception as e:
-                    janela.after(0, lambda: popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}"))
+            def simplificar_thread():
+                with redirect_stdout(gui_logger):
+                    try:
+                        # 3. Usa a expressão recém-capturada e convertida
+                        principal_simplificar(expressao_para_simplificar)
+                    except Exception as e:
+                        janela.after(0, lambda: popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}"))
 
-        threading.Thread(target=simplificar_thread).start()
-
+            threading.Thread(target=simplificar_thread).start()
+        except Exception as e:
+            popup_erro(f"Erro ao simplificar expressão: {e}")
+            
     def abrir_duvida_expressao(expressao):
-        if not expressao:
-            popup_erro("Digite uma expressão primeiro.")
-            return
-        
-        pergunta = f"Como posso simplificar a seguinte expressão lógica proposicional e qual sua interpretação? Como ela fica em álgebra booleana e qual sua tabela verdade? {expressao}"
-        query = urllib.parse.quote(pergunta)
-        url = f"https://chat.openai.com/?q={query}"
-        webbrowser.open(url)
+        try:
+            if not expressao:
+                popup_erro("Digite uma expressão primeiro.")
+                return
+            
+            pergunta = f"Como posso simplificar a seguinte expressão lógica proposicional e qual sua interpretação? Como ela fica em álgebra booleana e qual sua tabela verdade? {expressao}"
+            query = urllib.parse.quote(pergunta)
+            url = f"https://chat.openai.com/?q={query}"
+            webbrowser.open(url)
+        except Exception as e:
+            popup_erro(f"Erro ao abrir IA: {e}")
 
     botao_converter = Button.botao_padrao("🔗Realizar conversão", scroll_frame2)
     botao_converter.configure(command=lambda: (mostrar_expressao_convertida(), mostrar_botoes_simplificar()))
@@ -532,12 +666,12 @@ def inicializar_interface():
     botao_solucao = Button.botao_padrao("🔍Simplificar - resultado", scroll_frame2)
     botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
 
-    botao_voltar_para_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
-    botao_voltar_para_aba2.configure(command = lambda: voltar_para(frame_abas))
-    botao_voltar_para_aba2.pack(side="bottom", pady = 10)
+    botao_go_back_to_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
+    botao_go_back_to_aba2.configure(command = lambda: go_back_to(frame_abas))
+    botao_go_back_to_aba2.pack(side="bottom", pady = 10)
     
 
-#------------------ MODO INTERATIVO LÓGICA E FUNÇÕES ----------------------
+#------------------ LOGGING E REGISTRO DE USO ------------------
 
     import json
     import time
@@ -781,7 +915,7 @@ def inicializar_interface():
         
         if not expressao_global:
             popup_erro("Por favor, primeiro insira e converta uma expressão.")
-            voltar_para(frame_abas)
+            go_back_to(frame_abas)
             show_frame(principal) 
             return
             
@@ -789,7 +923,7 @@ def inicializar_interface():
             arvore_interativa = simpli.construir_arvore(expressao_global)
         except Exception as e:
             popup_erro(f"Erro ao construir a expressão: {e}")
-            voltar_para(scroll_frame2)
+            go_back_to(scroll_frame2)
             return
 
         # Inicia o cronômetro para esta expressão
@@ -833,10 +967,8 @@ def inicializar_interface():
         global botao_pular, botao_desfazer
 
         botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
-        botao_voltar_interativo.configure(
-            command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), voltar_para(frame_abas)], 
-            width=250, height=45
-        )
+        botao_voltar_interativo.configure(command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), 
+                                                           go_back_to(frame_abas)], width=250, height=45)
         botao_voltar_interativo.pack(pady=5, padx=10)
 
         botao_pular = ctk.CTkButton(
@@ -857,7 +989,6 @@ def inicializar_interface():
 
         iniciar_rodada_interativa()
     #------------------------------------------------------------------------
-    # Adicione um botão simples no seu frontend:
     botao_relatorio = ctk.CTkButton(
     frame_inicio,
     text="Gerar Relatório HTML",
@@ -875,11 +1006,11 @@ def inicializar_interface():
 
     #Botões das partes de abas que voltam pro frame de inserir a expressão para ver o circuito
     botao_voltar_principal_2 = Button.botao_voltar("Voltar", scroll_frame2)
-    botao_voltar_principal_2.configure(command=lambda: voltar_para(principal))
+    botao_voltar_principal_2.configure(command=lambda: go_back_to(principal))
     botao_voltar_principal_2.pack(pady=30)
 
     botao_voltar_principal = Button.botao_voltar("Voltar", scroll_frame1)
-    botao_voltar_principal.configure(command=lambda: voltar_para(principal))
+    botao_voltar_principal.configure(command=lambda: go_back_to(principal))
     botao_voltar_principal.pack(pady=30)
 
     #---------------- FRAME DE INFORMAÇÕES ----------------
@@ -895,7 +1026,7 @@ def inicializar_interface():
     textbox_info.configure(state="disable")  #Desativar edição para evitar modificações
 
     botao_voltar_info = Button.botao_voltar("Voltar", frame_info)
-    botao_voltar_info.configure(command=lambda: voltar_para(frame_inicio))
+    botao_voltar_info.configure(command=lambda: go_back_to(frame_inicio))
     botao_voltar_info.pack(pady=20)
 
     #---------------- FRAME DE EQUIVALÊNCIA ----------------
@@ -911,7 +1042,7 @@ def inicializar_interface():
     botao_comparar.place(relx=0.5, y=350, anchor="center")
 
     botao_voltar_equivalencia = Button.botao_voltar("Voltar", frame_equivalencia)
-    botao_voltar_equivalencia.configure(command=lambda: voltar_para(frame_inicio))
+    botao_voltar_equivalencia.configure(command=lambda: go_back_to(frame_inicio))
     botao_voltar_equivalencia.place(relx=0.5, y=420, anchor="center")
 
     titulo = ctk.CTkLabel(frame_equivalencia, text="Digite as expressões que deseja comparar:", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
