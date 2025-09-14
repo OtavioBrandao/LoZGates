@@ -26,6 +26,8 @@ from FrontEnd.buttons import Button
 from FrontEnd.problems_interface import IntegratedProblemsInterface, setup_problems_interface
 from FrontEnd.generate_log import generate_html_log, update_log
 
+from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
+from FrontEnd.circuit_mode_interface import CircuitModeSelector
 expressao_global = ""
 botao_ver_circuito = None
 label_convertida = None
@@ -172,33 +174,35 @@ def inicializar_interface():
             # Gerar circuito pygame
             ver_circuito_pygame(saida)
             
-            # Criar circuito interativo
-            create_interactive_circuit(expressao)   
-            
-            # Mostrar frame das abas
+            # Mostrar frame das abas (a criação do circuito interativo acontecerá no callback da aba)
             show_frame(frame_abas)
             
         except Exception as e:
             popup_erro(f"Erro ao processar expressão: {e}")
             print(f"Erro detalhado: {e}")
-
+            
     #Detecta mudança de aba e recria o circuito se necessário
     def on_tab_change():
-        """Callback chamado quando a aba é alterada"""
+        """Callback quando aba é alterada."""
         global does_it_have_interaction
         try:
             atual_tab = abas.get()
             if atual_tab == "  Circuito Interativo  ":
-                # Se mudou para a aba do circuito interativo, garante que ele existe
-                if expressao_global:
-                    if_necessary_create_a_circuit()
-            else:
-                # Se saiu da aba do circuito interativo e não há interação, pode limpar
-                if not does_it_have_interaction and circuito_interativo_instance:
-                    print("Saiu da aba do circuito sem interação - pode ser limpo posteriormente")
+                # Garante que a expressão existe antes de criar qualquer coisa
+                if not expressao_global:
+                    print("Expressão global não definida - não é possível criar circuito")
+                    return
+                    
+                # Atualiza display da expressão se a instância existir
+                if (circuito_interativo_instance and 
+                    hasattr(circuito_interativo_instance, 'update_expression_display')):
+                    circuito_interativo_instance.update_expression_display()
+                    
+                # Só cria se realmente necessário
+                if_necessary_create_a_circuit()
         except Exception as e:
             print(f"Erro ao detectar mudança de aba: {e}")
-    
+           
     def if_necessary_create_a_circuit():
         """Cria o circuito interativo apenas se ele não existir ou estiver vazio"""
         global circuito_interativo_instance, does_it_have_interaction
@@ -207,46 +211,60 @@ def inicializar_interface():
         frame_vazio = len(frame_circuito_interativo.winfo_children()) == 0
         instancia_inexistente = circuito_interativo_instance is None
         
-        # Só recria se não houver interação ativa OU se realmente não existir
-        if (frame_vazio or instancia_inexistente) and not does_it_have_interaction:
-            print("Recriando circuito interativo...")
-            create_interactive_circuit(entrada.get().strip().upper().replace(" ", ""))
-        elif does_it_have_interaction and circuito_interativo_instance:
-            print("Circuito interativo já existe e há interação ativa - mantendo")
+        # Só cria se não existir
+        if frame_vazio or instancia_inexistente:
+            print("Criando interface de seleção de modo...")
+            # Usa a expressão atual da entrada, não uma vazia
+            expressao_atual = entrada.get().strip().upper().replace(" ", "") if entrada.get().strip() else expressao_global
+            if expressao_atual:
+                create_interactive_circuit(expressao_atual)
+            else:
+                print("Nenhuma expressão disponível para criar circuito")
+        else:
+            print("Interface já existe - mantendo")
 
     def create_interactive_circuit(expressao):
-        """Cria o circuito interativo na aba correspondente"""
+        """Cria o circuito interativo com seleção de modos."""
         global circuito_interativo_instance, does_it_have_interaction
         
-        # Limpar instância anterior se existir
+        # Função para pegar expressão global
+        def get_global_expression():
+            return expressao_global if expressao_global else expressao
+        
+        # Limpar instância anterior
         if circuito_interativo_instance:
             try:
-                circuito_interativo_instance.stop()
+                circuito_interativo_instance.cleanup()
             except:
                 pass
         
-        # Limpar o frame antes de criar novo circuito
+        # Limpar frame
         for widget in frame_circuito_interativo.winfo_children():
             widget.destroy()
         
-        # Criar novo circuito interativo
         try:
-            circuito_interativo_instance = circuito_integrado.criar_circuito_integrado(
-                frame_circuito_interativo, expressao
+            # Criar nova interface com seletor de modos
+            circuito_interativo_instance = CircuitModeSelector(
+                frame_circuito_interativo, 
+                CircuitModeManager(),
+                Button,
+                get_global_expression
             )
-            does_it_have_interaction = True  # Marca que há interação ativa
-            print("Circuito interativo criado com sucesso!")
+            does_it_have_interaction = False  # Só marca como True quando usuário interagir
+            print("Interface de circuito com modos criada!")
+            
         except Exception as e:
-            print(f"Erro ao criar circuito interativo: {e}")
-            does_it_have_interaction = False  # Marca que não há interação
-            # Mostrar mensagem de erro no frame
+            print(f"Erro ao criar interface: {e}")
+            does_it_have_interaction = False
+            
+            # Mostrar mensagem de erro
             error_label = ctk.CTkLabel(
                 frame_circuito_interativo,
                 text=f"Erro ao criar circuito interativo: {e}",
                 text_color="red"
             )
-            error_label.pack(expand=True)   
-
+            error_label.pack(expand=True)
+            
     def confirmar_expressao():
         global botao_ver_circuito
         if botao_ver_circuito:  
@@ -335,25 +353,25 @@ def inicializar_interface():
                 botao_ver_circuito.destroy()
                 botao_ver_circuito = None
 
-            # Parar o circuito interativo baseado na flag e destino
+            # Lógica melhorada para parar o circuito
             if circuito_interativo_instance:
-                # Se estiver voltando para frame_abas E houver interação, NÃO para o circuito
-                if frame == frame_abas and does_it_have_interaction:
-                    print("Mantendo circuito interativo ativo - há interação do usuário")
-                # Se estiver voltando para qualquer outro frame OU não houver interação, para o circuito
-                elif frame != frame_abas or not does_it_have_interaction:
+                # Se voltando para frame_abas, NÃO para o circuito
+                if frame == frame_abas:
+                    print("Voltando para abas - mantendo circuito ativo")
+                else:
+                    # Para qualquer outro destino, para o circuito
                     try:
-                        circuito_interativo_instance.stop()
+                        circuito_interativo_instance.cleanup()
                         circuito_interativo_instance = None
                         does_it_have_interaction = False
-                        print("Circuito interativo parado")
+                        print("Circuito interativo limpo")
                     except Exception as e:
-                        print(f"Erro ao parar circuito: {e}")
+                        print(f"Erro ao limpar circuito: {e}")
 
             # Limpa as entradas apenas se não for para certas telas
             if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
                 entrada.delete(0, tk.END) 
-                does_it_have_interaction = False  # Reset da flag ao limpar entrada
+                does_it_have_interaction = False
 
             entrada2.delete(0, tk.END)  
             entrada3.delete(0, tk.END) 
@@ -376,15 +394,13 @@ def inicializar_interface():
             if frame == principal:
                 entrada.focus_set()
             
-            # Se voltando para frame_abas, garante que o circuito interativo esteja funcionando
-            if frame == frame_abas:
-                janela.after(100, if_necessary_create_a_circuit)
+            # Se voltando para frame_abas, garante que a interface esteja disponível
+            if frame == frame_abas and expressao_global:
+                janela.after(200, if_necessary_create_a_circuit)
             
-            if frame != frame_abas:
-                label_convertida.pack_forget()
         except Exception as e:
             popup_erro(f"Erro ao voltar: {e}")
-            print(f"Erro detalhado: {e}")  
+            print(f"Erro detalhado: {e}")
        
     def atualizar_imagem_circuito():
         try:
