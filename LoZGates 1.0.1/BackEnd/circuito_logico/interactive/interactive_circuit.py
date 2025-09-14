@@ -566,7 +566,12 @@ class CircuitoInterativoManual:
             except: 
                 pass'''
         pass #Desativado por tempo indeterminado
-        
+    
+    def stop(self):
+        """Para o circuito."""
+        self.running = False
+        print("🛑 Circuito interativo parado")
+    
     def check_circuit_completion(self):
         """Verifica se o circuito montado está correto conforme a expressão"""
         try:
