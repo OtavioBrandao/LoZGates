@@ -34,7 +34,7 @@
                 },
                 "De Morgan (~(A*B) = ~A+~B)": {
                     "usos_sucesso": 0,
-                    "tentativas_falha": 1,
+                    "tentativas_falha": 2,
                     "tempo_gasto": 0.0
                 },
                 "Distributiva ((A+B)*(A+C) = A+(B*C))": {
@@ -48,14 +48,14 @@
                     "tempo_gasto": 0.0
                 }
             },
-            "tentativas_totais": 22,
+            "tentativas_totais": 23,
             "sucessos_totais": 0,
             "tempo_total_gasto": 0.0,
             "tempo_medio": 0,
             "simplificavel": null,
             "caminho_solucao": [],
             "primeira_tentativa": "2025-09-11T19:30:50.385622",
-            "ultima_tentativa": "2025-09-11T20:27:14.388340",
+            "ultima_tentativa": "2025-09-14T21:54:38.194965",
             "sessoes": [
                 {
                     "timestamp": "2025-09-11T19:30:54.098120",
@@ -77,6 +77,13 @@
                     "tentativas_na_sessao": 0,
                     "resolvida": false,
                     "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-14T21:54:40.755033",
+                    "tempo_gasto": 4.663304805755615,
+                    "tentativas_na_sessao": 1,
+                    "resolvida": false,
+                    "caminho_usado": []
                 }
             ]
         }
@@ -84,7 +91,7 @@
     "estatisticas_gerais": {
         "total_sessoes": 0,
         "expressoes_mais_tentadas": {
-            "(~P+Q)": 22
+            "(~P+Q)": 23
         },
         "leis_mais_usadas": {
             "Associativa ((A*B)*C = A*(B*C))": 2,
@@ -93,7 +100,7 @@
             "Nula (A * 0 = 0)": 1,
             "Identidade (A * 1 = A)": 9,
             "Idempotente (A * A = A)": 1,
-            "De Morgan (~(A*B) = ~A+~B)": 1,
+            "De Morgan (~(A*B) = ~A+~B)": 2,
             "Distributiva ((A+B)*(A+C) = A+(B*C))": 2,
             "Comutativa (B*A = A*B)": 1
         },

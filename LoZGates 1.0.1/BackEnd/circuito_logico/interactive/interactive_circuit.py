@@ -50,6 +50,11 @@ class CircuitoInterativoManual:
 
         #Inicialização com delay para garantir que o frame esteja pronto
         self.parent_frame.after(100, self.init_pygame)
+        
+        #Para selecionar e posicionar componentes de acordo com o mouse
+        self.ghost_component = None  #Componente sendo posicionado
+        self.ghost_component_type = None  #Tipo do componente fantasma
+        self.placing_component = False  #Se está no modo de colocação
     
     def init_pygame(self):
         """Inicializa o Pygame e configura a interface."""
@@ -239,6 +244,14 @@ class CircuitoInterativoManual:
                     print("Nada para refazer")
                 return
         
+        #Cancelar colocação de componente
+        if k == 'escape':
+            if self.placing_component:
+                self.cancel_component_placement()
+            else:
+                self.cancel_connection()
+            return
+        
         #Controles existentes
         if k in ('w', 'up'):    self._move['up'] = True
         if k in ('s', 'down'):  self._move['down'] = True
@@ -248,11 +261,10 @@ class CircuitoInterativoManual:
         if k == 'delete':       
             self.delete_selected()
             self.save_state("Delete component")
-        if k == 'escape':       self.cancel_connection()
         if k == 'tab':          #Toggle painel de componentes
             if self.component_palette:
                 self.component_palette.toggle_visibility()
-    
+            
     def _on_key_release(self, e):
         """Processa teclas liberadas."""
         k = (e.keysym or "").lower()
@@ -322,15 +334,19 @@ class CircuitoInterativoManual:
         return None
     
     def handle_mouse_click(self, pos):
-        """Gerencia cliques do mouse"""
-        #Primeiro verifica se clicou no painel de componentes
+        """Gerencia cliques do mouse - VERSÃO COM COLOCAÇÃO NO MOUSE."""
+        #Se está colocando componente, finaliza a colocação
+        if self.placing_component and self.ghost_component:
+            self.place_ghost_component(pos)
+            return
+        
+        #Verifica se clicou no painel de componentes
         if self.component_palette and self.component_palette.visible:
             clicked_component_type = self.component_palette.handle_click(pos)
             if clicked_component_type:
                 if clicked_component_type != 'palette_click':
-                    #Adiciona componente na posição do mouse (convertida para mundo)
-                    world_pos = self.camera.screen_to_world(pos)
-                    self.add_component_at_position(clicked_component_type, world_pos)
+                    #Inicia modo de colocação ao invés de colocar diretamente
+                    self.start_component_placement(clicked_component_type)
                 return  #Consumiu o clique
         
         world_pos = self.camera.screen_to_world(pos)
@@ -339,9 +355,9 @@ class CircuitoInterativoManual:
         clicked_component = None
         connection_point = None
         
-        #Procura por componentes clicados
+        #Procura por componentes clicados (ignora o componente fantasma)
         for component in self.components:
-            if component.contains_point(world_pos):
+            if component != self.ghost_component and component.contains_point(world_pos):
                 clicked_component = component
                 #Verifica se clicou especificamente em um ponto de conexão
                 connection_point = self.find_connection_point(component, world_pos)
@@ -374,7 +390,83 @@ class CircuitoInterativoManual:
             #Clicou no vazio - deseleciona tudo e cancela conexão
             self.deselect_all()
             self.cancel_connection()
-    
+
+    def start_component_placement(self, component_type):
+        """Inicia o modo de colocação de componente."""
+        self.placing_component = True
+        self.ghost_component_type = component_type
+        
+        #Cria componente fantasma na posição do mouse
+        mouse_pos = pygame.mouse.get_pos()
+        world_pos = self.camera.screen_to_world(mouse_pos)
+        
+        self.ghost_component = ComponentFactory.create_component(
+            component_type, 
+            world_pos[0] - 40, 
+            world_pos[1] - 30
+        )
+        
+        #Adiciona temporariamente à lista para renderização
+        self.components.append(self.ghost_component)
+        
+        print(f"🎯 Modo colocação ativado: {component_type}")
+
+    def place_ghost_component(self, screen_pos):
+        """Finaliza a colocação do componente fantasma."""
+        if not self.ghost_component:
+            return
+        
+        world_pos = self.camera.screen_to_world(screen_pos)
+        
+        #Atualiza posição final
+        self.ghost_component.x = world_pos[0] - 40
+        self.ghost_component.y = world_pos[1] - 30
+        self.ghost_component.update_connection_points()
+        
+        #Finaliza colocação
+        self.placing_component = False
+        self.save_state(f"Place {self.ghost_component_type} component")
+        
+        print(f"✅ Componente {self.ghost_component_type} colocado")
+        
+        #Limpa referências
+        self.ghost_component = None
+        self.ghost_component_type = None
+
+    def cancel_component_placement(self):
+        """Cancela a colocação de componente."""
+        if self.ghost_component and self.ghost_component in self.components:
+            self.components.remove(self.ghost_component)
+        
+        self.ghost_component = None
+        self.ghost_component_type = None
+        self.placing_component = False
+        
+        print("❌ Colocação de componente cancelada")
+
+    def update_ghost_component_position(self):
+        """Atualiza posição do componente fantasma para seguir o mouse."""
+        if self.placing_component and self.ghost_component:
+            mouse_pos = pygame.mouse.get_pos()
+            world_pos = self.camera.screen_to_world(mouse_pos)
+            
+            self.ghost_component.x = world_pos[0] - 40
+            self.ghost_component.y = world_pos[1] - 30
+            self.ghost_component.update_connection_points()
+
+    def draw_placement_cursor(self):
+        """Desenha cursor personalizado durante colocação."""
+        if not self.font:
+            return
+        
+        mouse_pos = pygame.mouse.get_pos()
+        
+        try:
+            surface = self.font.render(True, (255, 255, 0))
+            self.screen.blit(surface, (mouse_pos[0] + 20, mouse_pos[1] - 30))
+        except:
+            pass
+        
     def select_component(self, component):
         """Seleciona um componente."""
         #Deseleciona outros
@@ -404,7 +496,7 @@ class CircuitoInterativoManual:
                 'index': index
             }
             print(f"🔗 Iniciando conexão de {component.type} saída {index}")
-    
+
     def try_connect_to_input(self, target_component, input_index):
         """Tenta conectar à entrada especificada do componente alvo."""
         if not self.connection_start:
@@ -470,6 +562,10 @@ class CircuitoInterativoManual:
                 pass
             return
 
+        #Atualiza posição do componente fantasma
+        if self.placing_component:
+            self.update_ghost_component_position()
+
         #Processa eventos do Pygame
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -482,14 +578,15 @@ class CircuitoInterativoManual:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     self.handle_mouse_click(event.pos)
                 elif event.type == pygame.MOUSEMOTION:
-                    if pygame.mouse.get_pressed()[0]:  #Botão esquerdo pressionado
+                    if pygame.mouse.get_pressed()[0] and not self.placing_component:  #Só arrasta se não está colocando
                         self.handle_mouse_drag(event.pos)
 
-        #Movimento contínuo via teclado
-        if self._move['up']:    self.camera.move(0, -self.camera.move_speed)
-        if self._move['down']:  self.camera.move(0,  self.camera.move_speed)
-        if self._move['left']:  self.camera.move(-self.camera.move_speed, 0)
-        if self._move['right']: self.camera.move( self.camera.move_speed, 0)
+        #Movimento contínuo via teclado (desabilitado durante colocação)
+        if not self.placing_component:
+            if self._move['up']:    self.camera.move(0, -self.camera.move_speed)
+            if self._move['down']:  self.camera.move(0,  self.camera.move_speed)
+            if self._move['left']:  self.camera.move(-self.camera.move_speed, 0)
+            if self._move['right']: self.camera.move( self.camera.move_speed, 0)
 
         #Desenha frame
         self.screen.fill(self.drawer.BACKGROUND)
@@ -501,9 +598,13 @@ class CircuitoInterativoManual:
         for wire in self.wires:
             self.drawer.draw_wire(wire)
         
-        #Desenha componentes
+        #Desenha componentes (incluindo fantasma)
         for component in self.components:
-            self.drawer.draw_component(component)
+            if component == self.ghost_component:
+                #Desenha componente fantasma com transparência
+                self.drawer.draw_component(component)
+            else:
+                self.drawer.draw_component(component)
         
         #Desenha linha de conexão temporária
         if self.connecting and self.connection_start:
@@ -527,12 +628,16 @@ class CircuitoInterativoManual:
             if self.success_message_timer <= 0:
                 self.show_success_message = False
 
+        #Desenha cursor personalizado se colocando componente
+        if self.placing_component:
+            self.draw_placement_cursor()
+
         pygame.display.flip()
         
         #Continua o loop se ainda estiver rodando
         if self.running:
-            self.parent_frame.after(16, self._tick)
-    
+            self.parent_frame.after(16, self._tick) 
+            
     def draw_ui_info(self):
         """Desenha informações de controle na tela"""
         '''#Ajusta posição se o painel está visível
