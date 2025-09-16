@@ -1,5 +1,5 @@
-# Interface para circuito interativo - UI/UX padronizada
-# Atualizado com design tokens e componentes unificados
+#Interface para circuito interativo - UI/UX padronizada
+#Atualizado com design tokens e componentes unificados
 
 import customtkinter as ctk
 import tkinter as tk
@@ -12,21 +12,24 @@ class CircuitModeSelector:
         self.parent_frame = parent_frame
         self.circuit_manager = circuit_manager
         self.Button = Button
-        self.get_global_expression = get_global_expression_func  # Função para pegar expressão global
+        self.get_global_expression = get_global_expression_func  #Função para pegar expressão global
         
-        # Estados
+        #Estados
         self.is_circuit_active = False
-        self.current_mode = None  # Inicializa como None ao invés de 'livre'
+        self.current_mode = None  #Inicializa como None ao invés de 'livre'
+        
+        #Armazena referências dos botões de modo
+        self.mode_buttons = {}  #{mode_key: button_widget}
         
         self.setup_interface()
     
     def setup_interface(self):
         """Configura a interface."""
-        # Container principal
+        #Container principal
         self.main_container = ctk.CTkScrollableFrame(self.parent_frame, fg_color=Colors.PRIMARY_BG)
         self.main_container.pack(fill="both", expand=True, padx=Spacing.SM, pady=Spacing.SM)
         
-        # Título
+        #Título
         title_label = ctk.CTkLabel(
             self.main_container,
             text="🔌 Circuito Interativo - Escolha o Desafio",
@@ -35,7 +38,7 @@ class CircuitModeSelector:
         )
         title_label.pack(pady=Spacing.MD)
         
-        # Mostra expressão atual
+        #Mostra expressão atual
         self.expression_display = ctk.CTkLabel(
             self.main_container,
             text="Expressão: Não definida",
@@ -44,10 +47,10 @@ class CircuitModeSelector:
         )
         self.expression_display.pack(pady=Spacing.MD)
         
-        # Atualiza expressão
+        #Atualiza expressão
         self.update_expression_display()
         
-        # Frame para seleção de modos
+        #Frame para seleção de modos
         modes_frame = ctk.CTkFrame(
             self.main_container, 
             fg_color=Colors.SURFACE_DARK,
@@ -63,16 +66,16 @@ class CircuitModeSelector:
         )
         modes_title.pack(pady=Spacing.MD)
         
-        # Grid de botões de modo (2 colunas)
+        #Grid de botões de modo (2 colunas)
         self.create_mode_buttons(modes_frame)
         
-        # Frame de controles
+        #Frame de controles
         self.create_control_panel()
         
-        # Frame para o circuito (inicialmente oculto)
+        #Frame para o circuito (inicialmente oculto)
         self.create_circuit_area()
         
-        # Panel de informações
+        #Panel de informações
         self.create_info_panel()
     
     def create_mode_buttons(self, parent):
@@ -82,9 +85,13 @@ class CircuitModeSelector:
         
         modes = self.circuit_manager.get_all_modes()
         
-        # Organiza em grid 2x3
+        #Organiza em grid 2x3
         row, col = 0, 0
         for mode_key, mode_info in modes.items():
+            #Função para capturar o mode_key corretamente
+            def make_select_mode(mk):
+                return lambda: self.select_mode(mk)
+            
             mode_btn = ctk.CTkButton(
                 button_frame,
                 text=f"{mode_info['icon']} {mode_info['name']}\n{mode_info['difficulty']}",
@@ -96,16 +103,19 @@ class CircuitModeSelector:
                 corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
                 border_width=Dimensions.BORDER_WIDTH_STANDARD,
                 border_color=Colors.BORDER_DEFAULT,
-                command=lambda mk=mode_key: self.select_mode(mk)
+                command=make_select_mode(mode_key)
             )
             mode_btn.grid(row=row, column=col, padx=Spacing.SM, pady=Spacing.XS)
             
+            #Armazena referência do botão
+            self.mode_buttons[mode_key] = mode_btn
+            
             col += 1
-            if col > 1:  # 2 colunas
+            if col > 1:  #2 colunas
                 col = 0
                 row += 1
         
-        # Descrição do modo selecionado
+        #Descrição do modo selecionado
         self.mode_description = ctk.CTkLabel(
             parent,
             text="Escolha um modo para ver detalhes",
@@ -169,11 +179,12 @@ class CircuitModeSelector:
             corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
             border_width=Dimensions.BORDER_WIDTH_STANDARD,
             border_color=Colors.BORDER_DEFAULT,
+            state="disabled",
             command=self.show_tips
         )
         self.tips_btn.pack(side="left", padx=Spacing.SM)
         
-        # Novo botão para controles
+        #Novo botão para controles
         self.controls_btn = ctk.CTkButton(
             buttons_frame,
             text="🎮 Controles",
@@ -189,7 +200,7 @@ class CircuitModeSelector:
         )
         self.controls_btn.pack(side="left", padx=Spacing.SM)
         
-        # Status
+        #Status
         self.status_label = ctk.CTkLabel(
             control_frame,
             text="Escolha um modo e clique em 'Iniciar Desafio'",
@@ -205,7 +216,7 @@ class CircuitModeSelector:
             fg_color=Colors.SURFACE_DARK,
             corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
         )
-        # Inicialmente não empacotado
+        #Inicialmente não empacotado
         
         expression = self.get_global_expression()
         circuit_title = ctk.CTkLabel(
@@ -216,7 +227,7 @@ class CircuitModeSelector:
         )
         circuit_title.pack(pady=Spacing.MD)
         
-        # Frame interno para pygame
+        #Frame interno para pygame
         self.circuit_frame = tk.Frame(
             self.circuit_container,
             bg=Colors.SURFACE_DARK,
@@ -231,7 +242,7 @@ class CircuitModeSelector:
             fg_color=Colors.SURFACE_MEDIUM,
             corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
         )
-        # Inicialmente não empacotado
+        #Inicialmente não empacotado
         
         info_title = ctk.CTkLabel(
             self.info_container,
@@ -264,32 +275,60 @@ class CircuitModeSelector:
                 text_color=Colors.WARNING
             )
     
+    def update_mode_buttons_state(self):
+        """Atualiza o estado dos botões de modo baseado no status do circuito."""
+        for mode_key, button in self.mode_buttons.items():
+            if self.is_circuit_active:
+                #Desabilita todos os botões exceto o selecionado
+                if mode_key == self.current_mode:
+                    button.configure(state="normal")
+                else:
+                    button.configure(state="disabled")
+            else:
+                #Reabilita todos os botões
+                button.configure(state="normal")
+    
     def select_mode(self, mode_key: str):
         """Seleciona um modo."""
+        #Só permite trocar de modo se o circuito não estiver ativo
+        if self.is_circuit_active and mode_key != self.current_mode:
+            self.status_label.configure(
+                text="⚠️ Pare o circuito antes de trocar de modo",
+                text_color=Colors.WARNING
+            )
+            return
+        
         self.current_mode = mode_key
         self.circuit_manager.set_mode(mode_key)
         mode_info = self.circuit_manager.get_mode_info(mode_key)
         
-        # Atualiza descrição
+        #Atualiza descrição
         desc_text = f"🎯 {mode_info['name']} - {mode_info['difficulty']}\n"
         desc_text += f"📝 {mode_info['description']}\n"
         
         if mode_info['restrictions']:
-            desc_text += f"🔒 Restringido"
-        elif mode_key == 'livre':
-            desc_text += "🔓 Sem restrições"
+            desc_text += f"🔒 Portas permitidas: {', '.join(mode_info['restrictions']).upper()}"
         else:
-            desc_text += f"📗 Use qualquer porta lógica"
+            desc_text += f"🔓 Use qualquer porta lógica"
         
         self.mode_description.configure(text=desc_text)
         
-        # Atualiza status
+        #Atualiza estado dos botões
+        self.update_mode_buttons_state()
+        
+        #Atualiza status
         expression = self.get_global_expression()
         if expression:
-            self.status_label.configure(
-                text=f"Modo selecionado: {mode_info['name']} | Pronto para iniciar!",
-                text_color=Colors.SUCCESS
-            )
+            if self.is_circuit_active:
+                self.status_label.configure(
+                    text=f"Status: Desafio ativo - {mode_info['name']} | Pressione ESPAÇO para testar",
+                    text_color=Colors.TEXT_ACCENT
+                )
+            else:
+                self.status_label.configure(
+                    text=f"Modo selecionado: {mode_info['name']} | Pronto para iniciar!",
+                    text_color=Colors.SUCCESS
+                )
         else:
             self.status_label.configure(
                 text="⚠️ Defina uma expressão na tela principal primeiro",
@@ -307,7 +346,7 @@ class CircuitModeSelector:
             )
             return
         
-        # Verifica se um modo foi selecionado
+        #Verifica se um modo foi selecionado
         if self.current_mode is None:
             self.status_label.configure(
                 text="⚠️ Selecione um modo de desafio primeiro",
@@ -316,21 +355,26 @@ class CircuitModeSelector:
             return
         
         try:
-            # Mostra área do circuito
+            #Mostra área do circuito
             self.circuit_container.pack(fill="both", expand=True, pady=Spacing.MD, padx=Spacing.LG)
             
-            # Cria circuito com validação melhorada
+            #Cria circuito com validação melhorada
             circuit = self.circuit_manager.create_circuit(self.circuit_frame, expression)
             
-            # Atualiza botões
-            self.start_btn.configure(state="disabled")
-            self.stop_btn.configure(state="normal")
+            #Atualiza estados
             self.is_circuit_active = True
             
-            # Status simplificado
-            mode_info = self.circuit_manager.get_mode_info(self.current_mode)
-            status_text = f"Status: Desafio ativo - {mode_info['name']} - Pressione 'Espaço' para testar"
+            #Atualiza botões
+            self.start_btn.configure(state="disabled")
+            self.tips_btn.configure(state="normal")
+            self.stop_btn.configure(state="normal")
             
+            #Atualiza estado dos botões de modo
+            self.update_mode_buttons_state()
+            
+            #Status simplificado
+            mode_info = self.circuit_manager.get_mode_info(self.current_mode)
+            status_text = f"Status: Desafio ativo - {mode_info['name']} | Pressione ESPAÇO para testar"
             
             self.status_label.configure(
                 text=status_text,
@@ -340,6 +384,10 @@ class CircuitModeSelector:
             print(f"✅ Circuito iniciado - Expressão: {expression} | Modo: {mode_info['name']}")
             
         except Exception as e:
+            #Reverte estado em caso de erro
+            self.is_circuit_active = False
+            self.update_mode_buttons_state()
+            
             self.status_label.configure(
                 text=f"❌ Erro ao iniciar: {str(e)}",
                 text_color=Colors.ERROR
@@ -351,13 +399,19 @@ class CircuitModeSelector:
         try:
             self.circuit_manager.stop_current_circuit()
             
-            # Esconde área do circuito
+            #Esconde área do circuito
             self.circuit_container.pack_forget()
             
-            # Atualiza botões
+            #Atualiza estados
+            self.is_circuit_active = False
+            
+            #Atualiza botões
             self.start_btn.configure(state="normal")
             self.stop_btn.configure(state="disabled")
-            self.is_circuit_active = False
+            self.tips_btn.configure(state="disabled")
+            
+            #Reabilita todos os botões de modo
+            self.update_mode_buttons_state()
             
             self.status_label.configure(
                 text="⏹️ Circuito parado - Selecione um modo para reiniciar",
@@ -372,7 +426,7 @@ class CircuitModeSelector:
         if self.current_mode is None:
             tips_text = "Primeiro selecione um modo de desafio para ver dicas específicas."
         else:
-            # Mostra painel se não estiver visível
+            #Mostra painel se não estiver visível
             if not self.info_container.winfo_ismapped():
                 self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
             
@@ -392,7 +446,7 @@ class CircuitModeSelector:
     
     def show_controls(self):
         """Mostra informações de controle do jogo."""
-        # Mostra painel se não estiver visível
+        #Mostra painel se não estiver visível
         if not self.info_container.winfo_ismapped():
             self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
         
@@ -414,7 +468,8 @@ class CircuitModeSelector:
         controls_text += "  3. Use TAB para abrir o painel\n"
         controls_text += "  4. Adicione componentes clicando no painel\n"
         controls_text += "  5. Conecte os pontos verdes\n"
-        controls_text += "  6. Implemente a expressão corretamente!"
+        controls_text += "  6. Pressione ESPAÇO para testar!\n"
+        controls_text += "  7. Implemente a expressão corretamente!"
         
         self.info_text.delete("1.0", "end")
         self.info_text.insert("1.0", controls_text)
