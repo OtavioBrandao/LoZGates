@@ -690,22 +690,108 @@ class CircuitoInterativoManual:
     def is_circuit_correct(self):
         """Verifica se o circuito implementa a expressão através de simulação com tabela verdade."""
         try:
-            #Extrai variáveis da expressão
+            # Extrai variáveis da expressão
             variables = self.extract_variables(self.expressao)
             
-            #Encontra componente de saída
+            # Encontra componente de saída
             output_component = self.find_output_component()
             if not output_component:
                 print("❌ Componente de saída não encontrado ou não conectado")
                 return False
             
-            #Simula todas as combinações possíveis
+            # VALIDAÇÃO CRÍTICA: Verifica se TODAS as variáveis da expressão estão sendo usadas
+            if not self.all_variables_connected(variables, output_component):
+                print("❌ Nem todas as variáveis da expressão estão conectadas ao circuito")
+                return False
+            
+            # Verifica se o circuito tem pelo menos uma porta lógica
+            if not self.has_logic_gates_connected():
+                print("❌ Circuito não possui portas lógicas conectadas")
+                return False
+            
+            # Simula todas as combinações possíveis
             return self.validate_truth_table(variables, output_component)
             
         except Exception as e:
             print(f"Erro na validação: {e}")
             return False
+        
+    def all_variables_connected(self, required_variables, output_component):
+        """Verifica se TODAS as variáveis da expressão estão conectadas no caminho até a saída."""
+        # Encontra todas as variáveis que estão realmente conectadas ao circuito
+        connected_variables = set()
+        visited = set()
+        
+        self._collect_connected_variables(output_component, visited, connected_variables)
+        
+        # Converte para sets para comparação
+        required_set = set(required_variables)
+        connected_set = connected_variables
+        
+        print(f"🔍 Variáveis necessárias: {required_set}")
+        print(f"🔍 Variáveis conectadas: {connected_set}")
+        
+        # Verifica se todas as variáveis necessárias estão conectadas
+        missing_variables = required_set - connected_set
+        if missing_variables:
+            print(f"❌ Variáveis não conectadas: {missing_variables}")
+            return False
+        
+        return True
+    
+    def has_logic_gates_connected(self):
+        """Verifica se o circuito tem pelo menos uma porta lógica conectada ao caminho da saída."""
+        output_component = None
+        for comp in self.components:
+            if comp.type == 'output':
+                output_component = comp
+                break
+        
+        if not output_component or len(output_component.input_connections) == 0:
+            return False
+        
+        # Verifica se há pelo menos uma porta lógica no caminho até a saída
+        visited = set()
+        return self._has_logic_gate_in_path(output_component, visited)
 
+    def _has_logic_gate_in_path(self, component, visited):
+        """Recursivamente verifica se há portas lógicas no caminho até as variáveis."""
+        if component in visited:
+            return False
+        
+        visited.add(component)
+        
+        # Se é uma porta lógica, encontrou o que procura
+        if component.type in ['and', 'or', 'not', 'nand', 'nor', 'xor', 'xnor']:
+            return True
+        
+        # Se é uma variável, chegou ao fim sem encontrar porta lógica
+        if component.type == 'variable':
+            return False
+        
+        # Para outros tipos (output), verifica as conexões de entrada
+        for input_idx, wire in component.input_connections.items():
+            if self._has_logic_gate_in_path(wire.start_comp, visited):
+                return True
+        
+        return False
+    
+    def _collect_connected_variables(self, component, visited, connected_variables):
+        """Recursivamente coleta todas as variáveis conectadas no caminho."""
+        if component in visited:
+            return
+        
+        visited.add(component)
+        
+        # Se é uma variável, adiciona ao conjunto
+        if component.type == 'variable':
+            connected_variables.add(component.name)
+            return
+        
+        # Para outros tipos, verifica as conexões de entrada
+        for input_idx, wire in component.input_connections.items():
+            self._collect_connected_variables(wire.start_comp, visited, connected_variables)
+                
     def find_output_component(self):
         """Encontra e valida o componente de saída"""
         output_component = None
@@ -726,28 +812,46 @@ class CircuitoInterativoManual:
         
         total_combinations = 2 ** len(variables)
         correct_results = 0
+        failed_combinations = []
         
         print(f"🧪 Testando {total_combinations} combinações...")
         
         for combination in itertools.product([False, True], repeat=len(variables)):
             var_values = dict(zip(variables, combination))
             
-            #Resultado esperado da expressão
+            # Resultado esperado da expressão
             expected = self.evaluate_expression(self.expressao, var_values)
             
-            #Resultado do circuito
+            # Resultado do circuito
             actual = self.simulate_circuit_simple(var_values)
+            
+            # Se não conseguiu simular o circuito, é erro
+            if actual is None:
+                print(f"❌ Não foi possível simular o circuito para {var_values}")
+                return False
             
             if expected == actual:
                 correct_results += 1
             else:
-                print(f"❌ Falha: {var_values} -> Esperado: {expected}, Obtido: {actual}")
-                return False
+                failed_combinations.append({
+                    'inputs': var_values,
+                    'expected': expected,
+                    'actual': actual
+                })
+        
+        # Se houve falhas, mostra detalhes
+        if failed_combinations:
+            print(f"❌ {len(failed_combinations)} combinações incorretas:")
+            for fail in failed_combinations[:3]:  # Mostra só as 3 primeiras
+                print(f"   {fail['inputs']} -> Esperado: {fail['expected']}, Obtido: {fail['actual']}")
+            if len(failed_combinations) > 3:
+                print(f"   ... e mais {len(failed_combinations) - 3} falhas")
+            return False
         
         success_rate = (correct_results / total_combinations) * 100
         print(f"✅ Todas as {total_combinations} combinações corretas ({success_rate:.1f}%)")
         
-        return correct_results == total_combinations
+        return True
 
     def evaluate_expression(self, expression, var_values):
         """Avalia a expressão booleana com os valores fornecidos"""
@@ -774,52 +878,60 @@ class CircuitoInterativoManual:
         """Simulação simplificada do circuito"""
         component_outputs = {}
         
-        #Define valores das variáveis de entrada
+        # Define valores das variáveis de entrada
+        variables_set = False
         for comp in self.components:
             if comp.type == 'variable' and comp.name in var_values:
                 component_outputs[comp] = var_values[comp.name]
+                variables_set = True
         
-        #Propaga valores através do circuito (máximo 10 iterações)
-        for iteration in range(10):
+        if not variables_set:
+            print("❌ Nenhuma variável foi definida no circuito")
+            return None
+        
+        # Propaga valores através do circuito (máximo 15 iterações)
+        for iteration in range(15):
             changes_made = False
             
             for comp in self.components:
-                #Pula se já tem valor calculado
+                # Pula se já tem valor calculado
                 if comp in component_outputs:
                     continue
                     
-                #Verifica se é uma porta lógica
+                # Verifica se é uma porta lógica ou saída
                 if comp.type in ['and', 'or', 'not', 'nand', 'nor', 'xor', 'xnor', 'output']:
                     input_values = self.get_component_inputs(comp, component_outputs)
                     
-                    if input_values is not None:  #Todas as entradas estão prontas
+                    if input_values is not None:  # Todas as entradas estão prontas
                         output = self.calculate_gate_output_simple(comp.type, input_values)
                         if output is not None:
                             component_outputs[comp] = output
                             changes_made = True
             
-            #Se nenhuma mudança foi feita, para a simulação
+            # Se nenhuma mudança foi feita, para a simulação
             if not changes_made:
                 break
         
-        #Retorna o valor da saída
+        # Retorna o valor da saída
         for comp in self.components:
             if comp.type == 'output' and comp in component_outputs:
                 return component_outputs[comp]
         
-        print("⚠️ Não foi possível determinar valor de saída")
-        return False
+        # Se chegou aqui, não conseguiu simular completamente
+        print("⚠️ Simulação incompleta - circuito pode não estar totalmente conectado")
+        return None
+
 
     def get_component_inputs(self, component, component_outputs):
         """Obtém valores de entrada de um componente"""
         input_values = []
         
-        #Determina quantas entradas o componente deveria ter
+        # Determina quantas entradas o componente deveria ter
         expected_inputs = self.get_expected_input_count(component.type)
         if expected_inputs == 0:
             return []
         
-        #Coleta valores das entradas conectadas
+        # Coleta valores das entradas conectadas
         for input_idx in range(expected_inputs):
             if input_idx in component.input_connections:
                 wire = component.input_connections[input_idx]
@@ -828,9 +940,10 @@ class CircuitoInterativoManual:
                 if source_comp in component_outputs:
                     input_values.append(component_outputs[source_comp])
                 else:
-                    return None  #Entrada não está pronta
+                    return None  # Entrada não está pronta
             else:
-                return None  #Entrada não conectada
+                print(f"⚠️ {component.type} entrada {input_idx} não conectada")
+                return None  # Entrada não conectada
         
         return input_values
 
@@ -844,27 +957,31 @@ class CircuitoInterativoManual:
 
     def calculate_gate_output_simple(self, gate_type, inputs):
         """Calcula saída da porta lógica - versão simplificada"""
-        if not inputs:
+        if not inputs and gate_type != 'not':
             return False
         
-        if gate_type == 'and':
-            return all(inputs)
-        elif gate_type == 'or':
-            return any(inputs)
-        elif gate_type == 'not':
-            return not inputs[0] if len(inputs) >= 1 else False
-        elif gate_type == 'nand':
-            return not all(inputs)
-        elif gate_type == 'nor':
-            return not any(inputs)
-        elif gate_type == 'xor':
-            return sum(inputs) % 2 == 1
-        elif gate_type == 'xnor':
-            return sum(inputs) % 2 == 0
-        elif gate_type == 'output':
-            return inputs[0] if len(inputs) >= 1 else False
-        
-        return False
+        try:
+            if gate_type == 'and':
+                return all(inputs)
+            elif gate_type == 'or':
+                return any(inputs)
+            elif gate_type == 'not':
+                return not inputs[0] if len(inputs) >= 1 else True
+            elif gate_type == 'nand':
+                return not all(inputs)
+            elif gate_type == 'nor':
+                return not any(inputs)
+            elif gate_type == 'xor':
+                return sum(inputs) % 2 == 1
+            elif gate_type == 'xnor':
+                return sum(inputs) % 2 == 0
+            elif gate_type == 'output':
+                return inputs[0] if len(inputs) >= 1 else False
+            
+            return False
+        except Exception as e:
+            print(f"Erro ao calcular saída da porta {gate_type}: {e}")
+            return None
 
     
     def draw_success_message(self):
@@ -890,10 +1007,6 @@ class CircuitoInterativoManual:
         if self.gate_restrictions:
             messages.append(f"Usando apenas: {', '.join(self.gate_restrictions).upper()}")
             messages.append("")
-            
-        messages.append("Pressione enter para continuar...")
-        #tenho que colocar uma coisa para ver se clicou no enter
-        
         
         start_y = self.screen_height // 2 - 120
         for i, message in enumerate(messages):
