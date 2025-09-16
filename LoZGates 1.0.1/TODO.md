@@ -27,7 +27,6 @@
     - Consertar o scroll, o de dentro so vai quando o de fora chega no limite (container_problemas)
 
 # Circuito Lógico Interativo
-    - Colocar a logica do enter para sair da mensagem de parabens.
-    - Se a dica estiver aberta e clicar outra vez, fecha (ou apertando o botão parar).
-    - Mesma coisa para o controle.
-    - Tirar a possibilidade de ter como escrever na caixa de dicas e controle
+    - Se a dica estiver aberta e clicar outra vez, fecha (ou apertando o botão parar). -Otavio
+    - Mesma coisa para o controle. -Otavio
+    - Tirar a possibilidade de ter como escrever na caixa de dicas e controle -Otavio
