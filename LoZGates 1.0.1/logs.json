@@ -275,21 +275,66 @@
                     "caminho_usado": []
                 }
             ]
+        },
+        "(~(P+Q)+~P)*P": {
+            "leis_usadas": {
+                "De Morgan (~(A*B) = ~A+~B)": {
+                    "usos_sucesso": 1,
+                    "tentativas_falha": 0,
+                    "tempo_gasto": 6.9141387939453125e-06
+                },
+                "Absorção (A * (A+B) = A)": {
+                    "usos_sucesso": 1,
+                    "tentativas_falha": 0,
+                    "tempo_gasto": 1.1444091796875e-05
+                },
+                "Inversa (A * ~A = 0)": {
+                    "usos_sucesso": 1,
+                    "tentativas_falha": 0,
+                    "tempo_gasto": 7.867813110351562e-06
+                }
+            },
+            "tentativas_totais": 3,
+            "sucessos_totais": 3,
+            "tempo_total_gasto": 2.6226043701171875e-05,
+            "tempo_medio": 8.742014567057291e-06,
+            "simplificavel": true,
+            "caminho_solucao": [
+                "De Morgan (~(A*B) = ~A+~B)",
+                "Absorção (A * (A+B) = A)",
+                "Inversa (A * ~A = 0)"
+            ],
+            "primeira_tentativa": "2025-09-15T23:22:32.730103",
+            "ultima_tentativa": "2025-09-15T23:22:44.113839",
+            "sessoes": [
+                {
+                    "timestamp": "2025-09-15T23:22:44.120482",
+                    "tempo_gasto": 20.457082748413086,
+                    "tentativas_na_sessao": 3,
+                    "resolvida": true,
+                    "caminho_usado": [
+                        "De Morgan (~(A*B) = ~A+~B)",
+                        "Absorção (A * (A+B) = A)",
+                        "Inversa (A * ~A = 0)"
+                    ]
+                }
+            ]
         }
     },
     "estatisticas_gerais": {
         "total_sessoes": 0,
         "expressoes_mais_tentadas": {
-            "(~P+Q)": 24
+            "(~P+Q)": 24,
+            "(~(P+Q)+~P)*P": 3
         },
         "leis_mais_usadas": {
             "Associativa ((A*B)*C = A*(B*C))": 2,
-            "Absorção (A * (A+B) = A)": 4,
-            "Inversa (A * ~A = 0)": 1,
+            "Absorção (A * (A+B) = A)": 5,
+            "Inversa (A * ~A = 0)": 2,
             "Nula (A * 0 = 0)": 1,
             "Identidade (A * 1 = A)": 9,
             "Idempotente (A * A = A)": 1,
-            "De Morgan (~(A*B) = ~A+~B)": 2,
+            "De Morgan (~(A*B) = ~A+~B)": 3,
             "Distributiva ((A+B)*(A+C) = A+(B*C))": 3,
             "Comutativa (B*A = A*B)": 1
         },
