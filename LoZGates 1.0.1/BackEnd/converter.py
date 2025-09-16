@@ -5,7 +5,6 @@ class Conversorlogical:
             '&': '*',    #AND
             '|': '+',    #OR  
             '!': '~',    #NOT
-            '^': '⊕',    #XOR (se precisar)
         }
         
         #Histórico de conversões para debug
