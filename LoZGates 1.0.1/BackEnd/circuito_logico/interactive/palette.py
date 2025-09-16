@@ -120,19 +120,6 @@ class ComponentPalette:
             self._draw_gate_icon(screen, component['type'], button_rect, is_allowed)
             
             button_index += 1
-        
-        #Informações sobre limitações
-        if self.allowed_gates and font:
-            limit_y = self.y + self.height - 60
-            limit_text = "LIMITADO A:"
-            limit_surface = font.render(limit_text, True, (255, 255, 0))
-            limit_rect = limit_surface.get_rect(centerx=self.x + self.width//2, y=limit_y)
-            screen.blit(limit_surface, limit_rect)
-            
-            gates_text = ", ".join(self.allowed_gates).upper()
-            gates_surface = font.render(gates_text, True, (255, 255, 0))
-            gates_rect = gates_surface.get_rect(centerx=self.x + self.width//2, y=limit_y + 20)
-            screen.blit(gates_surface, gates_rect)
     
     def _draw_gate_icon(self, screen, gate_type, button_rect, is_enabled):
         """Desenha ícone simplificado da porta lógica."""

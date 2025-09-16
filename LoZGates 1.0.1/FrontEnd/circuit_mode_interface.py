@@ -275,7 +275,9 @@ class CircuitModeSelector:
         desc_text += f"📝 {mode_info['description']}\n"
         
         if mode_info['restrictions']:
-            desc_text += f"🔒 Portas permitidas: {', '.join(mode_info['restrictions']).upper()}"
+            desc_text += f"🔒 Restringido"
+        elif mode_key == 'livre':
+            desc_text += "🔓 Sem restrições"
         else:
             desc_text += f"📗 Use qualquer porta lógica"
         
@@ -328,8 +330,7 @@ class CircuitModeSelector:
             # Status simplificado
             mode_info = self.circuit_manager.get_mode_info(self.current_mode)
             status_text = f"Status: Desafio ativo - {mode_info['name']}"
-            if mode_info['restrictions']:
-                status_text += f" | Limitado a: {', '.join(mode_info['restrictions']).upper()}"
+            
             
             self.status_label.configure(
                 text=status_text,

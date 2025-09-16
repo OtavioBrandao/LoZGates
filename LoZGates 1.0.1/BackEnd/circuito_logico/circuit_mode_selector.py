@@ -19,6 +19,14 @@ class CircuitModeManager:
             'icon': '🆓',
             'difficulty': 'Iniciante'
         },
+        'basic_gates': {
+            'name': 'Portas Básicas',
+            'description': 'Use apenas AND, OR, NOT',
+            'restrictions': ['and', 'or', 'not'],
+            'color': '#4A597C',
+            'icon': '📚',
+            'difficulty': 'Iniciante'
+        },
         'nand_only': {
             'name': 'Desafio NAND',
             'description': 'Implemente usando apenas portas NAND',
@@ -35,18 +43,10 @@ class CircuitModeManager:
             'icon': '🔥',
             'difficulty': 'Intermediário'
         },
-        'basic_gates': {
-            'name': 'Portas Básicas',
-            'description': 'Use apenas AND, OR, NOT',
-            'restrictions': ['and', 'or', 'not'],
-            'color': '#4A597C',
-            'icon': '📚',
-            'difficulty': 'Iniciante'
-        },
         'advanced_gates': {
             'name': 'Portas Avançadas',
-            'description': 'Use XOR, XNOR e outras portas avançadas',
-            'restrictions': ['xor', 'xnor', 'and', 'or', 'not'],
+            'description': 'Use XOR e XNOR',
+            'restrictions': ['xor', 'xnor'],
             'color': '#8B4513',
             'icon': '⚡',
             'difficulty': 'Avançado'

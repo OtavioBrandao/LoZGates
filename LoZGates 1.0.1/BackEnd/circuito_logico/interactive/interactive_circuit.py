@@ -617,10 +617,6 @@ class CircuitoInterativoManual:
         if self.component_palette:
             self.component_palette.draw(self.screen, self.font)
         
-        #Desenha informações
-        if self.font:
-            self.draw_ui_info()
-        
         #Desenha mensagem de sucesso se ativa
         if self.show_success_message and self.success_message_timer > 0:
             self.draw_success_message()
@@ -637,40 +633,6 @@ class CircuitoInterativoManual:
         #Continua o loop se ainda estiver rodando
         if self.running:
             self.parent_frame.after(16, self._tick) 
-            
-    def draw_ui_info(self):
-        """Desenha informações de controle na tela"""
-        '''#Ajusta posição se o painel está visível
-        start_x = 150 if (self.component_palette and self.component_palette.visible) else 10
-        
-        ui_texts = [
-            "=== MODO CONSTRUÇÃO INTERATIVA ===",
-            f"Expressão: {self.expressao[:30]}{'...' if len(self.expressao) > 30 else ''}",
-            "Status: " + ("Conectando..." if self.connecting else "Clique nas bolinhas verdes para conectar")
-        ]
-        
-        #Adiciona informação sobre restrições se ativas
-        if self.gate_restrictions:
-            ui_texts.insert(-2, f"LIMITADO A: {', '.join(self.gate_restrictions).upper()}")
-        
-        y = 10
-        for text in ui_texts:
-            try:
-                if text.startswith("==="):
-                    color = (255, 255, 0)
-                elif text.startswith("INSTRUÇÕES") or text.startswith("•"):
-                    color = (0, 255, 255)
-                elif text.startswith("LIMITADO"):
-                    color = (255, 100, 100)  #Vermelho para restrições
-                else:
-                    color = (255, 255, 255)
-                
-                surface = self.font.render(text, True, color)
-                self.screen.blit(surface, (start_x, y))
-                y = y + 20 if not text.startswith("===") else y + 25
-            except: 
-                pass'''
-        pass #Desativado por tempo indeterminado
     
     def stop(self):
         """Para o circuito."""
