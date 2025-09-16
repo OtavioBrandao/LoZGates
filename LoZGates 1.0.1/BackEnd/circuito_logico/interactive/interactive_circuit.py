@@ -542,19 +542,6 @@ class CircuitoInterativoManual:
             self.ghost_component.x = world_pos[0] - 40
             self.ghost_component.y = world_pos[1] - 30
             self.ghost_component.update_connection_points()
-
-    def draw_placement_cursor(self):
-        """Desenha cursor personalizado durante colocação."""
-        if not self.font:
-            return
-        
-        mouse_pos = pygame.mouse.get_pos()
-        
-        try:
-            surface = self.font.render("📍", True, (255, 255, 0))
-            self.screen.blit(surface, (mouse_pos[0] + 20, mouse_pos[1] - 30))
-        except:
-            pass
         
     def select_component(self, component):
         """Seleciona um componente."""
@@ -743,10 +730,6 @@ class CircuitoInterativoManual:
             self.error_message_timer -= 1
             if self.error_message_timer <= 0:
                 self.show_error_message = False
-
-        #Desenha cursor personalizado se colocando componente
-        if self.placing_component:
-            self.draw_placement_cursor()
 
         pygame.display.flip()
         
