@@ -1,7 +1,7 @@
 # Conversão lógica -> algebra
-    - Arrumar a lógica do implica
-    - Implementar a lógica do bi implica (<->)
-    - Coloquei so na conversão, preciso ver o coisa do circuito logico agora
+    - Arrumar a lógica do implica ✅ (testar mais)
+    - Implementar a lógica do bi implica (<->)  ✅
+    - Coloquei so na conversão, preciso ver o coisa do circuito logico agora ✅
 
 
 # Simplificador Interativo
