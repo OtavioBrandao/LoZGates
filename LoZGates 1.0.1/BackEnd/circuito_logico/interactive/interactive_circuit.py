@@ -1,13 +1,11 @@
 """
     Módulo para o circuito interativo manual atualizado com painel de seleção de componentes.
 """
-
 import pygame
 import tkinter as tk
 import os
 import math
 import time
-import itertools
 
 from .components import Component, Wire, ComponentFactory
 from .palette import ComponentPalette
@@ -41,9 +39,12 @@ class CircuitoInterativoManual:
         self.history = CircuitHistory()
         self.last_action_time = 0
 
-        #Variáveis para mensagem de sucesso
+        #Variáveis para mensagem de sucesso/erro
         self.show_success_message = False
         self.success_message_timer = 0
+        self.show_error_message = False
+        self.error_message_timer = 0
+        self.error_message_text = ""
 
         #Estado da interface
         self._move = {'up': False, 'down': False, 'left': False, 'right': False}
@@ -57,7 +58,7 @@ class CircuitoInterativoManual:
         self.placing_component = False  #Se está no modo de colocação
         
         #Sistema de colisão
-        self.collision_margin = 20  #Margem mínima entre componentes
+        self.collision_margin = 10  #Margem mínima entre componentes
     
     def init_pygame(self):
         """Inicializa o Pygame e configura a interface."""
@@ -339,6 +340,8 @@ class CircuitoInterativoManual:
         if k == 'tab':          #Toggle painel de componentes
             if self.component_palette:
                 self.component_palette.toggle_visibility()
+        if k == 'space':        #Testar circuito
+            self.test_circuit_manual()
             
     def _on_key_release(self, e):
         """Processa teclas liberadas."""
@@ -618,8 +621,8 @@ class CircuitoInterativoManual:
         #Salva estado após conexão
         self.save_state("Connect components")
         
-        #Verifica se o circuito está correto
-        self.check_circuit_completion()
+        #Remove validação automática - usuário testará manualmente
+        #self.check_circuit_completion()
         
         self.cancel_connection()
     
@@ -727,16 +730,19 @@ class CircuitoInterativoManual:
         if self.component_palette:
             self.component_palette.draw(self.screen, self.font)
         
-        #Desenha informações
-        if self.font:
-            self.draw_ui_info()
-        
         #Desenha mensagem de sucesso se ativa
         if self.show_success_message and self.success_message_timer > 0:
             self.draw_success_message()
             self.success_message_timer -= 1
             if self.success_message_timer <= 0:
                 self.show_success_message = False
+
+        #Desenha mensagem de erro se ativa
+        if self.show_error_message and self.error_message_timer > 0:
+            self.draw_error_message()
+            self.error_message_timer -= 1
+            if self.error_message_timer <= 0:
+                self.show_error_message = False
 
         #Desenha cursor personalizado se colocando componente
         if self.placing_component:
@@ -766,24 +772,38 @@ class CircuitoInterativoManual:
                         (screen_center[0] + size, screen_center[1] - size), 
                         (screen_center[0] - size, screen_center[1] + size), 3)
             
-    def draw_ui_info(self):
-        """Desenha informações de controle na tela"""
-        pass #Desativado por tempo indeterminado
-    
     def stop(self):
         """Para o circuito."""
         self.running = False
         print("🛑 Circuito interativo parado")
     
-    def check_circuit_completion(self):
-        """Verifica se o circuito montado está correto conforme a expressão"""
+    def test_circuit_manual(self):
+        """Testa o circuito manualmente quando o usuário pressiona ESPAÇO."""
+        print("🧪 Testando circuito manualmente...")
+        
         try:
             if self.is_circuit_correct():
                 self.show_success_message = True
-                self.success_message_timer = 300
-                print("🎉 Circuito montado corretamente!")
+                self.success_message_timer = 300  # 5 segundos a 60fps
+                self.show_error_message = False
+                print("✅ Circuito correto!")
+            else:
+                self.show_error_message = True
+                self.error_message_timer = 300  # 5 segundos a 60fps
+                self.show_success_message = False
+                print("❌ Circuito incorreto!")
+                
         except Exception as e:
-            print(f"Erro ao verificar circuito: {e}")
+            self.show_error_message = True
+            self.error_message_timer = 300
+            self.error_message_text = f"Erro na validação: {str(e)}"
+            self.show_success_message = False
+            print(f"❌ Erro ao testar circuito: {e}")
+
+    def check_circuit_completion(self):
+        """Método mantido para compatibilidade, mas não usado mais automaticamente."""
+        # Removido - agora só testamos manualmente
+        pass
 
     def is_circuit_correct(self):
         """Verifica se o circuito implementa a expressão através de simulação com tabela verdade."""
@@ -1089,7 +1109,7 @@ class CircuitoInterativoManual:
         
         #Fundo semi-transparente
         overlay = pygame.Surface((self.screen_width, self.screen_height))
-        overlay.fill((0, 0, 0))
+        overlay.fill((0, 50, 0))  # Verde escuro
         overlay.set_alpha(180)
         self.screen.blit(overlay, (0, 0))
         
@@ -1097,17 +1117,17 @@ class CircuitoInterativoManual:
         messages = [
             "🎉 PARABÉNS! 🎉",
             "Circuito montado corretamente!",
+            f"Expressão: {self.expressao}",
             ""
         ]
         
         if self.gate_restrictions:
-            messages.append(f"Usando apenas: {', '.join(self.gate_restrictions).upper()}")
-            messages.append("")
+            messages.insert(-2, f"Usando apenas: {', '.join(self.gate_restrictions).upper()}")
         
         start_y = self.screen_height // 2 - 120
         for i, message in enumerate(messages):
             if message.startswith("🎉"):
-                color = (255, 215, 0)  #Dourado
+                color = (255, 255, 0)  #Amarelo
                 font_size = 48
             elif message.startswith("Circuito"):
                 color = (0, 255, 0)   #Verde
@@ -1115,6 +1135,9 @@ class CircuitoInterativoManual:
             elif message.startswith("Expressão") or message.startswith("Usando"):
                 color = (255, 255, 255)  #Branco
                 font_size = 24
+            elif message.startswith("Pressione"):
+                color = (200, 200, 200)  #Cinza claro
+                font_size = 18
             else:
                 color = (200, 200, 200)  #Cinza claro
                 font_size = 20
@@ -1123,6 +1146,59 @@ class CircuitoInterativoManual:
                 font = pygame.font.Font(None, font_size)
                 surface = font.render(message, True, color)
                 rect = surface.get_rect(center=(self.screen_width//2, start_y + i * 40))
+                self.screen.blit(surface, rect)
+            except:
+                pass
+
+    def draw_error_message(self):
+        """Desenha mensagem de erro quando o circuito está incorreto"""
+        if not self.font:
+            return
+        
+        #Fundo semi-transparente vermelho
+        overlay = pygame.Surface((self.screen_width, self.screen_height))
+        overlay.fill((50, 0, 0))  # Vermelho escuro
+        overlay.set_alpha(180)
+        self.screen.blit(overlay, (0, 0))
+        
+        #Mensagem principal
+        messages = [
+            "❌ CIRCUITO INCORRETO ❌",
+            "Tente novamente!",
+            "",
+            "Possíveis problemas:",
+            "• Verifique todas as conexões",
+            "• Confira se implementou a expressão correta",
+            "• Todas as variáveis devem estar conectadas",
+            "• O circuito deve ter pelo menos uma porta lógica",
+            ""
+        ]
+        
+        start_y = self.screen_height // 2 - 160
+        for i, message in enumerate(messages):
+            if message.startswith("❌"):
+                color = (255, 100, 100)  #Vermelho claro
+                font_size = 42
+            elif message.startswith("Tente"):
+                color = (255, 150, 150)   #Rosa
+                font_size = 32
+            elif message.startswith("Possíveis"):
+                color = (255, 255, 255)  #Branco
+                font_size = 24
+            elif message.startswith("•"):
+                color = (255, 200, 200)  #Rosa claro
+                font_size = 18
+            elif message.startswith("Pressione"):
+                color = (200, 200, 200)  #Cinza
+                font_size = 18
+            else:
+                color = (200, 200, 200)  #Cinza
+                font_size = 18
+            
+            try:
+                font = pygame.font.Font(None, font_size)
+                surface = font.render(message, True, color)
+                rect = surface.get_rect(center=(self.screen_width//2, start_y + i * 30))
                 self.screen.blit(surface, rect)
             except:
                 pass

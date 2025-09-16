@@ -203,13 +203,13 @@ class CircuitModeManager:
             ],
             'nand_only': [
                 "Lembre-se: NAND é funcionalmente completa",
-                "AND = NAND + NOT, onde NOT = NAND com entradas conectadas",
+                "AND = NAND + NOT",
                 "OR pode ser implementado usando as leis de De Morgan",
                 "Pense em como ~(A*B) = ~A + ~B"
             ],
             'nor_only': [
                 "Lembre-se: NOR é funcionalmente completa",
-                "OR = NOR + NOT, onde NOT = NOR com entradas conectadas", 
+                "OR = NOR + NOT", 
                 "AND pode ser implementado usando as leis de De Morgan",
                 "Pense em como ~(A+B) = ~A * ~B"
             ],

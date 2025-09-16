@@ -329,7 +329,7 @@ class CircuitModeSelector:
             
             # Status simplificado
             mode_info = self.circuit_manager.get_mode_info(self.current_mode)
-            status_text = f"Status: Desafio ativo - {mode_info['name']}"
+            status_text = f"Status: Desafio ativo - {mode_info['name']} - Pressione 'Espaço' para testar"
             
             
             self.status_label.configure(
@@ -398,6 +398,7 @@ class CircuitModeSelector:
         
         controls_text = "🎮 CONTROLES BÁSICOS:\n\n"
         controls_text += "  • TAB: Mostrar/esconder painel de componentes\n"
+        controls_text += "  • Espaço: Testar circuito\n"
         controls_text += "  • Clique: Selecionar componente\n" 
         controls_text += "  • Arrastar: Mover componente\n"
         controls_text += "  • Bolinhas verdes: Pontos de conexão\n"
