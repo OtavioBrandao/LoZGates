@@ -116,8 +116,8 @@ class ComponentPalette:
                 text_rect = button_text.get_rect(center=button_rect.center)
                 screen.blit(button_text, text_rect)
             
-            #Desenha ícone pequeno da porta (simplificado)
-            self._draw_gate_icon(screen, component['type'], button_rect, is_allowed)
+            #Desenha ícone pequeno da porta (simplificado), tirei por hora
+           # self._draw_gate_icon(screen, component['type'], button_rect, is_allowed)
             
             button_index += 1
     

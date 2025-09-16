@@ -273,6 +273,20 @@
                     "tentativas_na_sessao": 0,
                     "resolvida": false,
                     "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-16T16:15:38.083496",
+                    "tempo_gasto": 141.99205708503723,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-16T16:15:48.180104",
+                    "tempo_gasto": 7.998662710189819,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
                 }
             ]
         },
