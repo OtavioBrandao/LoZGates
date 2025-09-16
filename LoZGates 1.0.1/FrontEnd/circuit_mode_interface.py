@@ -1,9 +1,9 @@
-"""
-    Interface para circuito interativo.
-"""
+# Interface para circuito interativo - UI/UX padronizada
+# Atualizado com design tokens e componentes unificados
 
 import customtkinter as ctk
 import tkinter as tk
+from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
 
 class CircuitModeSelector:
     """Seletor de modos."""
@@ -12,212 +12,243 @@ class CircuitModeSelector:
         self.parent_frame = parent_frame
         self.circuit_manager = circuit_manager
         self.Button = Button
-        self.get_global_expression = get_global_expression_func  #Função para pegar expressão global
+        self.get_global_expression = get_global_expression_func  # Função para pegar expressão global
         
-        #Estados
+        # Estados
         self.is_circuit_active = False
-        self.current_mode = None  #Inicializa como None ao invés de 'livre'
+        self.current_mode = None  # Inicializa como None ao invés de 'livre'
         
         self.setup_interface()
     
     def setup_interface(self):
         """Configura a interface."""
-        #Container principal
-        self.main_container = ctk.CTkScrollableFrame(self.parent_frame, fg_color="#082347")
-        self.main_container.pack(fill="both", expand=True, padx=10, pady=10)
+        # Container principal
+        self.main_container = ctk.CTkScrollableFrame(self.parent_frame, fg_color=Colors.PRIMARY_BG)
+        self.main_container.pack(fill="both", expand=True, padx=Spacing.SM, pady=Spacing.SM)
         
-        #Título
+        # Título
         title_label = ctk.CTkLabel(
             self.main_container,
             text="🔌 Circuito Interativo - Escolha o Desafio",
-            font=("Trebuchet MS", 20, "bold"),
-            text_color="#FFFFFF"
+            font=get_title_font(Typography.SIZE_TITLE_SMALL),
+            text_color=Colors.TEXT_PRIMARY
         )
-        title_label.pack(pady=15)
+        title_label.pack(pady=Spacing.MD)
         
-        #Mostra expressão atual
+        # Mostra expressão atual
         self.expression_display = ctk.CTkLabel(
             self.main_container,
             text="Expressão: Não definida",
-            font=("Trebuchet MS", 16, "bold"),
-            text_color="#00FFFF"
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_ACCENT
         )
-        self.expression_display.pack(pady=10)
+        self.expression_display.pack(pady=Spacing.MD)
         
-        #Atualiza expressão
+        # Atualiza expressão
         self.update_expression_display()
         
-        #Frame para seleção de modos
-        modes_frame = ctk.CTkFrame(self.main_container, fg_color="#001E44")
-        modes_frame.pack(fill="x", padx=20, pady=20)
+        # Frame para seleção de modos
+        modes_frame = ctk.CTkFrame(
+            self.main_container, 
+            fg_color=Colors.SURFACE_DARK,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        )
+        modes_frame.pack(fill="x", padx=Spacing.LG, pady=Spacing.LG)
         
         modes_title = ctk.CTkLabel(
             modes_frame,
             text="Selecione o Modo de Desafio:",
-            font=("Trebuchet MS", 16, "bold"),
-            text_color="#FFFFFF"
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_PRIMARY
         )
-        modes_title.pack(pady=15)
+        modes_title.pack(pady=Spacing.MD)
         
-        #Grid de botões de modo (2 colunas)
+        # Grid de botões de modo (2 colunas)
         self.create_mode_buttons(modes_frame)
         
-        #Frame de controles
+        # Frame de controles
         self.create_control_panel()
         
-        #Frame para o circuito (inicialmente oculto)
+        # Frame para o circuito (inicialmente oculto)
         self.create_circuit_area()
         
-        #Panel de informações
+        # Panel de informações
         self.create_info_panel()
     
     def create_mode_buttons(self, parent):
         """Cria os botões de seleção de modo."""
         button_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        button_frame.pack(pady=15)
+        button_frame.pack(pady=Spacing.MD)
         
         modes = self.circuit_manager.get_all_modes()
         
-        #Organiza em grid 2x3
+        # Organiza em grid 2x3
         row, col = 0, 0
         for mode_key, mode_info in modes.items():
             mode_btn = ctk.CTkButton(
                 button_frame,
                 text=f"{mode_info['icon']} {mode_info['name']}\n{mode_info['difficulty']}",
-                font=("Trebuchet MS", 12, "bold"),
-                width=200,
+                font=get_font(Typography.SIZE_CAPTION, Typography.WEIGHT_BOLD),
+                width=Dimensions.BUTTON_WIDTH_STANDARD,
                 height=70,
                 fg_color=mode_info['color'],
                 hover_color=self._darken_color(mode_info['color']),
+                corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
+                border_width=Dimensions.BORDER_WIDTH_STANDARD,
+                border_color=Colors.BORDER_DEFAULT,
                 command=lambda mk=mode_key: self.select_mode(mk)
             )
-            mode_btn.grid(row=row, column=col, padx=10, pady=8)
+            mode_btn.grid(row=row, column=col, padx=Spacing.SM, pady=Spacing.XS)
             
             col += 1
-            if col > 1:  #2 colunas
+            if col > 1:  # 2 colunas
                 col = 0
                 row += 1
         
-        #Descrição do modo selecionado
+        # Descrição do modo selecionado
         self.mode_description = ctk.CTkLabel(
             parent,
             text="Escolha um modo para ver detalhes",
-            font=("Trebuchet MS", 14),
-            text_color="#CCCCCC",
+            font=get_font(Typography.SIZE_BODY_SMALL),
+            text_color=Colors.TEXT_SECONDARY,
             wraplength=600
         )
-        self.mode_description.pack(pady=15)
+        self.mode_description.pack(pady=Spacing.MD)
     
     def create_control_panel(self):
         """Cria o painel de controles."""
-        control_frame = ctk.CTkFrame(self.main_container, fg_color="#001E44")
-        control_frame.pack(fill="x", padx=20, pady=10)
+        control_frame = ctk.CTkFrame(
+            self.main_container, 
+            fg_color=Colors.SURFACE_DARK,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        )
+        control_frame.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
         
         buttons_frame = ctk.CTkFrame(control_frame, fg_color="transparent")
-        buttons_frame.pack(pady=15)
+        buttons_frame.pack(pady=Spacing.MD)
         
         self.start_btn = ctk.CTkButton(
             buttons_frame,
             text="🚀 Iniciar Desafio",
             width=160,
-            height=50,
-            font=("Trebuchet MS", 16, "bold"),
-            fg_color="#2D5A27",
-            hover_color="#1A3D18",
+            height=Dimensions.BUTTON_HEIGHT_STANDARD,
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            fg_color=Colors.SUCCESS,
+            hover_color="#45A049",
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
+            border_width=Dimensions.BORDER_WIDTH_STANDARD,
+            border_color=Colors.BORDER_DEFAULT,
             command=self.start_circuit
         )
-        self.start_btn.pack(side="left", padx=10)
+        self.start_btn.pack(side="left", padx=Spacing.SM)
         
         self.stop_btn = ctk.CTkButton(
             buttons_frame,
             text="⏹️ Parar",
-            width=120,
-            height=50,
-            font=("Trebuchet MS", 16, "bold"),
-            fg_color="#7A2020",
-            hover_color="#5A1818",
+            width=Dimensions.BUTTON_WIDTH_SMALL,
+            height=Dimensions.BUTTON_HEIGHT_STANDARD,
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            fg_color=Colors.ERROR,
+            hover_color="#D32F2F",
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
+            border_width=Dimensions.BORDER_WIDTH_STANDARD,
+            border_color=Colors.BORDER_DEFAULT,
             state="disabled",
             command=self.stop_circuit
         )
-        self.stop_btn.pack(side="left", padx=10)
+        self.stop_btn.pack(side="left", padx=Spacing.SM)
         
         self.tips_btn = ctk.CTkButton(
             buttons_frame,
             text="💡 Dicas",
-            width=120,
-            height=50,
-            font=("Trebuchet MS", 16, "bold"),
-            fg_color="#4A597C",
-            hover_color="#364268",
+            width=Dimensions.BUTTON_WIDTH_SMALL,
+            height=Dimensions.BUTTON_HEIGHT_STANDARD,
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            fg_color=Colors.INFO,
+            hover_color="#1976D2",
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
+            border_width=Dimensions.BORDER_WIDTH_STANDARD,
+            border_color=Colors.BORDER_DEFAULT,
             command=self.show_tips
         )
-        self.tips_btn.pack(side="left", padx=10)
+        self.tips_btn.pack(side="left", padx=Spacing.SM)
         
-        #Novo botão para controles
+        # Novo botão para controles
         self.controls_btn = ctk.CTkButton(
             buttons_frame,
             text="🎮 Controles",
-            width=120,
-            height=50,
-            font=("Trebuchet MS", 16, "bold"),
-            fg_color="#2D5A5A",
-            hover_color="#1A3535",
+            width=Dimensions.BUTTON_WIDTH_SMALL,
+            height=Dimensions.BUTTON_HEIGHT_STANDARD,
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            fg_color=Colors.WARNING,
+            hover_color="#F57C00",
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
+            border_width=Dimensions.BORDER_WIDTH_STANDARD,
+            border_color=Colors.BORDER_DEFAULT,
             command=self.show_controls
         )
-        self.controls_btn.pack(side="left", padx=10)
+        self.controls_btn.pack(side="left", padx=Spacing.SM)
         
-        #Status
+        # Status
         self.status_label = ctk.CTkLabel(
             control_frame,
             text="Escolha um modo e clique em 'Iniciar Desafio'",
-            font=("Trebuchet MS", 12),
-            text_color="#CCCCCC"
+            font=get_font(Typography.SIZE_CAPTION),
+            text_color=Colors.TEXT_SECONDARY
         )
-        self.status_label.pack(pady=(0, 15))
+        self.status_label.pack(pady=(0, Spacing.MD))
     
     def create_circuit_area(self):
         """Cria área para o circuito."""
-        self.circuit_container = ctk.CTkFrame(self.main_container, fg_color="#000000")
-        #Inicialmente não empacotado
+        self.circuit_container = ctk.CTkFrame(
+            self.main_container, 
+            fg_color=Colors.SURFACE_DARK,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        )
+        # Inicialmente não empacotado
         
         expression = self.get_global_expression()
         circuit_title = ctk.CTkLabel(
             self.circuit_container,
             text=f"🎯 Monte o Circuito {expression}",
-            font=("Trebuchet MS", 18, "bold"),
-            text_color="#FFFFFF"
+            font=get_font(Typography.SIZE_SUBTITLE, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_PRIMARY
         )
-        circuit_title.pack(pady=10)
+        circuit_title.pack(pady=Spacing.MD)
         
-        #Frame interno para pygame
+        # Frame interno para pygame
         self.circuit_frame = tk.Frame(
             self.circuit_container,
-            bg="#000000",
+            bg=Colors.SURFACE_DARK,
             height=600
         )
-        self.circuit_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.circuit_frame.pack(fill="both", expand=True, padx=Spacing.SM, pady=(0, Spacing.SM))
     
     def create_info_panel(self):
         """Cria painel de informações."""
-        self.info_container = ctk.CTkFrame(self.main_container, fg_color="#00002C")
-        #Inicialmente não empacotado
+        self.info_container = ctk.CTkFrame(
+            self.main_container, 
+            fg_color=Colors.SURFACE_MEDIUM,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        )
+        # Inicialmente não empacotado
         
         info_title = ctk.CTkLabel(
             self.info_container,
             text="ℹ️ Informações",
-            font=("Trebuchet MS", 16, "bold"),
-            text_color="#FFFFFF"
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_PRIMARY
         )
-        info_title.pack(pady=15)
+        info_title.pack(pady=Spacing.MD)
         
         self.info_text = ctk.CTkTextbox(
             self.info_container,
             height=200,
-            font=("Trebuchet MS", 12),
-            fg_color="#001122",
-            text_color="#CCCCCC"
+            font=get_font(Typography.SIZE_CAPTION),
+            fg_color=Colors.SURFACE_DARK,
+            text_color=Colors.TEXT_SECONDARY
         )
-        self.info_text.pack(fill="x", padx=15, pady=(0, 15))
+        self.info_text.pack(fill="x", padx=Spacing.MD, pady=(0, Spacing.MD))
     
     def update_expression_display(self):
         """Atualiza a exibição da expressão atual."""
@@ -225,12 +256,12 @@ class CircuitModeSelector:
         if expression:
             self.expression_display.configure(
                 text=f"Expressão: {expression}",
-                text_color="#00FFFF"
+                text_color=Colors.TEXT_ACCENT
             )
         else:
             self.expression_display.configure(
                 text="⚠️ Nenhuma expressão definida - Vá para a tela principal primeiro",
-                text_color="#FF6600"
+                text_color=Colors.WARNING
             )
     
     def select_mode(self, mode_key: str):
@@ -239,7 +270,7 @@ class CircuitModeSelector:
         self.circuit_manager.set_mode(mode_key)
         mode_info = self.circuit_manager.get_mode_info(mode_key)
         
-        #Atualiza descrição
+        # Atualiza descrição
         desc_text = f"🎯 {mode_info['name']} - {mode_info['difficulty']}\n"
         desc_text += f"📝 {mode_info['description']}\n"
         
@@ -250,17 +281,17 @@ class CircuitModeSelector:
         
         self.mode_description.configure(text=desc_text)
         
-        #Atualiza status
+        # Atualiza status
         expression = self.get_global_expression()
         if expression:
             self.status_label.configure(
                 text=f"Modo selecionado: {mode_info['name']} | Pronto para iniciar!",
-                text_color="#00FF00"
+                text_color=Colors.SUCCESS
             )
         else:
             self.status_label.configure(
                 text="⚠️ Defina uma expressão na tela principal primeiro",
-                text_color="#FF6600"
+                text_color=Colors.WARNING
             )
     
     def start_circuit(self):
@@ -270,31 +301,31 @@ class CircuitModeSelector:
         if not expression:
             self.status_label.configure(
                 text="❌ Erro: Defina uma expressão na tela principal primeiro",
-                text_color="#FF0000"
+                text_color=Colors.ERROR
             )
             return
         
-        #Verifica se um modo foi selecionado
+        # Verifica se um modo foi selecionado
         if self.current_mode is None:
             self.status_label.configure(
                 text="⚠️ Selecione um modo de desafio primeiro",
-                text_color="#FF6600"
+                text_color=Colors.WARNING
             )
             return
         
         try:
-            #Mostra área do circuito
-            self.circuit_container.pack(fill="both", expand=True, pady=10, padx=20)
+            # Mostra área do circuito
+            self.circuit_container.pack(fill="both", expand=True, pady=Spacing.MD, padx=Spacing.LG)
             
-            #Cria circuito com validação melhorada
+            # Cria circuito com validação melhorada
             circuit = self.circuit_manager.create_circuit(self.circuit_frame, expression)
             
-            #Atualiza botões
+            # Atualiza botões
             self.start_btn.configure(state="disabled")
             self.stop_btn.configure(state="normal")
             self.is_circuit_active = True
             
-            #Status simplificado
+            # Status simplificado
             mode_info = self.circuit_manager.get_mode_info(self.current_mode)
             status_text = f"Status: Desafio ativo - {mode_info['name']}"
             if mode_info['restrictions']:
@@ -302,7 +333,7 @@ class CircuitModeSelector:
             
             self.status_label.configure(
                 text=status_text,
-                text_color="#00FFFF"
+                text_color=Colors.TEXT_ACCENT
             )
             
             print(f"✅ Circuito iniciado - Expressão: {expression} | Modo: {mode_info['name']}")
@@ -310,7 +341,7 @@ class CircuitModeSelector:
         except Exception as e:
             self.status_label.configure(
                 text=f"❌ Erro ao iniciar: {str(e)}",
-                text_color="#FF0000"
+                text_color=Colors.ERROR
             )
             print(f"❌ Erro: {e}")
     
@@ -319,17 +350,17 @@ class CircuitModeSelector:
         try:
             self.circuit_manager.stop_current_circuit()
             
-            #Esconde área do circuito
+            # Esconde área do circuito
             self.circuit_container.pack_forget()
             
-            #Atualiza botões
+            # Atualiza botões
             self.start_btn.configure(state="normal")
             self.stop_btn.configure(state="disabled")
             self.is_circuit_active = False
             
             self.status_label.configure(
                 text="⏹️ Circuito parado - Selecione um modo para reiniciar",
-                text_color="#FFFF00"
+                text_color=Colors.WARNING
             )
             
         except Exception as e:
@@ -340,9 +371,9 @@ class CircuitModeSelector:
         if self.current_mode is None:
             tips_text = "Primeiro selecione um modo de desafio para ver dicas específicas."
         else:
-            #Mostra painel se não estiver visível
+            # Mostra painel se não estiver visível
             if not self.info_container.winfo_ismapped():
-                self.info_container.pack(fill="x", padx=20, pady=10)
+                self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
             
             mode_info = self.circuit_manager.get_mode_info(self.current_mode)
             tips = self.circuit_manager.get_mode_tips(self.current_mode)
@@ -352,19 +383,17 @@ class CircuitModeSelector:
             for i, tip in enumerate(tips, 1):
                 tips_text += f"  {i}. {tip}\n\n"
             
-            #Remove as informações de controle básico das dicas
-            
         self.info_text.delete("1.0", "end")
         self.info_text.insert("1.0", tips_text)
         
         if not self.info_container.winfo_ismapped():
-            self.info_container.pack(fill="x", padx=20, pady=10)
+            self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
     
     def show_controls(self):
         """Mostra informações de controle do jogo."""
-        #Mostra painel se não estiver visível
+        # Mostra painel se não estiver visível
         if not self.info_container.winfo_ismapped():
-            self.info_container.pack(fill="x", padx=20, pady=10)
+            self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
         
         controls_text = "🎮 CONTROLES BÁSICOS:\n\n"
         controls_text += "  • TAB: Mostrar/esconder painel de componentes\n"

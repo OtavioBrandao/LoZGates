@@ -1,3 +1,6 @@
+# Interface principal - UI/UX padronizada e profissional
+# Atualizado com design tokens e componentes unificados
+
 import customtkinter as ctk
 from customtkinter import CTkFont
 import threading
@@ -13,6 +16,7 @@ from contextlib import redirect_stdout
 import copy
 
 from config import ASSETS_PATH, informacoes, duvida_circuitos
+from FrontEnd.design_tokens import Colors, Typography, Dimensions, Spacing, TabConfig, get_font, get_title_font
 
 from BackEnd.imagem import converte_matrix_para_tkinter_imagem_icon
 from BackEnd.tabela import gerar_tabela_verdade, verificar_conclusao
@@ -41,11 +45,11 @@ does_it_has_interactveon = False
 
 def inicializar_interface():
 
-    ctk.set_appearance_mode("dark")  #Modo escuro
-    ctk.set_default_color_theme("blue")  #Tema azul
+    ctk.set_appearance_mode("dark")  # Modo escuro
+    ctk.set_default_color_theme("blue")  # Tema azul
     janela = ctk.CTk()
     janela.title("LoZ Gates")
-    janela.configure(bg="#082347")
+    janela.configure(bg=Colors.PRIMARY_BG)
     janela.minsize(1280, 720)
     try:
         janela.wm_attributes('-zoomed', True)
@@ -336,10 +340,10 @@ def inicializar_interface():
             valor = tabela(expressao2, expressao3)
             
             if valor == 1:
-                equivalente.place(relx=0.5, y=300, anchor="center")
+                equivalente.place(relx=0.5, y=360, anchor="center")
                 nao_equivalente.place_forget()
             else:
-                nao_equivalente.place(relx=0.5, y=300, anchor="center")
+                nao_equivalente.place(relx=0.5, y=360, anchor="center")
                 equivalente.place_forget()
         except Exception as e:
             popup_erro(f"Erro ao comparar expressões: {e}")
@@ -423,45 +427,48 @@ def inicializar_interface():
     
     #------------- DEFININDO OS FRAMES DA INTERFACE -------------
     
-    frame_inicio = ctk.CTkFrame(janela, fg_color="#082347")
+    frame_inicio = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_inicio.grid(row=0, column=0, sticky="nsew")
 
-    principal = ctk.CTkFrame(janela, fg_color="#082347")
+    principal = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     principal.grid(row=0, column=0, sticky="nsew")
 
-    frame_equivalencia = ctk.CTkFrame(janela, fg_color="#082347")
+    frame_equivalencia = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_equivalencia.grid(row=0, column=0, sticky="nsew")
 
-    frame_abas = ctk.CTkFrame(janela, fg_color="#082347")
+    frame_abas = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_abas.grid(row=0, column=0, sticky="nsew")
 
-    frame_resolucao_direta = ctk.CTkFrame(janela, fg_color="#082347")
+    frame_resolucao_direta = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_resolucao_direta.grid(row=0, column=0, sticky="nsew")
 
-    scroll_conteudo = ctk.CTkScrollableFrame(frame_resolucao_direta, fg_color="#082347")
-    scroll_conteudo.pack(expand=True, fill="both", padx=20, pady=20)
+    scroll_conteudo = ctk.CTkScrollableFrame(frame_resolucao_direta, fg_color=Colors.PRIMARY_BG)
+    scroll_conteudo.pack(expand=True, fill="both", padx=Spacing.LG, pady=Spacing.LG)
 
-    frame_interativo = ctk.CTkFrame(janela, fg_color="#082347")
+    frame_interativo = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_interativo.grid(row=0, column=0, sticky="nsew")
 
-    frame_problemas_reais = ctk.CTkFrame(janela, fg_color="#232369")
+    frame_problemas_reais = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
-    scroll_problemas_reais = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color="#082347")
-    scroll_problemas_reais.pack(expand=True, fill="both", padx=20, pady=20)
+    scroll_problemas_reais = ctk.CTkScrollableFrame(frame_problemas_reais, fg_color=Colors.PRIMARY_BG)
+    scroll_problemas_reais.pack(expand=True, fill="both", padx=Spacing.LG, pady=Spacing.LG)
     scroll_problemas_reais._scrollbar.grid_remove()
 
-    frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color="#082347")
+    frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
     #---------------- FRAME DE INÍCIO ----------------
  
-    fonte_momentz = CTkFont(family="Momentz", size=30)
-    label_inicio = ctk.CTkLabel(frame_inicio,text="<LoZ Gates>",font=fonte_momentz,text_color="white",fg_color="#082347")
+    fonte_momentz = CTkFont(family="Momentz", size=Typography.SIZE_TITLE_LARGE + 2)
+    label_inicio = ctk.CTkLabel(
+        frame_inicio,
+        text="<LoZ Gates>",
+        font=fonte_momentz,
+        text_color=Colors.TEXT_PRIMARY,
+        fg_color=Colors.PRIMARY_BG
+    )
     label_inicio.place(relx=0.5, y=200, anchor="center")
-
-    botao_info = Button.botao_padrao("❔Ajuda", frame_inicio)
-    botao_info.configure(command=lambda: show_frame(frame_info))
 
     botao_circuitos = Button.botao_padrao("💡Circuitos e Expressões", frame_inicio)
     botao_circuitos.configure(command=lambda: show_frame(principal))
@@ -469,29 +476,44 @@ def inicializar_interface():
 
     botao_equivalencia = Button.botao_padrao("🔄Equivalência Lógica", frame_inicio)
     botao_equivalencia.configure(command=lambda: show_frame(frame_equivalencia))
-    botao_equivalencia.place(relx=0.5, y=400, anchor="center")    
+    botao_equivalencia.place(relx=0.5, y=400, anchor="center")
+    
+    botao_info = Button.botao_padrao("❔Ajuda", frame_inicio)
+    botao_info.configure(command=lambda: show_frame(frame_info))
     botao_info.place(relx=0.5, y=500, anchor="center")
 
     #---------------- FRAME DOS CIRCUITOS E DAS EXPRESSÕES ----------------
 
-    label_tarefas = ctk.CTkLabel(principal, text="Digite a expressão em Lógica Proposicional:", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
+    label_tarefas = ctk.CTkLabel(
+        principal, 
+        text="Digite a expressão em Lógica Proposicional:", 
+        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
+        text_color=Colors.TEXT_PRIMARY, 
+        fg_color=None
+    )
     label_tarefas.place(relx=0.5, y=150, anchor="center")
 
-    entrada = ctk.CTkEntry(principal, width=300, placeholder_text="Digite aqui", font=("Trebuchet MS", 14))
+    entrada = ctk.CTkEntry(
+        principal, 
+        width=350, 
+        placeholder_text="Digite aqui", 
+        font=get_font(Typography.SIZE_BODY_SMALL),
+        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+    )
     entrada.place(relx=0.5, y=200, anchor="center")
     entrada.bind("<Return>", lambda event: confirmar_expressao())
 
-    botao_confirmar_expressao = Button.botao_padrao("✅Confirmar", principal)
+    botao_confirmar_expressao = Button.botao_padrao("✅Confirmar", principal, style="success")
     botao_confirmar_expressao.configure(command=confirmar_expressao)
-    botao_confirmar_expressao.place(relx=0.5, y=300, anchor="center")
+    botao_confirmar_expressao.place(relx=0.5, y=280, anchor="center")
     
     botao_problemas_reais = Button.botao_padrao("🔬Problemas Reais", principal)
-    botao_problemas_reais.configure(command=lambda: (show_frame(frame_problemas_reais)))
-    botao_problemas_reais.place(relx=0.5, y=400, anchor="center")
+    botao_problemas_reais.configure(command=lambda: show_frame(frame_problemas_reais))
+    botao_problemas_reais.place(relx=0.5, y=360, anchor="center")
 
     botao_go_back_to_inicio = Button.botao_voltar("Voltar", principal)
     botao_go_back_to_inicio.configure(command=lambda: go_back_to(frame_inicio))
-    botao_go_back_to_inicio.place(relx=0.5, y=500, anchor="center")
+    botao_go_back_to_inicio.place(relx=0.5, y=440, anchor="center")
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
 
@@ -500,28 +522,37 @@ def inicializar_interface():
     #---------------- FRAME DE ABAS ----------------
 
     abas = ctk.CTkTabview(
-        master=frame_abas, fg_color="#082347", 
-        segmented_button_fg_color="#FFFFFF", segmented_button_selected_color="#4441F7",
-        segmented_button_selected_hover_color="#0B1658", segmented_button_unselected_color="#001E44",
-        segmented_button_unselected_hover_color="#4682B4", command=on_tab_change
+        master=frame_abas, 
+        fg_color=Colors.PRIMARY_BG, 
+        segmented_button_fg_color=TabConfig.BACKGROUND_COLOR, 
+        segmented_button_selected_color=TabConfig.SELECTED_COLOR,
+        segmented_button_selected_hover_color=TabConfig.SELECTED_HOVER, 
+        segmented_button_unselected_color=TabConfig.UNSELECTED_COLOR,
+        segmented_button_unselected_hover_color=TabConfig.UNSELECTED_HOVER, 
+        command=on_tab_change
     )
     abas.pack(expand=True, fill="both")
 
     #---------------------- ABA DO CIRCUITO ----------------------
 
     aba_circuito = abas.add("      Circuito      ")
-    scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color="#082347")
+    scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color=Colors.PRIMARY_BG)
     scroll_frame1.pack(expand=True, fill="both")
 
-    label_circuito_expressao = ctk.CTkLabel(scroll_frame1, font=("Trebuchet MS", 16, "bold"), text_color="cyan", text="")
-    label_circuito_expressao.pack(pady=10)
+    label_circuito_expressao = ctk.CTkLabel(
+        scroll_frame1, 
+        font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD), 
+        text_color=Colors.TEXT_ACCENT, 
+        text=""
+    )
+    label_circuito_expressao.pack(pady=Spacing.MD)
 
     botao_duvida1 = Button.botao_duvida(scroll_frame1)
     botao_duvida1.place(relx=0.95, y=5, anchor="ne")
     botao_duvida1.configure(command=lambda: popup_duvida(duvida_circuitos))
 
     imagem_circuito = ctk.CTkLabel(scroll_frame1, text="")
-    imagem_circuito.pack(pady=10)
+    imagem_circuito.pack(pady=Spacing.MD)
 
     def salvar_imagem():
         try:
@@ -542,18 +573,18 @@ def inicializar_interface():
         except Exception as e:
             popup_erro(f"Erro ao salvar imagem: {e}")
             
-    botao_salvar = Button.botao_padrao("Salvar circuito como PNG", scroll_frame1)
+    botao_salvar = Button.botao_padrao("💾 Salvar circuito como PNG", scroll_frame1)
     botao_salvar.configure(command=salvar_imagem)
-    botao_salvar.pack(pady=20)
+    botao_salvar.pack(pady=Spacing.LG)
  #------------------------------------------------ ABA DO CIRCUITO INTERATIVO  ----------------------------------------------
     aba_circuito_interativo = abas.add("  Circuito Interativo  ")
-    frame_circuito_interativo = tk.Frame(aba_circuito_interativo, bg="#082347")
-    frame_circuito_interativo.pack(expand=True, fill="both", padx=10, pady=10)
+    frame_circuito_interativo = tk.Frame(aba_circuito_interativo, bg=Colors.PRIMARY_BG)
+    frame_circuito_interativo.pack(expand=True, fill="both", padx=Spacing.SM, pady=Spacing.SM)
     
  #------------------------------------------------ ABA DE EXPRESSÃO  ----------------------------------------------
  
     aba_expressao = abas.add("      Expressão      ")
-    scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color="#082347")
+    scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color=Colors.PRIMARY_BG)
     scroll_frame2.pack(expand=True, fill="both")
     expressao_booleana_atual = ""
 
@@ -580,10 +611,25 @@ def inicializar_interface():
             except Exception as e:
                 print(f"Erro no logger: {e}")
 
-    frame_borda = ctk.CTkFrame(master=scroll_conteudo,fg_color="white", corner_radius=10)
-    label_convertida = ctk.CTkLabel(scroll_frame2, text="", font=("Trebuchet MS", 16, "bold"), text_color="white")
-    log_simplificacao_textbox = ctk.CTkTextbox(frame_borda,  wrap="word", font=("Trebuchet MS", 18), height=600, width=900)
-    log_simplificacao_textbox.configure(fg_color="#1c1c1c")
+    frame_borda = ctk.CTkFrame(
+        master=scroll_conteudo,
+        fg_color=Colors.TEXT_PRIMARY, 
+        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+    )
+    label_convertida = ctk.CTkLabel(
+        scroll_frame2, 
+        text="", 
+        font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD), 
+        text_color=Colors.TEXT_PRIMARY
+    )
+    log_simplificacao_textbox = ctk.CTkTextbox(
+        frame_borda,  
+        wrap="word", 
+        font=get_font(Typography.SIZE_SUBTITLE), 
+        height=600, 
+        width=900
+    )
+    log_simplificacao_textbox.configure(fg_color=Colors.SURFACE_DARK)
 
     def mostrar_expressao_convertida():
         try:
@@ -606,7 +652,12 @@ def inicializar_interface():
             popup_erro(f"Erro ao converter expressão: {e}")
         
 
-    label_solucao = ctk.CTkLabel(scroll_conteudo, text="Solução da expressão:", font=("Trebuchet MS", 20, "bold"), text_color="white")
+    label_solucao = ctk.CTkLabel(
+        scroll_conteudo, 
+        text="Solução da expressão:", 
+        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
+        text_color=Colors.TEXT_PRIMARY
+    )
 
     def expressao_simplificada():
         try:
@@ -625,14 +676,14 @@ def inicializar_interface():
                 log_simplificacao_textbox.pack_forget()
                 frame_borda.pack_forget()
 
-            label_solucao.pack(pady=20)
-            frame_borda.pack(pady=10)
+            label_solucao.pack(pady=Spacing.LG)
+            frame_borda.pack(pady=Spacing.MD)
             frame_borda.configure(width=800)
-            log_simplificacao_textbox.pack(padx=10, pady=10, fill="both", expand=True)
+            log_simplificacao_textbox.pack(padx=Spacing.MD, pady=Spacing.MD, fill="both", expand=True)
             log_simplificacao_textbox.configure(state="normal")
             log_simplificacao_textbox.delete("1.0", "end")
             log_simplificacao_textbox.configure(text_color="#39FF14", spacing3=-27)
-            botao_go_back_to_aba2.pack(pady=10)
+            botao_go_back_to_aba2.pack(pady=Spacing.MD)
 
             gui_logger = GUILogger(log_simplificacao_textbox)
 
@@ -663,7 +714,7 @@ def inicializar_interface():
 
     botao_converter = Button.botao_padrao("🔗Realizar conversão", scroll_frame2)
     botao_converter.configure(command=lambda: (mostrar_expressao_convertida(), mostrar_botoes_simplificar()))
-    botao_converter.pack(pady=10)
+    botao_converter.pack(pady=Spacing.MD)
 
     def go_to_interactive():
         #Função wrapper para garantir a ordem correta das chamadas
@@ -674,20 +725,34 @@ def inicializar_interface():
     botao_interativo.configure(command=go_to_interactive)
 
     
-    escolher_caminho = ctk.CTkFrame(frame_interativo, fg_color="#000033", corner_radius=10, height=800, width=280)
-    area_expressao = ctk.CTkTextbox(master=frame_interativo,fg_color="#1c1c1c", text_color="#39FF14", font=("Trebuchet MS", 16), wrap="word", width=800, height=800)
+    escolher_caminho = ctk.CTkFrame(
+        frame_interativo, 
+        fg_color=Colors.SURFACE_DARK, 
+        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM, 
+        height=800, 
+        width=280
+    )
+    area_expressao = ctk.CTkTextbox(
+        master=frame_interativo,
+        fg_color=Colors.SURFACE_DARK, 
+        text_color="#39FF14", 
+        font=get_font(Typography.SIZE_BODY), 
+        wrap="word", 
+        width=800, 
+        height=800
+    )
     
 #---------------------- PARTE DA SIMPLFICAÇÃO ---------------------------------
     def mostrar_botoes_simplificar():
-        botao_solucao.pack(pady=10)
-        botao_interativo.pack(pady=10)
+        botao_solucao.pack(pady=Spacing.MD)
+        botao_interativo.pack(pady=Spacing.MD)
 
     botao_solucao = Button.botao_padrao("🔍Simplificar - resultado", scroll_frame2)
     botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
 
     botao_go_back_to_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
-    botao_go_back_to_aba2.configure(command = lambda: go_back_to(frame_abas))
-    botao_go_back_to_aba2.pack(side="bottom", pady = 10)
+    botao_go_back_to_aba2.configure(command=lambda: go_back_to(frame_abas))
+    botao_go_back_to_aba2.pack(side="bottom", pady=Spacing.MD)
     
 
 #------------------ LOGGING E REGISTRO DE USO ------------------
@@ -974,13 +1039,15 @@ def inicializar_interface():
         botoes_leis = []
 
         for info in botoes_info:
-            btn = ctk.CTkButton(
-                escolher_caminho, text=info["texto"],
-                fg_color="#B0E0E6", text_color="#000080", hover_color="#8B008B",
-                border_width=2, border_color="#708090", width=250, height=45,font=("Trebuchet MS", 12),
-                command=lambda idx=info["idx"]: on_lei_selecionada(idx)
+            btn = Button.botao_especial(
+                info["texto"], escolher_caminho,
+                fg_color=Colors.BUTTON_PRIMARY, 
+                hover_color=Colors.BUTTON_PRIMARY_HOVER,
+                text_color=Colors.BUTTON_TEXT,
+                width=250, height=45
             )
-            btn.pack(pady=5, padx=10)
+            btn.configure(command=lambda idx=info["idx"]: on_lei_selecionada(idx))
+            btn.pack(pady=Spacing.XS, padx=Spacing.SM)
             botoes_leis.append(btn)
         
         global botao_pular, botao_desfazer
@@ -990,85 +1057,122 @@ def inicializar_interface():
                                                            go_back_to(frame_abas)], width=250, height=45)
         botao_voltar_interativo.pack(pady=5, padx=10)
 
-        botao_pular = ctk.CTkButton(
-            escolher_caminho, text="Pular ↪",
-            fg_color="#DAA520", text_color="#000080", hover_color="#8B008B",
-            border_width=2, border_color="#708090",
-            font=("Trebuchet MS", 16), command=on_pular_selecionado, width=100
+        botao_pular = Button.botao_especial(
+            "Pular ↪", escolher_caminho,
+            fg_color=Colors.ACCENT_GOLD, 
+            hover_color=Colors.ACCENT_GOLD_HOVER,
+            text_color=Colors.BUTTON_TEXT,
+            width=100, height=Dimensions.BUTTON_HEIGHT_SMALL
         )
-        botao_pular.pack(side="left", padx=20, pady=10)
+        botao_pular.configure(command=on_pular_selecionado, font=get_font(Typography.SIZE_BODY_SMALL))
+        botao_pular.pack(side="right", padx=Spacing.LG, pady=Spacing.MD)
 
-        botao_desfazer = ctk.CTkButton(
-            escolher_caminho, text="Desfazer ↩",
-            fg_color="#C0C0C0", text_color="#000000", hover_color="#A9A9A9",
-            border_width=2, border_color="#696969",
-            font=("Trebuchet MS", 16), command=on_desfazer_selecionado, state="disabled", width=100
+        botao_desfazer = Button.botao_especial(
+            "Desfazer ↩", escolher_caminho,
+            fg_color="#C0C0C0", 
+            hover_color="#A9A9A9",
+            text_color="#000000",
+            width=100, height=Dimensions.BUTTON_HEIGHT_SMALL
         )
-        botao_desfazer.pack(side="right", padx=20, pady=10)
+        botao_desfazer.configure(command=on_desfazer_selecionado, state="disabled", font=get_font(Typography.SIZE_BODY_SMALL))
+        botao_desfazer.pack(side="left", padx=Spacing.LG, pady=Spacing.MD)
 
         iniciar_rodada_interativa()
     #------------------------------------------------------------------------
-    botao_relatorio = ctk.CTkButton(
-    frame_inicio,
-    text="Gerar Relatório HTML",
-    command=generate_html_log  # Chama a função quando clica
-    )
-    botao_relatorio.pack(pady=10)
+    # BOTÃO DE RELATÓRIO HTML COMENTADO CONFORME SOLICITADO
+    # botao_relatorio = Button.botao_padrao("📊 Gerar Relatório HTML", frame_inicio)
+    # botao_relatorio.configure(command=generate_html_log)
+    # botao_relatorio.pack(pady=Spacing.MD)
 
     botao_tabela_verdade = Button.botao_padrao("🔢Tabela Verdade", scroll_frame2)
     botao_tabela_verdade.configure(command=lambda: exibir_tabela_verdade(entrada.get().strip().upper()))
-    botao_tabela_verdade.pack(pady=10)
+    botao_tabela_verdade.pack(pady=Spacing.MD)
 
     botao_pedir_ajuda_ia = Button.botao_padrao("❓Pedir ajuda à IA", scroll_frame2)
     botao_pedir_ajuda_ia.configure(command=lambda: abrir_duvida_expressao(entrada.get().strip().upper()))
-    botao_pedir_ajuda_ia.pack(pady=10)
+    botao_pedir_ajuda_ia.pack(pady=Spacing.MD)
 
-    #Botões das partes de abas que voltam pro frame de inserir a expressão para ver o circuito
+    # Botões das partes de abas que voltam pro frame de inserir a expressão para ver o circuito
     botao_voltar_principal_2 = Button.botao_voltar("Voltar", scroll_frame2)
     botao_voltar_principal_2.configure(command=lambda: go_back_to(principal))
-    botao_voltar_principal_2.pack(pady=30)
+    botao_voltar_principal_2.pack(pady=Spacing.XXL)
 
     botao_voltar_principal = Button.botao_voltar("Voltar", scroll_frame1)
     botao_voltar_principal.configure(command=lambda: go_back_to(principal))
-    botao_voltar_principal.pack(pady=30)
+    botao_voltar_principal.pack(pady=Spacing.XXL)
 
     #---------------- FRAME DE INFORMAÇÕES ----------------
 
-    frame_info = ctk.CTkFrame(janela, fg_color="#082347")
+    frame_info = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_info.grid(row=0, column=0, sticky="nsew")
 
-    textbox_info = ctk.CTkTextbox(frame_info, font=("Trebuchet MS", 20), text_color="white", fg_color="#082347")
-    textbox_info.pack(expand=True, fill="both", padx=20, pady=20)
-    textbox_info.configure(fg_color="#00002C", text_color="white")  #Permitir edição para inserir o texto
+    textbox_info = ctk.CTkTextbox(
+        frame_info, 
+        font=get_font(Typography.SIZE_TITLE_SMALL), 
+        text_color=Colors.TEXT_PRIMARY, 
+        fg_color=Colors.PRIMARY_BG
+    )
+    textbox_info.pack(expand=True, fill="both", padx=Spacing.LG, pady=Spacing.LG)
+    textbox_info.configure(fg_color=Colors.SURFACE_MEDIUM, text_color=Colors.TEXT_PRIMARY)
     info_text = informacoes
-    textbox_info.insert("0.0", info_text)  #Inserir o texto no Textbox
-    textbox_info.configure(state="disable")  #Desativar edição para evitar modificações
+    textbox_info.insert("0.0", info_text)
+    textbox_info.configure(state="disable")
 
     botao_voltar_info = Button.botao_voltar("Voltar", frame_info)
     botao_voltar_info.configure(command=lambda: go_back_to(frame_inicio))
-    botao_voltar_info.pack(pady=20)
+    botao_voltar_info.pack(pady=Spacing.LG)
 
     #---------------- FRAME DE EQUIVALÊNCIA ----------------
 
-    entrada2 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Trebuchet MS", 14))
+    titulo = ctk.CTkLabel(
+        frame_equivalencia, 
+        text="Digite as expressões que deseja comparar:", 
+        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
+        text_color=Colors.TEXT_PRIMARY, 
+        fg_color=None
+    )
+    titulo.place(relx=0.5, y=130, anchor="center")
+
+    entrada2 = ctk.CTkEntry(
+        frame_equivalencia, 
+        width=350, 
+        placeholder_text="Primeira expressão", 
+        font=get_font(Typography.SIZE_BODY_SMALL),
+        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+    )
     entrada2.place(relx=0.5, y=200, anchor="center")
 
-    entrada3 = ctk.CTkEntry(frame_equivalencia, width=300, placeholder_text="Digite aqui", font=("Trebuchet MS", 14))
+    entrada3 = ctk.CTkEntry(
+        frame_equivalencia, 
+        width=350, 
+        placeholder_text="Segunda expressão", 
+        font=get_font(Typography.SIZE_BODY_SMALL),
+        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+    )
     entrada3.place(relx=0.5, y=250, anchor="center")
 
-    botao_comparar = Button.botao_padrao("✅Confirmar", frame_equivalencia)
+    botao_comparar = Button.botao_padrao("✅Comparar", frame_equivalencia, style="success")
     botao_comparar.configure(command=comparar)
-    botao_comparar.place(relx=0.5, y=350, anchor="center")
+    botao_comparar.place(relx=0.5, y=320, anchor="center")
 
     botao_voltar_equivalencia = Button.botao_voltar("Voltar", frame_equivalencia)
     botao_voltar_equivalencia.configure(command=lambda: go_back_to(frame_inicio))
-    botao_voltar_equivalencia.place(relx=0.5, y=420, anchor="center")
+    botao_voltar_equivalencia.place(relx=0.5, y=400, anchor="center")
 
-    titulo = ctk.CTkLabel(frame_equivalencia, text="Digite as expressões que deseja comparar:", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
-    titulo.place(relx=0.5, y=130, anchor="center")
-
-    equivalente = ctk.CTkLabel(frame_equivalencia, text="É equivalente 😁", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
-    nao_equivalente = ctk.CTkLabel(frame_equivalencia, text="Não é equivalente 😩", font=("Trebuchet MS Bold", 20), text_color="white", fg_color=None)
+    equivalente = ctk.CTkLabel(
+        frame_equivalencia, 
+        text="✅ São equivalentes!", 
+        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
+        text_color=Colors.SUCCESS, 
+        fg_color=None
+    )
+    nao_equivalente = ctk.CTkLabel(
+        frame_equivalencia, 
+        text="❌ Não são equivalentes", 
+        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
+        text_color=Colors.ERROR, 
+        fg_color=None
+    )
  
     show_frame(frame_inicio)
     janela.mainloop()

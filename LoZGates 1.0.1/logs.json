@@ -39,8 +39,8 @@
                 },
                 "Distributiva ((A+B)*(A+C) = A+(B*C))": {
                     "usos_sucesso": 0,
-                    "tentativas_falha": 2,
-                    "tempo_gasto": 0.0
+                    "tentativas_falha": 3,
+                    "tempo_gasto": 3.5762786865234375e-06
                 },
                 "Comutativa (B*A = A*B)": {
                     "usos_sucesso": 0,
@@ -48,14 +48,14 @@
                     "tempo_gasto": 0.0
                 }
             },
-            "tentativas_totais": 23,
+            "tentativas_totais": 24,
             "sucessos_totais": 0,
-            "tempo_total_gasto": 0.0,
-            "tempo_medio": 0,
+            "tempo_total_gasto": 3.5762786865234375e-06,
+            "tempo_medio": 1.4901161193847656e-07,
             "simplificavel": null,
             "caminho_solucao": [],
             "primeira_tentativa": "2025-09-11T19:30:50.385622",
-            "ultima_tentativa": "2025-09-14T21:54:38.194965",
+            "ultima_tentativa": "2025-09-15T21:18:19.300828",
             "sessoes": [
                 {
                     "timestamp": "2025-09-11T19:30:54.098120",
@@ -84,6 +84,195 @@
                     "tentativas_na_sessao": 1,
                     "resolvida": false,
                     "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T21:08:58.367601",
+                    "tempo_gasto": 8.40237808227539,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T21:11:43.904734",
+                    "tempo_gasto": 1.5622344017028809,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T21:25:51.058581",
+                    "tempo_gasto": 8.376022100448608,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T21:25:53.997399",
+                    "tempo_gasto": 1.7642953395843506,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:01:38.615222",
+                    "tempo_gasto": 2.1624534130096436,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:03:03.163847",
+                    "tempo_gasto": 4.008246660232544,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:10:12.639666",
+                    "tempo_gasto": 6.493494033813477,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:10:14.827554",
+                    "tempo_gasto": 1.0112979412078857,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:11:59.223471",
+                    "tempo_gasto": 29.967138528823853,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:17:50.489861",
+                    "tempo_gasto": 14.162630796432495,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:18:54.319737",
+                    "tempo_gasto": 10.216123104095459,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:19:43.966689",
+                    "tempo_gasto": 3.153714418411255,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:25:17.924711",
+                    "tempo_gasto": 3.9338057041168213,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:25:19.837448",
+                    "tempo_gasto": 0.9489002227783203,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:28:37.970881",
+                    "tempo_gasto": 27.427149057388306,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:32:14.091712",
+                    "tempo_gasto": 3.4143052101135254,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:45:02.020358",
+                    "tempo_gasto": 6.3893141746521,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:46:59.031213",
+                    "tempo_gasto": 23.724891901016235,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:47:02.219308",
+                    "tempo_gasto": 1.2728548049926758,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:47:43.205970",
+                    "tempo_gasto": 5.542961835861206,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:47:49.391177",
+                    "tempo_gasto": 4.9057629108428955,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:49:00.806018",
+                    "tempo_gasto": 61.85323452949524,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:51:25.530290",
+                    "tempo_gasto": 12.855629444122314,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:51:28.329975",
+                    "tempo_gasto": 1.6122910976409912,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": true,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T22:52:39.670353",
+                    "tempo_gasto": 5.185970783233643,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": true,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T23:03:45.660017",
+                    "tempo_gasto": 5.119246006011963,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-15T23:03:48.426829",
+                    "tempo_gasto": 1.6021521091461182,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
                 }
             ]
         }
@@ -91,7 +280,7 @@
     "estatisticas_gerais": {
         "total_sessoes": 0,
         "expressoes_mais_tentadas": {
-            "(~P+Q)": 23
+            "(~P+Q)": 24
         },
         "leis_mais_usadas": {
             "Associativa ((A*B)*C = A*(B*C))": 2,
@@ -101,7 +290,7 @@
             "Identidade (A * 1 = A)": 9,
             "Idempotente (A * A = A)": 1,
             "De Morgan (~(A*B) = ~A+~B)": 2,
-            "Distributiva ((A+B)*(A+C) = A+(B*C))": 2,
+            "Distributiva ((A+B)*(A+C) = A+(B*C))": 3,
             "Comutativa (B*A = A*B)": 1
         },
         "tempo_medio_por_expressao": 0
