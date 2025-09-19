@@ -46,7 +46,7 @@ class analyzerLogico:
             tokens = self._process_parentheses(tokens, values)
         
         #Processa negação
-        tokens = self._process_not(tokens, values)
+        tokens = self._process_negacao(tokens, values)
         
         #Processa operators binários (da righteita para leftuerda para >)
         for op in ['<>', '>', '&', '|']:
@@ -84,8 +84,8 @@ class analyzerLogico:
         
         return tokens[:start] + [result] + tokens[end:]
     
-    def _process_not(self, tokens, values):
-        """Processa operadores de negação"""
+    def _process_negacao(self, tokens, values):
+        """Processa operators de negação"""
         i = 0
         result = []
         while i < len(tokens):
@@ -98,13 +98,13 @@ class analyzerLogico:
                 i += 1
         return result
     
-    def _process_operator(self, tokens, operator, values):
+    def _process_operator(self, tokens, operador, values):
         """Processa um operador específico"""
-        while operator in tokens:
-            idx = tokens.index(operator)
+        while operador in tokens:
+            idx = tokens.index(operador)
             left = self._evaluate_token(tokens[idx-1], values)
             right = self._evaluate_token(tokens[idx+1], values)
-            result = self.operators[operator](left, right)
+            result = self.operators[operador](left, right)
             tokens = tokens[:idx-1] + [result] + tokens[idx+2:]
         return tokens
     
@@ -114,7 +114,7 @@ class analyzerLogico:
         return self.to_analyze(expression, p, q, r)
     
     def to_analyze(self, expression, p, q, r):
-        """Versão melhorada do analisador original"""
+        """Versão melhorada do analyzer original"""
         values = {'P': p, 'Q': q, 'R': r}
         tokens = self.tokenizar(expression)
         return self.to_analyze_tokenizado(tokens, values)
@@ -166,8 +166,8 @@ def generate_truth_table(expression, variables=['P', 'Q', 'R']):
             result = analyzer.to_analyze_tokenizado(
                 analyzer.tokenizar(expression), values
             )
-            line = " | ".join([str(int(v)) for v in combination] + [str(int(result))])
-            print(line)
+            linha = " | ".join([str(int(v)) for v in combination] + [str(int(result))])
+            print(linha)
         except Exception as e:
             print(f"Erro: {e}")
 
