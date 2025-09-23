@@ -1418,7 +1418,8 @@ def inicializar_interface():
         scroll_passos = ctk.CTkScrollableFrame(
             frame_passos,
             fg_color=Colors.SURFACE_DARK,
-            corner_radius=Dimensions.CORNER_RADIUS_SMALL
+            corner_radius=Dimensions.CORNER_RADIUS_SMALL,
+            height=330
         )
         scroll_passos.pack(fill="both", expand=True, padx=Spacing.SM, pady=(0, Spacing.SM))
         
