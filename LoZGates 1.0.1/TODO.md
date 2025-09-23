@@ -1,7 +1,7 @@
 # Conversão lógica -> algebra
-    - Arrumar a lógica do implica
-    - Implementar a lógica do bi implica (<->)
-    - Coloquei so na conversão, preciso ver o coisa do circuito logico agora
+    - Arrumar a lógica do implica ✅ (testar mais)
+    - Implementar a lógica do bi implica (<>)  ✅
+    - Coloquei so na conversão, preciso ver o coisa do circuito logico agora ✅
 
 
 # Simplificador Interativo
@@ -30,3 +30,8 @@
     - Se a dica estiver aberta e clicar outra vez, fecha (ou apertando o botão parar). -Otavio
     - Mesma coisa para o controle. -Otavio
     - Tirar a possibilidade de ter como escrever na caixa de dicas e controle -Otavio
+
+# Banco de questões
+    - Levar a resposta para ser analisada no circuito e na simplificação.
+    - Depois que resolver essa primeira parte, colocar para expressões iguais, mas com variaveis diferentes, sejam equivalentes APENAS para essa parte.
+    por exemplo: A>B == P>Q. Porque aí não precisa definir variáveis, e não daria essa dica.

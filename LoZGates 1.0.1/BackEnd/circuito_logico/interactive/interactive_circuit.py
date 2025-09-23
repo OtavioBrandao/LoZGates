@@ -1,13 +1,11 @@
 """
     Módulo para o circuito interativo manual atualizado com painel de seleção de componentes.
 """
-
 import pygame
 import tkinter as tk
 import os
 import math
 import time
-import itertools
 
 from .components import Component, Wire, ComponentFactory
 from .palette import ComponentPalette
@@ -41,9 +39,12 @@ class CircuitoInterativoManual:
         self.history = CircuitHistory()
         self.last_action_time = 0
 
-        #Variáveis para mensagem de sucesso
+        #Variáveis para mensagem de sucesso/erro
         self.show_success_message = False
         self.success_message_timer = 0
+        self.show_error_message = False
+        self.error_message_timer = 0
+        self.error_message_text = ""
 
         #Estado da interface
         self._move = {'up': False, 'down': False, 'left': False, 'right': False}
@@ -55,6 +56,9 @@ class CircuitoInterativoManual:
         self.ghost_component = None  #Componente sendo posicionado
         self.ghost_component_type = None  #Tipo do componente fantasma
         self.placing_component = False  #Se está no modo de colocação
+        
+        #Sistema de colisão
+        self.collision_margin = 10  #Margem mínima entre componentes
     
     def init_pygame(self):
         """Inicializa o Pygame e configura a interface."""
@@ -147,16 +151,88 @@ class CircuitoInterativoManual:
                 variables.add(char.upper())
         return sorted(list(variables))
     
+    def check_collision(self, component, x, y, exclude_component=None):
+        """Verifica se há colisão entre componentes na posição especificada."""
+        # Cria retângulo temporário para o componente na nova posição
+        temp_rect = pygame.Rect(
+            x - self.collision_margin, 
+            y - self.collision_margin,
+            component.width + 2 * self.collision_margin, 
+            component.height + 2 * self.collision_margin
+        )
+        
+        # Verifica colisão com outros componentes
+        for other_comp in self.components:
+            # Ignora o próprio componente e componente excluído
+            if other_comp == component or other_comp == exclude_component:
+                continue
+            
+            # Ignora componente fantasma se estiver sendo colocado
+            if other_comp == self.ghost_component:
+                continue
+            
+            # Cria retângulo do outro componente com margem
+            other_rect = pygame.Rect(
+                other_comp.x - self.collision_margin,
+                other_comp.y - self.collision_margin, 
+                other_comp.width + 2 * self.collision_margin,
+                other_comp.height + 2 * self.collision_margin
+            )
+            
+            # Verifica sobreposição
+            if temp_rect.colliderect(other_rect):
+                return True
+        
+        return False
+    
+    def find_valid_position(self, component, preferred_x, preferred_y):
+        """Encontra uma posição válida próxima à posição preferida."""
+        # Se a posição preferida não tem colisão, usa ela
+        if not self.check_collision(component, preferred_x, preferred_y):
+            return preferred_x, preferred_y
+        
+        # Busca em espiral a partir da posição preferida
+        max_offset = 200  # Máximo de deslocamento para buscar
+        step = 30  # Tamanho do passo
+        
+        for radius in range(step, max_offset, step):
+            # Testa posições em círculo ao redor da posição preferida
+            for angle in range(0, 360, 30):  # A cada 30 graus
+                offset_x = radius * math.cos(math.radians(angle))
+                offset_y = radius * math.sin(math.radians(angle))
+                
+                test_x = preferred_x + offset_x
+                test_y = preferred_y + offset_y
+                
+                if not self.check_collision(component, test_x, test_y):
+                    return test_x, test_y
+        
+        # Se não encontrou posição válida, retorna a preferida mesmo com colisão
+        print(f"⚠️ Não foi possível encontrar posição sem colisão para {component.type}")
+        return preferred_x, preferred_y
+    
     def add_component_at_position(self, comp_type, world_pos):
-        """Adiciona um componente na posição especificada."""
+        """Adiciona um componente na posição especificada, verificando colisão."""
         x, y = world_pos
         #Centraliza o componente na posição do mouse
         x -= 40  #metade da largura padrão
         y -= 30  #metade da altura padrão
         
         new_component = ComponentFactory.create_component(comp_type, x, y)
+        
+        # Verifica e ajusta posição para evitar colisão
+        valid_x, valid_y = self.find_valid_position(new_component, x, y)
+        new_component.x = valid_x
+        new_component.y = valid_y
+        new_component.update_connection_points()
+        
         self.components.append(new_component)
         self.save_state(f"Add {comp_type} component")
+        
+        # Feedback visual se houve ajuste de posição
+        if abs(valid_x - x) > 5 or abs(valid_y - y) > 5:
+            print(f"🔄 Posição ajustada para evitar colisão: {comp_type}")
+        
         return new_component
     
     def save_state(self, action_description=""):
@@ -264,6 +340,8 @@ class CircuitoInterativoManual:
         if k == 'tab':          #Toggle painel de componentes
             if self.component_palette:
                 self.component_palette.toggle_visibility()
+        if k == 'space':        #Testar circuito
+            self.test_circuit_manual()
             
     def _on_key_release(self, e):
         """Processa teclas liberadas."""
@@ -412,16 +490,27 @@ class CircuitoInterativoManual:
         print(f"🎯 Modo colocação ativado: {component_type}")
 
     def place_ghost_component(self, screen_pos):
-        """Finaliza a colocação do componente fantasma."""
+        """Finaliza a colocação do componente fantasma com verificação de colisão."""
         if not self.ghost_component:
             return
         
         world_pos = self.camera.screen_to_world(screen_pos)
         
-        #Atualiza posição final
-        self.ghost_component.x = world_pos[0] - 40
-        self.ghost_component.y = world_pos[1] - 30
+        # Calcula posição centralizada
+        preferred_x = world_pos[0] - 40
+        preferred_y = world_pos[1] - 30
+        
+        # Encontra posição válida sem colisão
+        valid_x, valid_y = self.find_valid_position(self.ghost_component, preferred_x, preferred_y)
+        
+        # Atualiza posição final
+        self.ghost_component.x = valid_x
+        self.ghost_component.y = valid_y
         self.ghost_component.update_connection_points()
+        
+        # Feedback visual se houve ajuste
+        if abs(valid_x - preferred_x) > 5 or abs(valid_y - preferred_y) > 5:
+            print(f"🔄 Componente reposicionado para evitar colisão")
         
         #Finaliza colocação
         self.placing_component = False
@@ -453,19 +542,6 @@ class CircuitoInterativoManual:
             self.ghost_component.x = world_pos[0] - 40
             self.ghost_component.y = world_pos[1] - 30
             self.ghost_component.update_connection_points()
-
-    def draw_placement_cursor(self):
-        """Desenha cursor personalizado durante colocação."""
-        if not self.font:
-            return
-        
-        mouse_pos = pygame.mouse.get_pos()
-        
-        try:
-            surface = self.font.render(True, (255, 255, 0))
-            self.screen.blit(surface, (mouse_pos[0] + 20, mouse_pos[1] - 30))
-        except:
-            pass
         
     def select_component(self, component):
         """Seleciona um componente."""
@@ -532,26 +608,46 @@ class CircuitoInterativoManual:
         #Salva estado após conexão
         self.save_state("Connect components")
         
-        #Verifica se o circuito está correto
-        self.check_circuit_completion()
+        #Remove validação automática - usuário testará manualmente
+        #self.check_circuit_completion()
         
         self.cancel_connection()
     
     def handle_mouse_drag(self, pos):
-        """Gerencia arraste do mouse."""
+        """Gerencia arraste do mouse com verificação de colisão."""
         if self.selected_component and not self.connecting:
             world_pos = self.camera.screen_to_world(pos)
             
             #Move o componente (exceto variáveis)
             if self.selected_component.type not in ['variable']:
                 old_x, old_y = self.selected_component.x, self.selected_component.y
-                self.selected_component.x = world_pos[0] - self.selected_component.width // 2
-                self.selected_component.y = world_pos[1] - self.selected_component.height // 2
-                self.selected_component.update_connection_points()
+                new_x = world_pos[0] - self.selected_component.width // 2
+                new_y = world_pos[1] - self.selected_component.height // 2
                 
-                #Salva estado apenas se houve movimento significativo
-                if abs(old_x - self.selected_component.x) > 10 or abs(old_y - self.selected_component.y) > 10:
-                    self.save_state("Move component")
+                # Verifica colisão na nova posição
+                if not self.check_collision(self.selected_component, new_x, new_y, exclude_component=self.selected_component):
+                    # Posição válida - move o componente
+                    self.selected_component.x = new_x
+                    self.selected_component.y = new_y
+                    self.selected_component.update_connection_points()
+                    
+                    #Salva estado apenas se houve movimento significativo
+                    if abs(old_x - self.selected_component.x) > 10 or abs(old_y - self.selected_component.y) > 10:
+                        self.save_state("Move component")
+                else:
+                    # Posição inválida - tenta encontrar posição próxima válida
+                    valid_x, valid_y = self.find_valid_position(self.selected_component, new_x, new_y)
+                    
+                    # Se a posição válida encontrada está relativamente próxima, usa ela
+                    distance_to_valid = math.sqrt((valid_x - new_x)**2 + (valid_y - new_y)**2)
+                    if distance_to_valid < 50:  # Threshold de proximidade
+                        self.selected_component.x = valid_x
+                        self.selected_component.y = valid_y
+                        self.selected_component.update_connection_points()
+                        
+                        if abs(old_x - self.selected_component.x) > 10 or abs(old_y - self.selected_component.y) > 10:
+                            self.save_state("Move component")
+                    # Senão, mantém na posição anterior (não move)
     
     def _tick(self):
         """Loop principal de renderização."""
@@ -603,6 +699,10 @@ class CircuitoInterativoManual:
             if component == self.ghost_component:
                 #Desenha componente fantasma com transparência
                 self.drawer.draw_component(component)
+                
+                # Desenha indicador de colisão se houver
+                if self.check_collision(component, component.x, component.y):
+                    self.draw_collision_warning(component)
             else:
                 self.drawer.draw_component(component)
         
@@ -617,10 +717,6 @@ class CircuitoInterativoManual:
         if self.component_palette:
             self.component_palette.draw(self.screen, self.font)
         
-        #Desenha informações
-        if self.font:
-            self.draw_ui_info()
-        
         #Desenha mensagem de sucesso se ativa
         if self.show_success_message and self.success_message_timer > 0:
             self.draw_success_message()
@@ -628,64 +724,69 @@ class CircuitoInterativoManual:
             if self.success_message_timer <= 0:
                 self.show_success_message = False
 
-        #Desenha cursor personalizado se colocando componente
-        if self.placing_component:
-            self.draw_placement_cursor()
+        #Desenha mensagem de erro se ativa
+        if self.show_error_message and self.error_message_timer > 0:
+            self.draw_error_message()
+            self.error_message_timer -= 1
+            if self.error_message_timer <= 0:
+                self.show_error_message = False
 
         pygame.display.flip()
         
         #Continua o loop se ainda estiver rodando
         if self.running:
-            self.parent_frame.after(16, self._tick) 
-            
-    def draw_ui_info(self):
-        """Desenha informações de controle na tela"""
-        '''#Ajusta posição se o painel está visível
-        start_x = 150 if (self.component_palette and self.component_palette.visible) else 10
-        
-        ui_texts = [
-            "=== MODO CONSTRUÇÃO INTERATIVA ===",
-            f"Expressão: {self.expressao[:30]}{'...' if len(self.expressao) > 30 else ''}",
-            "Status: " + ("Conectando..." if self.connecting else "Clique nas bolinhas verdes para conectar")
-        ]
-        
-        #Adiciona informação sobre restrições se ativas
-        if self.gate_restrictions:
-            ui_texts.insert(-2, f"LIMITADO A: {', '.join(self.gate_restrictions).upper()}")
-        
-        y = 10
-        for text in ui_texts:
-            try:
-                if text.startswith("==="):
-                    color = (255, 255, 0)
-                elif text.startswith("INSTRUÇÕES") or text.startswith("•"):
-                    color = (0, 255, 255)
-                elif text.startswith("LIMITADO"):
-                    color = (255, 100, 100)  #Vermelho para restrições
-                else:
-                    color = (255, 255, 255)
-                
-                surface = self.font.render(text, True, color)
-                self.screen.blit(surface, (start_x, y))
-                y = y + 20 if not text.startswith("===") else y + 25
-            except: 
-                pass'''
-        pass #Desativado por tempo indeterminado
+            self.parent_frame.after(16, self._tick)
     
+    def draw_collision_warning(self, component):
+        """Desenha aviso visual de colisão."""
+        # Desenha X vermelho no centro se houver colisão
+        center_x = component.x + component.width // 2
+        center_y = component.y + component.height // 2
+        
+        # Converte para coordenadas de tela
+        screen_center = self.camera.world_to_screen((center_x, center_y))
+        
+        # Desenha X
+        size = 15
+        pygame.draw.line(self.screen, (255, 0, 0), 
+                        (screen_center[0] - size, screen_center[1] - size),
+                        (screen_center[0] + size, screen_center[1] + size), 3)
+        pygame.draw.line(self.screen, (255, 0, 0),
+                        (screen_center[0] + size, screen_center[1] - size), 
+                        (screen_center[0] - size, screen_center[1] + size), 3)
+            
     def stop(self):
         """Para o circuito."""
         self.running = False
         print("🛑 Circuito interativo parado")
     
-    def check_circuit_completion(self):
-        """Verifica se o circuito montado está correto conforme a expressão"""
+    def test_circuit_manual(self):
+        """Testa o circuito manualmente quando o usuário pressiona ESPAÇO."""
+        print("🧪 Testando circuito manualmente...")
+        
         try:
             if self.is_circuit_correct():
                 self.show_success_message = True
-                self.success_message_timer = 300
-                print("🎉 Circuito montado corretamente!")
+                self.success_message_timer = 300  # 5 segundos a 60fps
+                self.show_error_message = False
+                print("✅ Circuito correto!")
+            else:
+                self.show_error_message = True
+                self.error_message_timer = 300  # 5 segundos a 60fps
+                self.show_success_message = False
+                print("❌ Circuito incorreto!")
+                
         except Exception as e:
-            print(f"Erro ao verificar circuito: {e}")
+            self.show_error_message = True
+            self.error_message_timer = 300
+            self.error_message_text = f"Erro na validação: {str(e)}"
+            self.show_success_message = False
+            print(f"❌ Erro ao testar circuito: {e}")
+
+    def check_circuit_completion(self):
+        """Método mantido para compatibilidade, mas não usado mais automaticamente."""
+        # Removido - agora só testamos manualmente
+        pass
 
     def is_circuit_correct(self):
         """Verifica se o circuito implementa a expressão através de simulação com tabela verdade."""
@@ -991,27 +1092,25 @@ class CircuitoInterativoManual:
         
         #Fundo semi-transparente
         overlay = pygame.Surface((self.screen_width, self.screen_height))
-        overlay.fill((0, 0, 0))
+        overlay.fill((0, 50, 0))  # Verde escuro
         overlay.set_alpha(180)
         self.screen.blit(overlay, (0, 0))
         
         #Mensagem principal
         messages = [
-            " PARABÉNS! ",
+            "🎉 PARABÉNS! 🎉",
             "Circuito montado corretamente!",
+            f"Expressão: {self.expressao}",
             ""
         ]
         
-        "colocar aqui a mensagem de conclusão detalhada para cada limitação"
-        
         if self.gate_restrictions:
-            messages.append(f"Usando apenas: {', '.join(self.gate_restrictions).upper()}")
-            messages.append("")
+            messages.insert(-2, f"Usando apenas: {', '.join(self.gate_restrictions).upper()}")
         
         start_y = self.screen_height // 2 - 120
         for i, message in enumerate(messages):
             if message.startswith("🎉"):
-                color = (255, 215, 0)  #Dourado
+                color = (255, 255, 0)  #Amarelo
                 font_size = 48
             elif message.startswith("Circuito"):
                 color = (0, 255, 0)   #Verde
@@ -1019,6 +1118,9 @@ class CircuitoInterativoManual:
             elif message.startswith("Expressão") or message.startswith("Usando"):
                 color = (255, 255, 255)  #Branco
                 font_size = 24
+            elif message.startswith("Pressione"):
+                color = (200, 200, 200)  #Cinza claro
+                font_size = 18
             else:
                 color = (200, 200, 200)  #Cinza claro
                 font_size = 20
@@ -1027,6 +1129,59 @@ class CircuitoInterativoManual:
                 font = pygame.font.Font(None, font_size)
                 surface = font.render(message, True, color)
                 rect = surface.get_rect(center=(self.screen_width//2, start_y + i * 40))
+                self.screen.blit(surface, rect)
+            except:
+                pass
+
+    def draw_error_message(self):
+        """Desenha mensagem de erro quando o circuito está incorreto"""
+        if not self.font:
+            return
+        
+        #Fundo semi-transparente vermelho
+        overlay = pygame.Surface((self.screen_width, self.screen_height))
+        overlay.fill((50, 0, 0))  # Vermelho escuro
+        overlay.set_alpha(180)
+        self.screen.blit(overlay, (0, 0))
+        
+        #Mensagem principal
+        messages = [
+            "❌ CIRCUITO INCORRETO ❌",
+            "Tente novamente!",
+            "",
+            "Possíveis problemas:",
+            "• Verifique todas as conexões",
+            "• Confira se implementou a expressão correta",
+            "• Todas as variáveis devem estar conectadas",
+            "• O circuito deve ter pelo menos uma porta lógica",
+            ""
+        ]
+        
+        start_y = self.screen_height // 2 - 160
+        for i, message in enumerate(messages):
+            if message.startswith("❌"):
+                color = (255, 100, 100)  #Vermelho claro
+                font_size = 42
+            elif message.startswith("Tente"):
+                color = (255, 150, 150)   #Rosa
+                font_size = 32
+            elif message.startswith("Possíveis"):
+                color = (255, 255, 255)  #Branco
+                font_size = 24
+            elif message.startswith("•"):
+                color = (255, 200, 200)  #Rosa claro
+                font_size = 18
+            elif message.startswith("Pressione"):
+                color = (200, 200, 200)  #Cinza
+                font_size = 18
+            else:
+                color = (200, 200, 200)  #Cinza
+                font_size = 18
+            
+            try:
+                font = pygame.font.Font(None, font_size)
+                surface = font.render(message, True, color)
+                rect = surface.get_rect(center=(self.screen_width//2, start_y + i * 30))
                 self.screen.blit(surface, rect)
             except:
                 pass

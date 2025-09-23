@@ -275,22 +275,15 @@
                     "caminho_usado": []
                 },
                 {
-                    "timestamp": "2025-09-16T16:17:09.191085",
-                    "tempo_gasto": 3.8798153400421143,
+                    "timestamp": "2025-09-16T16:15:38.083496",
+                    "tempo_gasto": 141.99205708503723,
                     "tentativas_na_sessao": 0,
                     "resolvida": false,
                     "caminho_usado": []
                 },
                 {
-                    "timestamp": "2025-09-16T16:17:11.810400",
-                    "tempo_gasto": 1.4499056339263916,
-                    "tentativas_na_sessao": 0,
-                    "resolvida": false,
-                    "caminho_usado": []
-                },
-                {
-                    "timestamp": "2025-09-23T17:46:01.941731",
-                    "tempo_gasto": 1.5857617855072021,
+                    "timestamp": "2025-09-16T16:15:48.180104",
+                    "tempo_gasto": 7.998662710189819,
                     "tentativas_na_sessao": 0,
                     "resolvida": false,
                     "caminho_usado": []

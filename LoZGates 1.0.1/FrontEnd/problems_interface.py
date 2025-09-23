@@ -82,9 +82,10 @@ class IntegratedProblemsInterface:
         
         # Dicionário de cores para diferentes dificuldades
         difficulty_colors = {
-            "Fácil": (Colors.SUCCESS, "#45A049"),
-            "Média": (Colors.WARNING, "#F57C00"),
-            "Difícil": (Colors.ERROR, "#D32F2F")
+            "Fácil": (Colors.SUCCESS, "#09BB62"  ),
+            "Médio": (Colors.WARNING, "#F5B800"),
+            "Difícil": (Colors.ERROR, "#D32F2F"),
+            "Supremo":(Colors.HEHEHE, "#B019AB")
         }
         
         for idx, problem in enumerate(Problems_bank):
@@ -152,8 +153,9 @@ class IntegratedProblemsInterface:
         # Badge de dificuldade
         difficulty_colors = {
             "Fácil": Colors.SUCCESS,
-            "Média": Colors.WARNING, 
-            "Difícil": Colors.ERROR
+            "Médio": Colors.WARNING, 
+            "Difícil": Colors.ERROR,
+            "Supremo": Colors.HEHEHE,
         }
         
         difficulty_frame = ctk.CTkFrame(
