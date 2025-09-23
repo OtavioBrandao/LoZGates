@@ -10,8 +10,8 @@ class Colors:
     
     # Cores de destaque
     ACCENT_CYAN = "#65E6FD"         # Ciano elétrico
-    ACCENT_GOLD = "#D3C724"         # Pink neon
-    ACCENT_GOLD_HOVER = "#837215"   # Pink hover
+    ACCENT_GOLD = "#D3C724"         # Ouro neon
+    ACCENT_GOLD_HOVER = "#837215"   # Ouro hover
     
     # Cores de texto
     TEXT_PRIMARY = "#FFFFFF"        # Branco
@@ -20,14 +20,15 @@ class Colors:
     
     # Cores de botões padrão
     BUTTON_PRIMARY = "#00D9FF"      # Ciano elétrico
-    BUTTON_PRIMARY_HOVER = "#5CE2FA" # Ciano hover
+    BUTTON_PRIMARY_HOVER = "#5CE2FA"# Ciano hover
     BUTTON_TEXT = "#000000"         # Preto para contraste
     
     # Cores de estado
-    SUCCESS = "#09BB62"             # Verde neon
-    WARNING = "#BBA424"             # Ouro neon
-    ERROR = "#961730"               # Vermelho neon
+    SUCCESS = "#45A049"             # Verde 
+    WARNING = "#BBA424"             # Ouro 
+    ERROR = "#961730"               # Vermelho 
     INFO = "#00D9FF"                # Ciano neon
+    HEHEHE = "#72076E"              # Roxo
     
     # Bordas
     BORDER_DEFAULT = "#444444"

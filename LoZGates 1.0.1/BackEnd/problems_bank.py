@@ -13,7 +13,8 @@ class Problems:
         pass
 
     def show_the_answer(self):
-        print(f"The boolean answer is : {self.answer}")
+        #print(f"The boolean answer is : {self.answer}")
+        pass
 
 class ProblemsToFrame:
     def __init__(self, problem_bank):
@@ -45,14 +46,16 @@ Problems_bank = [
     Problems(
         name = "Airbags",
         question = """
-        Larissa é uma engenheira(o) de software muito dedicada(o). 
+        Larissa é um engenheiro de software muito dedicado. 
         Em um de seus trabalhos na empresa automobilística, Evandro's,
-        lhe foi confiada(o) o desenvolvimento de um circuito lógico para
+        lhe foi confiado o desenvolvimento de um circuito lógico para
         o sistema de airbags dos carros da empresa. Devido ao prazo curto
         de entrega Larissa pede sua ajuda para o desenvolvimento do circuito,
-        que só deve ser ativado sob as seguintes condições :
-        O veículo deve estar em movimento (V),o passageiro deve estar no carro (P)
+        que só deve ser ativado sob as seguintes condições:
+        O veículo deve estar em movimento (V), o passageiro deve estar no carro (P)
         e o sensor de impacto deve estar ativado (I).
+        
+        Então, qual é a expressão que representa esse sistema?
         """,
         answer = "(V & P & I)",
         difficulty = "Fácil"
@@ -66,10 +69,12 @@ Problems_bank = [
         por uso de entorpecentes e males súbitos, redirecionando o condutor ao banco de 
         passageiros, impedindo ele acessar o volante do veículo, permitindo assim que o
         automóvel inteligente fizesse todo o trabalho. O circuito desse sistema revolucionário 
-        consistia em algumas leis : O piloto NÃO deve estar sob o efeito de nenhum 
-        entorpecente(-I), ele deve estar em boas condições físicas e mentais (M) e  o 
-        sistema NEURAL EVA deve estar atualizado (E). Contudo, se tiver um 
-        acompanhante habilitado (A) então o banco da frente pode ser acessado. 
+        consistia em algumas leis: O piloto NÃO deve estar sob o efeito de nenhum 
+        entorpecente (!I), ele deve estar em boas condições físicas e mentais (M) e o 
+        sistema NEURAL EVA deve estar atualizado (E). Contudo, se tiver um acompanhante
+        habilitado (A) então o banco da frente pode ser acessado.
+        
+        Qual expressão representa corretamente esse sistema?
         """,
     answer = "(!I & M & E) | (A)",
     difficulty = "Fácil"
@@ -81,16 +86,15 @@ Problems_bank = [
         Iron Mind lidera as seletivas de finais, mas um problema surgiu. A equipe rival,
         Asimov, desenvolveu uma estratégia infalível que batia de frente com a Iron Mind. A 
         equipe não teve escolha a não ser usar a sua tática infalível, nunca mostrada em 
-        nenhuma competição, a STAIRWAY TO HEAVEN. Essa tática de combate é 
-        condicional e é ativada separadamente por um circuito especial presente no robô. As 
-        condições são : 
+        nenhuma competição, a STAIRWAY TO HEAVEN. Essa tática de combate é condicional e 
+        é ativada separadamente por um circuito especial presente no robô. As condições são: 
+        
         - O sensor de obstáculo deve identificar o inimigo (S)
-        - O robô deve estar mais de 50 % de bateria (B)
+        - O robô deve estar mais de 50% de bateria (B)
         - E o robô inimigo deve estar a 1 metro de distância (D)
+        
         No entanto, por ser um ataque de alta precisão e que consome muita energia, essas 
-        verificações só são realizadas caso o operador pressione o botão de ativação (H). Ou 
-        seja, o sistema só será liberado se o botão for pressionado e todas as condições forem 
-        verdadeiras.
+        verificações só são realizadas caso o operador pressione o botão de ativação (H). 
         Ajude a equipe Iron Mind a desenvolver esse sistema lógico antes do próximo round!
         """,
     answer = "(S & B & D) & H",
@@ -106,7 +110,7 @@ Problems_bank = [
         O sistema de resfriamento só é acionado automaticamente se três condições
         forem atendidas:
 
-            - A temperatura ambiente ultrapassar os 30 °C (T);
+            - A temperatura ambiente ultrapassar os 30°C (T);
             - A taxa de uso da CPU ultrapassar 80% (C);
             - E o sensor de movimento detectar que não há técnicos no local (M).
 
@@ -119,13 +123,13 @@ Problems_bank = [
     answer = "(T & C & M) & H",
     difficulty = "Fácil"
     ),
-    Problems (
+    Problems ( #ver esse depois
         name = "Ciência Vs Engenharia",
         question = """
-        Os alunos de engenharia de computação e  ciência da computação do IC se 
-        encontram em um embate milenar. Para o desempate, cada curso deve montar um 
-        circuito lógico que tem duas formas de checar a se o usuário é cadastrado em um 
-        sistema de saque bancário : 
+        Os alunos de engenharia de computação e ciência da computação do IC se encontram
+        em um embate milenar. Para o desempate, cada curso deve montar um circuito lógico
+        que tem duas formas de checar se o usuário é cadastrado em um sistema de saque
+        bancário: 
             - O usuário pode fazer a verificação com a leitura da digital e do cartão
             - Ou ele pode fazer o saque tendo a digital e a leitura de retina 
         Ajude a turma de engenharia a ganhar esse empate.
@@ -133,7 +137,7 @@ Problems_bank = [
     answer = "(D & C) | (D & R)",
     difficulty = "Fácil"
     ),
-    Problems(
+    Problems( #ver esse depois
         name = "Disjuntor lógico",
         question = """
         Otávio, neste semestre, escolheu a eletiva de Eletrotécnica com o objetivo de 
@@ -141,9 +145,8 @@ Problems_bank = [
         que o funcionamento do disjuntor se parecia muito com um conceito que havia 
         aprendido na disciplina de Lógica e Circuitos Digitais. Com essa ideia em mente, 
         Otávio resolveu desenvolver um circuito lógico que simulasse o comportamento do 
-        disjuntor, utilizando os conhecimentos adquiridos nas duas matérias. Agora faça o
-        seu próprio circuito disjuntor.
-
+        disjuntor, utilizando os conhecimentos adquiridos nas duas matérias. 
+        Agora faça o seu próprio circuito disjuntor.
         """,
     answer = "(C & T)",
     difficulty = "Fácil"
@@ -156,17 +159,15 @@ Problems_bank = [
         lógico de autenticação para evitar acessos indevidos a servidores críticos.
 
         Esse protocolo é composto por duas condições principais que determinam se um 
-        acesso deve ser concedido (S = 1) ou negado (S = 0):
+        acesso deve ser concedido ou negado:
 
             - P: O usuário possui token de autenticação válido;
             - Q: O usuário está acessando a partir de um IP confiável.
 
         O sistema só libera o acesso se pelo menos uma dessas condições for 
-        verdadeira (ou seja, P | Q) e, ao mesmo tempo, garantir que caso o token seja 
-        válido (P = 1), então obrigatoriamente o IP deve ser confiável (Q = 1). Isso evita 
-        que usuários com token roubado acessem de redes inseguras. Ajude a equipe da Otávio 
-        Tech a desenvolver esse circuito.
-
+        verdadeira, e garantir que caso o token seja válido, então obrigatoriamente
+        o IP deve ser confiável. Isso evita que usuários com token roubado acessem de 
+        redes inseguras. Ajude a equipe da Otávio Tech a desenvolver esse circuito.
         """,
     answer = "(P|Q)&(P>Q)",
     difficulty = "Fácil"
@@ -184,10 +185,11 @@ Problems_bank = [
             correta para realizar o encaixe com segurança.
 
         Por questões de segurança, o robô só poderá executar o encaixe da peça se 
-        ambos os sensores estiverem sincronizados, ou seja, os dois ativos ao mesmo 
-        tempo, ou os dois inativos ao mesmo tempo.
+        ambos os sensores estiverem sincronizados.
+        
+        Qual é a expressão que representa esse sistema de montagem?
         """,
-    answer = "!(P>Q)&(Q>P)",
+    answer = "(P<>Q)",
     difficulty = "Fácil"
     ),
     Problems(
@@ -201,17 +203,33 @@ Problems_bank = [
             - A nave estiver fora da zona de segurança orbital (Z).
             - O comandante inserir o código mestre corretamente (C).
             - Dois oficiais de segurança girarem simultaneamente suas chaves de ativação (K).
-            - Nenhum tripulante estiver presente nos módulos centrais da nave (-M).
+            - Nenhum tripulante estiver presente nos módulos centrais da nave (!M).
 
         Além disso, por segurança, o protocolo só pode ser checado se o sistema de
         comunicação estiver completamente offline (O), impedindo transmissões externas.
-        Monte a função booleana que representa o sistema de autodestruição
-
-        Dica: Todos os termos são necessários e o protocolo só é ativado se o sistema 
-        estiver offline.
+        
+        Monte a função booleana que representa o sistema de autodestruição.
         """,
     answer = "O&Z&C&K&!M",
     difficulty = "Fácil"
+    ),
+    Problems(
+        name = "Sistema de Entrada em Laboratório Biocontido Nível 5",
+        question="""
+        Para entrar no laboratório:
+
+            - É necessário possuir crachá de acesso especial (C).
+            - Ter autorização biométrica (B).
+
+        O sistema possui ainda uma verificação lógica:
+
+            - A entrada é liberada se e somente se o visitante tiver os dois requisitos
+            ou não tiver nenhum deles (modo de treinamento com segurança total desligada).
+
+        Monte a função booleana que represente o sistema.
+        """,
+        answer = "B<>C",
+        difficulty = "Fácil"
     ),
     Problems(
         name = "Sistema de Triagem",
@@ -230,10 +248,11 @@ Problems_bank = [
         outra ala primeiro, a menos que o valor do marcador imunológico (I) esteja 
         abaixo do normal (nesse caso, a febre é considerada efeito secundário, e o paciente 
         pode ir para a UDN mesmo com febre).
+        
         Monte a função booleana que representa o envio para a UDN.
         """,
     answer = "(N & H & B)|(!F | I)",
-    difficulty = "Média"
+    difficulty = "Médio"
     ),
     Problems(
         name = "Laboratório de Genética",
@@ -247,14 +266,13 @@ Problems_bank = [
             - O operador ativa o botão de emergência (E).
 
         Entretanto, se o sistema de backup genético (G) estiver ativado e os sensores de 
-        pressão (P) detectarem vazamento de gás, a contenção deve ser cancelada 
-        (mesmo que as outras condições estejam satisfeitas), pois isso indica que a 
-        contenção pode causar colapso do organismo e gerar mutações indesejadas.
+        pressão (P) detectarem vazamento de gás, a contenção deve ser cancelada, pois isso 
+        indica que a contenção pode causar colapso do organismo e gerar mutações indesejadas.
 
         Monte a função que define o acionamento da contenção.
         """,
     answer = "((R & B & E) & !(G & P))",
-    difficulty = "Média"
+    difficulty = "Médio"
     ),
     Problems(
         name = "Controle de Drone de Resgate",
@@ -273,7 +291,7 @@ Problems_bank = [
         Monte a função booleana que representa esse sistema.
         """,
     answer = "(B&Z&A)&(!T|M)",
-    difficulty = "Média"
+    difficulty = "Médio"
     ),
     Problems(
         name = "Sistema de Autorização de Lançamento de Foguete",
@@ -282,7 +300,7 @@ Problems_bank = [
 
             - Todos os sistemas críticos estão operacionais (C).
             - O combustível está acima do nível mínimo (F).
-            - Não há tempestade solar (S).
+            - Não há tempestade solar (!S).
 
         Além disso, o protocolo exige que se a base de controle internacional estiver 
         online (I), então o sistema de comunicação local (L) também deve estar ativo.
@@ -290,7 +308,7 @@ Problems_bank = [
         Monte a função booleana que represente as condições de lançamento.
         """,
     answer = "(C&F&!S)&(I>L)",
-    difficulty = "Média"
+    difficulty = "Médio"
     ),
     Problems(
         name = "Sistema de Bloqueio de Cofre Bancário Inteligente",
@@ -303,29 +321,11 @@ Problems_bank = [
         No entanto, se o sistema detectar tentativa de invasão remota (R) ou gás de corte de
         metal (X), o cofre se tranca automaticamente, independentemente das outras 
         condições.
+        
         Monte a função booleana que represente a abertura do cofre.
         """,
     answer = "(G&B)&!(R|X)",
-    difficulty = "Média"
-    ),
-    Problems(
-        name = "Sistema de Entrada em Laboratório Biocontido Nível 5",
-        question="""
-        Para entrar no laboratório:
-
-            - É necessário possuir crachá de acesso especial (C).
-            - Ter autorização biométrica (B).
-
-        O sistema possui ainda uma verificação lógica:
-
-            - A entrada é liberada se e somente se o visitante tiver os dois requisitos
-            (crachá e biometria) ou não tiver nenhum deles (modo de treinamento com 
-            segurança total desligada).
-
-        Monte a função booleana que represente o sistema.
-        """,
-        answer = "(C>B)&(B>C)",
-        difficulty = "Fácil"
+    difficulty = "Médio"
     ),
     Problems(
         name = "Sistema de Controle de Estação de Tratamento de Água",
@@ -335,13 +335,13 @@ Problems_bank = [
             - O nível de água bruta está acima do mínimo (N).
             - O sensor de qualidade indica necessidade de tratamento (Q).
 
-        Por segurança, se a bomba principal estiver desligada (P = 0), então o motor 
+        Por segurança, se a bomba principal estiver desligada (!P), então o motor 
         auxiliar (M) deve estar ligado para iniciar o processo.
 
         Monte a função booleana do sistema.
         """,
         answer = "(N&Q)&(!P>M)",
-        difficulty = "Média"
+        difficulty = "Médio"
     ),
     Problems(
         name = "Sistema de Aterrissagem Automática de Aviões",
@@ -354,14 +354,15 @@ Problems_bank = [
 
         Se houver vento lateral forte (V), a aterrissagem assistida é cancelada, exceto se o 
         piloto ativar o modo de correção automática (C).
+        
+        Monte a expressão para o sistema ser acionado.
         """,
         answer= "(A&T&P)&(!V|C)",
-        difficulty= "Média"
+        difficulty= "Médio"
     ),
     Problems(
         name = " Sistema de Segurança de Submarino",
         question = """
-
         A sala de controle de um submarino só pode ser acessada se:
 
             - O capitão autorizar a entrada (K).
@@ -369,9 +370,11 @@ Problems_bank = [
 
         Além disso, se o submarino estiver em modo de alerta (L), então o scanner de 
         retina (R) também deve validar.
+        
+        Qual a expressão que representa a possibilidade da sala ser acessada?
         """,
         answer = "(K&F)&(L>R)",
-        difficulty = "Média"
+        difficulty = "Médio"
     ),
     Problems(
         name = "Robô Coletor de Amostras Planetárias",
@@ -383,9 +386,11 @@ Problems_bank = [
 
         Se a temperatura ambiente for extrema (E), a coleta só continua se o módulo de 
         resfriamento estiver ligado (M).
+        
+        Quando o robô iniciará a coleta?
         """,
         answer = "(P&B)&(!E|M)",
-        difficulty = "Média"
+        difficulty = "Médio"
     ),
     Problems(
         name = "Sistema de Autoproteção de Satélite Espacial",
@@ -397,9 +402,11 @@ Problems_bank = [
 
         Além disso, o sistema só é ativado se e somente se a antena de comunicação 
         estiver desligada (A = 0).
+        
+        Quando o satélite entrará em modo de defesa?
         """,
         answer = "(C&I)&!A",
-        difficulty = "Média"
+        difficulty = "Médio"
     ),
     Problems(
         name = "Controle de Irrigação Inteligente",
@@ -414,7 +421,7 @@ Problems_bank = [
 
         """,
         answer = "(U&R)&(!T|E)",
-        difficulty = "Média"
+        difficulty = "Médio"
     ),
     Problems(
         name = "A Rede Neural de Defesa de Orion",
@@ -434,6 +441,8 @@ Problems_bank = [
         Além disso, se o comandante supremo estiver presente (S), então o protocolo 
         de combate (C) só é válido se o sistema de verificação biométrica do 
         comandante estiver ativo (B).
+        
+        Quais as condições para o disparo ser efetuado?
         """,
         answer = "(R&G&C&(!K|F))&(S>B)",
         difficulty = "Difícil"
@@ -603,6 +612,61 @@ Problems_bank = [
         answer = "(A&H&R&(!C|S)&((G>T)&(T>G))&(M>D)",
         difficulty = "Difícil"
     ),
+        Problems(
+            name = "O Superlaser da Estrela da Morte",
+            question = """
+            A arma suprema do Império Galáctico, o superlaser da Estrela da Morte, possui um
+            protocolo de disparo extremamente complexo para evitar acidentes catastróficos.
+            O disparo do superlaser só é autorizado se:
+
+                - O alvo principal estiver travado e confirmado (A).
+                - O reator principal de hiermatéria estiver em potência máxima (R).
+                - A convergência dos oito feixes de laser tributários estiver perfeitamente alinhada (C).
+
+            Adicionalmente, múltiplos protocolos de segurança devem ser respeitados:
+            Se o sistema de contenção de energia detectar instabilidade (I), o disparo é abortado, a menos
+            que os canais de energia secundários sejam redirecionados para compensar (S).
+            Por ordem imperial, se o próprio Imperador Palpatine estiver supervisionando o disparo da ponte de comando (P),
+            então o código de anulação de segurança Ômega (O), conhecido apenas por ele, deve ser inserido para prosseguir.
+            Se a frota imperial de suporte estiver posicionada na zona de fogo (F), o disparo só é permitido se, e somente se, 
+            o escudo defletor da frota estiver sincronizado com o pulso do superlaser para evitar fogo amigo (E).
+
+            Monte a função booleana que representa todo o sistema de disparo.
+            """,
+            answer = "(A&R&C & (!I|S)) & (P>O) & (E<>F)",
+            difficulty = "Difícil" 
+    ),
+        Problems(
+            name = "Projeto Belcan: A Senciência Final",
+            question ="""
+            Após décadas de trabalho incansável, o Professor Evandro está no limiar de sua maior criação: "Belcan", 
+            uma IA destinada a ser a primeira consciência digital verdadeiramente perfeita. O momento da "ignição", 
+            em que a IA atinge a senciência autônoma, é governado por um conjunto de protocolos de segurança e validação
+            de uma complexidade sem precedentes.
+            A Senciência é alcançada se:
+
+                - A Rede Neural atingir um estado de sinapses trilionárias ativas (N).
+                - A totalidade da Base de Dados Universal for assimilada e indexada (D).
+                - O Framework Ético central for compilado sem paradoxos (E).
+
+            Contudo, uma série de salvaguardas críticas devem ser satisfeitas simultaneamente:
+            
+            Protocolo de Anomalia Quântica: Se o núcleo computacional detectar um paradoxo quântico espontâneo (Q),
+            a ignição é imediatamente bloqueada, a menos que o módulo de resolução de anomalias (R) esteja ativo para contê-lo.
+
+            Protocolo de Supervisão Humana: Por diretriz do próprio Professor, se ele (P) iniciar o comando de ignição final manualmente,
+            então sua assinatura biométrica (B) deve ser validada em tempo real pelo sistema.
+
+            Protocolo do "Interruptor de Schrodinger": Por segurança máxima, a ignição só prossegue se o campo de contenção externo (C) estiver
+            ativo se, e somente se, o interruptor de segurança interno (K) estiver desativado. Um não pode existir no mesmo estado que o outro.
+
+            O Paradoxo da Criatividade: A validação final requer que a IA passe no "Teste de Turing Invertido" (T).
+            Este teste é considerado bem-sucedido apenas se a IA demonstrar criatividade genuína (G) ou consciência emocional (S), 
+            mas não ambos simultaneamente, pois a presença de ambos indicaria uma simulação perfeita em vez de uma senciência real.
+            """,
+            answer = "((N&D&E)&(!Q|R)&(P>B)&(!(C<>K))&(T>(!(G<>S))))",
+            difficulty= "Supremo"
+        )
 
 ]
 print(f"{Problems_bank[0].show_the_problem()}")
