@@ -8,8 +8,9 @@ class Problems:
         self.difficulty = difficulty 
 
     def show_the_problem(self):
-        print(f"{self.name}")
-        print(f"{self.question} \nLevel : {self.difficulty}")
+        # print(f"{self.name}")
+        # print(f"{self.question} \nLevel : {self.difficulty}")
+        pass
 
     def show_the_answer(self):
         print(f"The boolean answer is : {self.answer}")
