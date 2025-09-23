@@ -618,8 +618,8 @@ class CircuitoInterativoManual:
         if self.selected_component and not self.connecting:
             world_pos = self.camera.screen_to_world(pos)
             
-            #Move o componente (exceto variáveis)
-            if self.selected_component.type not in ['variable']:
+            #Move o componente
+            if self.selected_component.type not in ['']: #caso queira adicionar alguma porta que precisa ser fixa, basta adicionar nessa lista
                 old_x, old_y = self.selected_component.x, self.selected_component.y
                 new_x = world_pos[0] - self.selected_component.width // 2
                 new_y = world_pos[1] - self.selected_component.height // 2

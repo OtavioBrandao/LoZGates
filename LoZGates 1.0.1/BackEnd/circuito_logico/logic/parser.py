@@ -35,7 +35,7 @@ def criar_ast_de_expressao(expressao):
             expr = parse_expression()
             consume()  # ')'
             return expr
-        raise ValueError(f"Token inválido: {token}")
+        raise ValueError(f"Tenha certeza que os parentêses estão sendo fechados.")
     
     def parse_term():
         node = parse_factor()
