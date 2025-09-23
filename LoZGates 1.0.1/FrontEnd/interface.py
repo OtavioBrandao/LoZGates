@@ -1,6 +1,3 @@
-# Interface principal - UI/UX padronizada e profissional
-# Atualizado com design tokens e componentes unificados
-
 import customtkinter as ctk
 from customtkinter import CTkFont
 import threading

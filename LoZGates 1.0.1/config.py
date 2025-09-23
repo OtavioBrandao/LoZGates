@@ -12,13 +12,14 @@ informacoes = """
 - David Oliveira
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🧪 Átomos aceitos:
-P, Q, R, S, T
+    [A,Z] e [a,z]
 
 🔣 Símbolos lógicos utilizados:
 - '&'  → E (conjunção)
 - '|'  → OU (disjunção)
 - '!'  → NÃO (negação)
 - '>'  → IMPLICA (condicional)
+- '<>' → BI-IMPLICA (condicional)
 
 ⚠️ Atenção!
 Ao digitar a expressão, o usuário deve indicar **qual é a operação raiz** da expressão.
