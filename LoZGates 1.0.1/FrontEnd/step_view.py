@@ -114,17 +114,19 @@ class StepView(ctk.CTkFrame):
         )
         transform_label.pack(pady=Spacing.SM, padx=Spacing.SM)
         
-        # Status e nota
+        # Status e expressão resultante
         status_frame = ctk.CTkFrame(step_frame, fg_color="transparent")
         status_frame.pack(fill="x", pady=(Spacing.XS, Spacing.SM), padx=Spacing.SM)
         
-        # Ícone de status
+        # Ícone de status e expressão resultante
         status_icon = "✔" if step['success'] else "✖"
         status_color = Colors.SUCCESS if step['success'] else Colors.ERROR
+        result_expression = step.get('result_expression', '')
         
+        status_text = f"{status_icon} {result_expression}" if result_expression else status_icon
         status_label = ctk.CTkLabel(
             status_frame,
-            text=status_icon,
+            text=status_text,
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
             text_color=status_color
         )
@@ -200,6 +202,7 @@ class StepParser:
         self.current_step = {}
         self.original_expr = ""
         self.previous_expr = ""
+        self.current_expr = ""
         self.laws_applied = 0
         self.final_expr = ""
         
@@ -214,6 +217,7 @@ class StepParser:
         if iteration_match:
             self.current_iteration = int(iteration_match.group(1))
             self.previous_expr = iteration_match.group(2).strip()
+            self.current_expr = self.previous_expr  # Inicializa com a expressão da iteração
             return
             
         # Detecta aplicação de lei (formato: "Aplicando Lei em 'antes' -> 'depois'")
@@ -223,13 +227,20 @@ class StepParser:
             before_expr = law_match.group(2).strip()
             after_expr = law_match.group(3).strip()
             
+            # Atualiza a expressão atual substituindo a subexpressão
+            if self.current_expr:
+                self.current_expr = self.current_expr.replace(before_expr, after_expr)
+            else:
+                self.current_expr = after_expr
+            
             step = {
                 'law': law_name,
                 'subexpression': before_expr,
                 'before': before_expr,
                 'after': after_expr,
                 'success': True,
-                'note': None
+                'note': None,
+                'result_expression': self.current_expr
             }
             self.step_view.append_step(step)
             self.laws_applied += 1
@@ -250,6 +261,7 @@ class StepParser:
             expr_match = re.search(r'Expressão Original\s*:\s*(.+)', line)
             if expr_match:
                 self.original_expr = expr_match.group(1).strip()
+                self.current_expr = self.original_expr  # Inicializa com a expressão original
             return
             
         # Detecta expressão simplificada final

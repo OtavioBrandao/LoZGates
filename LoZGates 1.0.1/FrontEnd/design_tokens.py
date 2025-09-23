@@ -25,7 +25,7 @@ class Colors:
     
     # Cores de estado
     SUCCESS = "#45A049"             # Verde 
-    WARNING = "#BBA424"             # Ouro 
+    WARNING = "#D17710"             # Ouro 
     ERROR = "#961730"               # Vermelho 
     INFO = "#00D9FF"                # Ciano neon
     HEHEHE = "#72076E"              # Roxo

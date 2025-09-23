@@ -68,6 +68,7 @@ class IntegratedProblemsInterface:
             command=lambda: voltar_para(principal),
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
             fg_color=Colors.ACCENT_GOLD,
+            text_color=Colors.BUTTON_TEXT,
             border_color=Colors.BORDER_DEFAULT,
             hover_color=Colors.ACCENT_GOLD_HOVER,
             corner_radius=Dimensions.CORNER_RADIUS_LARGE,
@@ -83,7 +84,7 @@ class IntegratedProblemsInterface:
         # Dicionário de cores para diferentes dificuldades
         difficulty_colors = {
             "Fácil": (Colors.SUCCESS, "#09BB62"  ),
-            "Médio": (Colors.WARNING, "#F5B800"),
+            "Médio": (Colors.WARNING, "#F38D08"),
             "Difícil": (Colors.ERROR, "#D32F2F"),
             "Supremo":(Colors.HEHEHE, "#B019AB")
         }
