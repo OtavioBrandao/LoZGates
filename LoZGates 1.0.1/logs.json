@@ -273,6 +273,27 @@
                     "tentativas_na_sessao": 0,
                     "resolvida": false,
                     "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-16T16:17:09.191085",
+                    "tempo_gasto": 3.8798153400421143,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-16T16:17:11.810400",
+                    "tempo_gasto": 1.4499056339263916,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-23T17:46:01.941731",
+                    "tempo_gasto": 1.5857617855072021,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
                 }
             ]
         },
@@ -317,6 +338,13 @@
                         "Absorção (A * (A+B) = A)",
                         "Inversa (A * ~A = 0)"
                     ]
+                },
+                {
+                    "timestamp": "2025-09-16T16:59:53.850033",
+                    "tempo_gasto": 1.319998025894165,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
                 }
             ]
         }

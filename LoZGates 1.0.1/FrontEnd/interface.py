@@ -14,6 +14,7 @@ import webbrowser
 import urllib.parse
 from contextlib import redirect_stdout
 import copy
+import re
 
 from config import ASSETS_PATH, informacoes, duvida_circuitos
 from FrontEnd.design_tokens import Colors, Typography, Dimensions, Spacing, TabConfig, get_font, get_title_font
@@ -29,6 +30,7 @@ import BackEnd.principal as circuito_integrado
 from FrontEnd.buttons import Button
 from FrontEnd.problems_interface import IntegratedProblemsInterface, setup_problems_interface
 from FrontEnd.generate_log import generate_html_log, update_log
+from FrontEnd.step_view import StepView, StepParser
 
 from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
 from FrontEnd.circuit_mode_interface import CircuitModeSelector
@@ -391,6 +393,7 @@ def inicializar_interface():
             if frame != frame_abas:
                 label_convertida.pack_forget()
                 log_simplificacao_textbox.pack_forget()
+                step_view.pack_forget()
 
             show_frame(frame)
             janela.focus_set()
@@ -611,6 +614,9 @@ def inicializar_interface():
             except Exception as e:
                 print(f"Erro no logger: {e}")
 
+    # Componente StepView para visualização passo a passo
+    step_view = StepView(scroll_conteudo)
+    
     frame_borda = ctk.CTkFrame(
         master=scroll_conteudo,
         fg_color=Colors.TEXT_PRIMARY, 
@@ -670,28 +676,46 @@ def inicializar_interface():
             # 2. Converte para o formato de álgebra booleana
             expressao_para_simplificar = converter_para_algebra_booleana(entrada_txt)
             
-            # O resto da função continua igual, mas usando a nova variável
+            # Esconde componentes antigos e mostra StepView
             if label_solucao.winfo_ismapped():
                 label_solucao.pack_forget()
                 log_simplificacao_textbox.pack_forget()
                 frame_borda.pack_forget()
 
             label_solucao.pack(pady=Spacing.LG)
-            frame_borda.pack(pady=Spacing.MD)
-            frame_borda.configure(width=800)
-            log_simplificacao_textbox.pack(padx=Spacing.MD, pady=Spacing.MD, fill="both", expand=True)
-            log_simplificacao_textbox.configure(state="normal")
-            log_simplificacao_textbox.delete("1.0", "end")
-            log_simplificacao_textbox.configure(text_color="#39FF14", spacing3=-27)
+            step_view.pack(fill="both", expand=True, pady=Spacing.MD)
+            step_view.configure(height=800)
             botao_go_back_to_aba2.pack(pady=Spacing.MD)
 
-            gui_logger = GUILogger(log_simplificacao_textbox)
+            # Inicializa StepView
+            step_view.reset(expressao_para_simplificar)
+            
+            # Parser para converter log em passos
+            parser = StepParser(step_view)
+            
+            class StepLogger:
+                def __init__(self, parser):
+                    self.parser = parser
+                    self.buffer = ""
+                    
+                def write(self, text):
+                    lines = text.splitlines()
+                    for line in lines:
+                        if line.strip():
+                            self.parser.parse_log_line(line)
+                            
+                def flush(self):
+                    pass
+
+            step_logger = StepLogger(parser)
 
             def simplificar_thread():
-                with redirect_stdout(gui_logger):
+                with redirect_stdout(step_logger):
                     try:
                         # 3. Usa a expressão recém-capturada e convertida
                         principal_simplificar(expressao_para_simplificar)
+                        # Finaliza o parsing
+                        janela.after(0, lambda: parser.finalize_parsing(expressao_para_simplificar, True))
                     except Exception as e:
                         janela.after(0, lambda: popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}"))
 
@@ -721,7 +745,7 @@ def inicializar_interface():
         show_frame(frame_interativo)
         parte_interativa()
 
-    botao_interativo = Button.botao_padrao("🔎Simplificar - interativo", scroll_frame2)
+    botao_interativo = Button.botao_padrao("🔎Simplificar - Interativo", scroll_frame2)
     botao_interativo.configure(command=go_to_interactive)
 
     
@@ -747,7 +771,7 @@ def inicializar_interface():
         botao_solucao.pack(pady=Spacing.MD)
         botao_interativo.pack(pady=Spacing.MD)
 
-    botao_solucao = Button.botao_padrao("🔍Simplificar - resultado", scroll_frame2)
+    botao_solucao = Button.botao_padrao("🔍Simplificar - Resultado", scroll_frame2)
     botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
 
     botao_go_back_to_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
