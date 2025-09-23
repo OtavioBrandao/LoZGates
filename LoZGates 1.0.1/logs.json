@@ -19,8 +19,8 @@
                 },
                 "Nula (A * 0 = 0)": {
                     "usos_sucesso": 0,
-                    "tentativas_falha": 1,
-                    "tempo_gasto": 0.0
+                    "tentativas_falha": 2,
+                    "tempo_gasto": 3.337860107421875e-06
                 },
                 "Identidade (A * 1 = A)": {
                     "usos_sucesso": 0,
@@ -39,8 +39,8 @@
                 },
                 "Distributiva ((A+B)*(A+C) = A+(B*C))": {
                     "usos_sucesso": 0,
-                    "tentativas_falha": 3,
-                    "tempo_gasto": 3.5762786865234375e-06
+                    "tentativas_falha": 4,
+                    "tempo_gasto": 6.9141387939453125e-06
                 },
                 "Comutativa (B*A = A*B)": {
                     "usos_sucesso": 0,
@@ -48,14 +48,14 @@
                     "tempo_gasto": 0.0
                 }
             },
-            "tentativas_totais": 24,
+            "tentativas_totais": 26,
             "sucessos_totais": 0,
-            "tempo_total_gasto": 3.5762786865234375e-06,
-            "tempo_medio": 1.4901161193847656e-07,
+            "tempo_total_gasto": 1.0251998901367188e-05,
+            "tempo_medio": 3.943076500525841e-07,
             "simplificavel": null,
             "caminho_solucao": [],
             "primeira_tentativa": "2025-09-11T19:30:50.385622",
-            "ultima_tentativa": "2025-09-15T21:18:19.300828",
+            "ultima_tentativa": "2025-09-23T18:45:01.358140",
             "sessoes": [
                 {
                     "timestamp": "2025-09-11T19:30:54.098120",
@@ -287,39 +287,83 @@
                     "tentativas_na_sessao": 0,
                     "resolvida": false,
                     "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-23T18:45:02.734300",
+                    "tempo_gasto": 10.267721891403198,
+                    "tentativas_na_sessao": 2,
+                    "resolvida": false,
+                    "caminho_usado": []
                 }
             ]
         },
         "(~(P+Q)+~P)*P": {
             "leis_usadas": {
                 "De Morgan (~(A*B) = ~A+~B)": {
-                    "usos_sucesso": 1,
-                    "tentativas_falha": 0,
-                    "tempo_gasto": 6.9141387939453125e-06
+                    "usos_sucesso": 5,
+                    "tentativas_falha": 5,
+                    "tempo_gasto": 5.221366882324219e-05
                 },
                 "Absorção (A * (A+B) = A)": {
-                    "usos_sucesso": 1,
-                    "tentativas_falha": 0,
-                    "tempo_gasto": 1.1444091796875e-05
+                    "usos_sucesso": 7,
+                    "tentativas_falha": 2,
+                    "tempo_gasto": 5.435943603515625e-05
                 },
                 "Inversa (A * ~A = 0)": {
-                    "usos_sucesso": 1,
-                    "tentativas_falha": 0,
-                    "tempo_gasto": 7.867813110351562e-06
+                    "usos_sucesso": 8,
+                    "tentativas_falha": 3,
+                    "tempo_gasto": 6.580352783203125e-05
+                },
+                "Nula (A * 0 = 0)": {
+                    "usos_sucesso": 0,
+                    "tentativas_falha": 5,
+                    "tempo_gasto": 1.621246337890625e-05
+                },
+                "Idempotente (A * A = A)": {
+                    "usos_sucesso": 0,
+                    "tentativas_falha": 2,
+                    "tempo_gasto": 6.9141387939453125e-06
+                },
+                "Associativa ((A*B)*C = A*(B*C))": {
+                    "usos_sucesso": 0,
+                    "tentativas_falha": 1,
+                    "tempo_gasto": 2.384185791015625e-06
+                },
+                "Distributiva ((A+B)*(A+C) = A+(B*C))": {
+                    "usos_sucesso": 0,
+                    "tentativas_falha": 1,
+                    "tempo_gasto": 3.337860107421875e-06
                 }
             },
-            "tentativas_totais": 3,
-            "sucessos_totais": 3,
-            "tempo_total_gasto": 2.6226043701171875e-05,
-            "tempo_medio": 8.742014567057291e-06,
+            "tentativas_totais": 39,
+            "sucessos_totais": 20,
+            "tempo_total_gasto": 0.00020122528076171875,
+            "tempo_medio": 5.159622583633814e-06,
             "simplificavel": true,
             "caminho_solucao": [
                 "De Morgan (~(A*B) = ~A+~B)",
                 "Absorção (A * (A+B) = A)",
+                "Inversa (A * ~A = 0)",
+                "De Morgan (~(A*B) = ~A+~B)",
+                "Absorção (A * (A+B) = A)",
+                "Inversa (A * ~A = 0)",
+                "De Morgan (~(A*B) = ~A+~B)",
+                "Absorção (A * (A+B) = A)",
+                "Inversa (A * ~A = 0)",
+                "De Morgan (~(A*B) = ~A+~B)",
+                "Absorção (A * (A+B) = A)",
+                "Inversa (A * ~A = 0)",
+                "Absorção (A * (A+B) = A)",
+                "Absorção (A * (A+B) = A)",
+                "Inversa (A * ~A = 0)",
+                "De Morgan (~(A*B) = ~A+~B)",
+                "Absorção (A * (A+B) = A)",
+                "Inversa (A * ~A = 0)",
+                "Inversa (A * ~A = 0)",
                 "Inversa (A * ~A = 0)"
             ],
             "primeira_tentativa": "2025-09-15T23:22:32.730103",
-            "ultima_tentativa": "2025-09-15T23:22:44.113839",
+            "ultima_tentativa": "2025-09-23T19:37:06.299590",
             "sessoes": [
                 {
                     "timestamp": "2025-09-15T23:22:44.120482",
@@ -345,6 +389,115 @@
                     "tentativas_na_sessao": 0,
                     "resolvida": false,
                     "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-23T18:47:56.404345",
+                    "tempo_gasto": 2.571519136428833,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-23T18:49:17.907409",
+                    "tempo_gasto": 53.43559956550598,
+                    "tentativas_na_sessao": 3,
+                    "resolvida": true,
+                    "caminho_usado": [
+                        "De Morgan (~(A*B) = ~A+~B)",
+                        "Absorção (A * (A+B) = A)",
+                        "Inversa (A * ~A = 0)"
+                    ]
+                },
+                {
+                    "timestamp": "2025-09-23T18:57:15.477630",
+                    "tempo_gasto": 11.839540719985962,
+                    "tentativas_na_sessao": 1,
+                    "resolvida": false,
+                    "caminho_usado": [
+                        "Inversa (A * ~A = 0)"
+                    ]
+                },
+                {
+                    "timestamp": "2025-09-23T19:12:23.945379",
+                    "tempo_gasto": 7.739619493484497,
+                    "tentativas_na_sessao": 1,
+                    "resolvida": false,
+                    "caminho_usado": [
+                        "Inversa (A * ~A = 0)"
+                    ]
+                },
+                {
+                    "timestamp": "2025-09-23T19:13:22.806939",
+                    "tempo_gasto": 18.055826663970947,
+                    "tentativas_na_sessao": 3,
+                    "resolvida": true,
+                    "caminho_usado": [
+                        "De Morgan (~(A*B) = ~A+~B)",
+                        "Absorção (A * (A+B) = A)",
+                        "Inversa (A * ~A = 0)"
+                    ]
+                },
+                {
+                    "timestamp": "2025-09-23T19:22:50.754971",
+                    "tempo_gasto": 6.345016241073608,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                },
+                {
+                    "timestamp": "2025-09-23T19:34:04.583586",
+                    "tempo_gasto": 58.511675119400024,
+                    "tentativas_na_sessao": 3,
+                    "resolvida": true,
+                    "caminho_usado": [
+                        "De Morgan (~(A*B) = ~A+~B)",
+                        "Absorção (A * (A+B) = A)",
+                        "Inversa (A * ~A = 0)"
+                    ]
+                },
+                {
+                    "timestamp": "2025-09-23T19:38:36.645865",
+                    "tempo_gasto": 68.32040119171143,
+                    "tentativas_na_sessao": 0,
+                    "resolvida": false,
+                    "caminho_usado": []
+                }
+            ]
+        },
+        "P*~P*Q": {
+            "leis_usadas": {
+                "Inversa (A * ~A = 0)": {
+                    "usos_sucesso": 1,
+                    "tentativas_falha": 0,
+                    "tempo_gasto": 1.0967254638671875e-05
+                },
+                "Nula (A * 0 = 0)": {
+                    "usos_sucesso": 1,
+                    "tentativas_falha": 0,
+                    "tempo_gasto": 5.9604644775390625e-06
+                }
+            },
+            "tentativas_totais": 2,
+            "sucessos_totais": 2,
+            "tempo_total_gasto": 1.6927719116210938e-05,
+            "tempo_medio": 8.463859558105469e-06,
+            "simplificavel": true,
+            "caminho_solucao": [
+                "Inversa (A * ~A = 0)",
+                "Nula (A * 0 = 0)"
+            ],
+            "primeira_tentativa": "2025-09-23T18:57:51.956000",
+            "ultima_tentativa": "2025-09-23T18:57:56.991523",
+            "sessoes": [
+                {
+                    "timestamp": "2025-09-23T18:57:57.002438",
+                    "tempo_gasto": 13.548812627792358,
+                    "tentativas_na_sessao": 2,
+                    "resolvida": true,
+                    "caminho_usado": [
+                        "Inversa (A * ~A = 0)",
+                        "Nula (A * 0 = 0)"
+                    ]
                 }
             ]
         }
@@ -352,18 +505,19 @@
     "estatisticas_gerais": {
         "total_sessoes": 0,
         "expressoes_mais_tentadas": {
-            "(~P+Q)": 24,
-            "(~(P+Q)+~P)*P": 3
+            "(~P+Q)": 26,
+            "(~(P+Q)+~P)*P": 39,
+            "P*~P*Q": 2
         },
         "leis_mais_usadas": {
-            "Associativa ((A*B)*C = A*(B*C))": 2,
-            "Absorção (A * (A+B) = A)": 5,
-            "Inversa (A * ~A = 0)": 2,
-            "Nula (A * 0 = 0)": 1,
+            "Associativa ((A*B)*C = A*(B*C))": 3,
+            "Absorção (A * (A+B) = A)": 13,
+            "Inversa (A * ~A = 0)": 13,
+            "Nula (A * 0 = 0)": 8,
             "Identidade (A * 1 = A)": 9,
-            "Idempotente (A * A = A)": 1,
-            "De Morgan (~(A*B) = ~A+~B)": 3,
-            "Distributiva ((A+B)*(A+C) = A+(B*C))": 3,
+            "Idempotente (A * A = A)": 3,
+            "De Morgan (~(A*B) = ~A+~B)": 12,
+            "Distributiva ((A+B)*(A+C) = A+(B*C))": 5,
             "Comutativa (B*A = A*B)": 1
         },
         "tempo_medio_por_expressao": 0

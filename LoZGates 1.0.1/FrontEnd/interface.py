@@ -42,6 +42,16 @@ botoes_leis = []
 circuito_interativo_instance = None
 does_it_has_interactveon = False
 
+# Variáveis para a nova interface interativa
+label_expressao_inicial = None
+label_analise_atual = None
+scroll_passos = None
+contador_passos = 0
+frame_expressao_inicial = None
+frame_analise = None
+frame_passos = None
+frame_controles_interativo = None
+
 def inicializar_interface():
 
     ctk.set_appearance_mode("dark")  # Modo escuro
@@ -277,7 +287,13 @@ def inicializar_interface():
             popup_erro("A expressão não pode estar vazia.")
             return
         
-        botao_ver_circuito = Button.botao_padrao("Ver circuito / Expressão", principal)
+        # Reset do estado dos botões de simplificação
+        try:
+            esconder_botoes_simplificar()
+        except:
+            pass
+        
+        botao_ver_circuito = Button.botao_padrao("🔌Ver Circuito", principal)
         botao_ver_circuito.configure(command=lambda: trocar_para_abas())
         botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
 
@@ -375,6 +391,10 @@ def inicializar_interface():
             if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
                 entrada.delete(0, tk.END) 
                 does_it_have_interaction = False
+                try:
+                    esconder_botoes_simplificar()  # Reset dos botões ao limpar entrada
+                except:
+                    pass
 
             entrada2.delete(0, tk.END)  
             entrada3.delete(0, tk.END) 
@@ -391,6 +411,10 @@ def inicializar_interface():
                 label_convertida.pack_forget()
                 log_simplificacao_textbox.pack_forget()
                 step_view.pack_forget()
+                try:
+                    esconder_botoes_simplificar()  # Esconde botões de simplificação
+                except:
+                    pass
 
             show_frame(frame)
             janela.focus_set()
@@ -504,7 +528,7 @@ def inicializar_interface():
     entrada.bind("<Return>", lambda event: confirmar_expressao())
 
     botao_confirmar_expressao = Button.botao_padrao("✅Confirmar", principal, style="success")
-    botao_confirmar_expressao.configure(command=confirmar_expressao)
+    botao_confirmar_expressao.configure(command=confirmar_expressao, hover_color="#16723D")
     botao_confirmar_expressao.place(relx=0.5, y=280, anchor="center")
     
     botao_problemas_reais = Button.botao_padrao("🔬Problemas Reais", principal)
@@ -636,7 +660,11 @@ def inicializar_interface():
 
     def mostrar_expressao_convertida():
         try:
+            # Esconde elementos antigos
             log_simplificacao_textbox.pack_forget()
+            step_view.pack_forget()
+            label_solucao.pack_forget()
+            frame_borda.pack_forget()
             
             nonlocal expressao_booleana_atual
 
@@ -733,46 +761,79 @@ def inicializar_interface():
         except Exception as e:
             popup_erro(f"Erro ao abrir IA: {e}")
 
-    botao_converter = Button.botao_padrao("🔗Realizar conversão", scroll_frame2)
-    botao_converter.configure(command=lambda: (mostrar_expressao_convertida(), mostrar_botoes_simplificar()))
-    botao_converter.pack(pady=Spacing.MD)
-
+    def executar_conversao():
+        try:
+            esconder_botoes_simplificar()  # Esconde botões antigos primeiro
+        except:
+            pass
+        mostrar_expressao_convertida()
+        mostrar_botoes_simplificar()   # Mostra novos botões
+    
     def go_to_interactive():
         #Função wrapper para garantir a ordem correta das chamadas
         show_frame(frame_interativo)
         parte_interativa()
 
+    def executar_simplificacao_interativa():
+        esconder_botoes_simplificar()
+        go_to_interactive()
+    
+    botao_converter = Button.botao_padrao("🔗Realizar conversão", scroll_frame2)
+    botao_converter.configure(command=executar_conversao)
+    botao_converter.pack(pady=Spacing.MD)
+
     botao_interativo = Button.botao_padrao("🔎Simplificar - Interativo", scroll_frame2)
-    botao_interativo.configure(command=go_to_interactive)
+    botao_interativo.configure(command=executar_simplificacao_interativa)
 
     
-    escolher_caminho = ctk.CTkFrame(
-        frame_interativo, 
-        fg_color=Colors.SURFACE_DARK, 
-        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM, 
-        height=800, 
-        width=280
-    )
-    area_expressao = ctk.CTkTextbox(
-        master=frame_interativo,
-        fg_color=Colors.SURFACE_DARK, 
-        text_color="#39FF14", 
-        font=get_font(Typography.SIZE_BODY), 
-        wrap="word", 
-        width=800, 
-        height=800
-    )
+    # Variáveis globais para componentes interativos (serão criadas dinamicamente)
+    escolher_caminho = None
+    area_expressao = None
     
 #---------------------- PARTE DA SIMPLFICAÇÃO ---------------------------------
+    # Variável para controlar visibilidade dos botões
+    botoes_visiveis = False
+    
     def mostrar_botoes_simplificar():
-        botao_solucao.pack(pady=Spacing.MD)
-        botao_interativo.pack(pady=Spacing.MD)
+        global botoes_visiveis
+        if not botoes_visiveis:
+            botao_solucao.pack(pady=Spacing.MD)
+            botao_interativo.pack(pady=Spacing.MD)
+            botoes_visiveis = True
+    
+    def esconder_botoes_simplificar():
+        global botoes_visiveis
+        try:
+            if botoes_visiveis:
+                botao_solucao.pack_forget()
+                botao_interativo.pack_forget()
+                botoes_visiveis = False
+        except:
+            botoes_visiveis = False
+
+    def executar_simplificacao_resultado():
+        try:
+            esconder_botoes_simplificar()
+        except:
+            pass
+        show_frame(frame_resolucao_direta)
+        expressao_simplificada()
+
+    def executar_simplificacao_interativa():
+        esconder_botoes_simplificar()
+        go_to_interactive()
 
     botao_solucao = Button.botao_padrao("🔍Simplificar - Resultado", scroll_frame2)
-    botao_solucao.configure(command=lambda: (show_frame(frame_resolucao_direta), expressao_simplificada()))
+    botao_solucao.configure(command=executar_simplificacao_resultado)
 
+    def voltar_para_abas():
+        # Mostra os botões novamente quando voltar para as abas
+        if expressao_booleana_atual:  # Se há uma expressão convertida
+            mostrar_botoes_simplificar()
+        go_back_to(frame_abas)
+    
     botao_go_back_to_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
-    botao_go_back_to_aba2.configure(command=lambda: go_back_to(frame_abas))
+    botao_go_back_to_aba2.configure(command=voltar_para_abas)
     botao_go_back_to_aba2.pack(side="bottom", pady=Spacing.MD)
     
 
@@ -914,6 +975,7 @@ def inicializar_interface():
 
     def on_desfazer_selecionado():
         global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, botao_desfazer
+        global contador_passos
 
         if not historico_de_estados:
             print("Nada para desfazer.") 
@@ -924,11 +986,194 @@ def inicializar_interface():
         historico_interativo = estado_anterior['historico']
         nos_ignorados = estado_anterior['ignorados']
         passo_atual_info = estado_anterior['passo_info']
+        
+        # Diminui o contador de passos e reconstrói a área de passos
+        if contador_passos > 0:
+            contador_passos -= 1
+        
+        # Reconstrói a área de passos baseada no histórico atual
+        reconstruir_area_passos()
 
         if not historico_de_estados:
             botao_desfazer.configure(state="disabled")
         atualizar_ui_interativa()
   
+    def inicializar_area_passos():
+        """Inicializa a área de passos com a expressão inicial"""
+        global scroll_passos, contador_passos
+        contador_passos = 0
+        
+        # Limpa área anterior
+        for widget in scroll_passos.winfo_children():
+            widget.destroy()
+        
+        # Adiciona passo inicial
+        adicionar_passo_inicial(str(arvore_interativa))
+    
+    def adicionar_passo_inicial(expressao_inicial):
+        """Adiciona o passo inicial à área de passos"""
+        passo_frame = ctk.CTkFrame(
+            scroll_passos,
+            fg_color=Colors.SURFACE_LIGHT,
+            corner_radius=Dimensions.CORNER_RADIUS_SMALL
+        )
+        passo_frame.pack(fill="x", padx=Spacing.SM, pady=Spacing.XS)
+        
+        titulo_passo = ctk.CTkLabel(
+            passo_frame,
+            text="Estado Inicial",
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_ACCENT
+        )
+        titulo_passo.pack(pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM, anchor="w")
+        
+        expressao_label = ctk.CTkLabel(
+            passo_frame,
+            text=expressao_inicial,
+            font=get_font(Typography.SIZE_BODY),
+            text_color=Colors.TEXT_PRIMARY,
+            wraplength=700
+        )
+        expressao_label.pack(pady=(0, Spacing.SM), padx=Spacing.SM, anchor="w")
+    
+    def adicionar_passo_sucesso(lei_nome, subexpressao, antes, depois, resultado):
+        """Adiciona um passo de sucesso à área de passos"""
+        global contador_passos
+        contador_passos += 1
+        
+        passo_frame = ctk.CTkFrame(
+            scroll_passos,
+            fg_color=Colors.SURFACE_LIGHT,
+            corner_radius=Dimensions.CORNER_RADIUS_SMALL
+        )
+        passo_frame.pack(fill="x", padx=Spacing.SM, pady=Spacing.XS)
+        
+        # Título com número do passo e lei
+        titulo_passo = ctk.CTkLabel(
+            passo_frame,
+            text=f"Passo {contador_passos} — {lei_nome}",
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_ACCENT
+        )
+        titulo_passo.pack(pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM, anchor="w")
+        
+        # Subexpressão analisada
+        if subexpressao:
+            sub_label = ctk.CTkLabel(
+                passo_frame,
+                text=f"Subexpressão: {subexpressao}",
+                font=get_font(Typography.SIZE_BODY_SMALL),
+                text_color=Colors.TEXT_SECONDARY
+            )
+            sub_label.pack(pady=(0, Spacing.XS), padx=Spacing.SM, anchor="w")
+        
+        # Transformação
+        transform_frame = ctk.CTkFrame(
+            passo_frame,
+            fg_color=Colors.SURFACE_DARK,
+            corner_radius=Dimensions.CORNER_RADIUS_SMALL
+        )
+        transform_frame.pack(fill="x", padx=Spacing.SM, pady=Spacing.XS)
+        
+        transform_text = f"{antes} → {depois}"
+        transform_label = ctk.CTkLabel(
+            transform_frame,
+            text=transform_text,
+            font=get_font(Typography.SIZE_BODY_SMALL),
+            text_color=Colors.TEXT_PRIMARY,
+            wraplength=700
+        )
+        transform_label.pack(pady=Spacing.SM, padx=Spacing.SM)
+        
+        # Resultado
+        resultado_frame = ctk.CTkFrame(passo_frame, fg_color="transparent")
+        resultado_frame.pack(fill="x", pady=(Spacing.XS, Spacing.SM), padx=Spacing.SM)
+        
+        status_label = ctk.CTkLabel(
+            resultado_frame,
+            text=f"✔ {resultado}",
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.SUCCESS
+        )
+        status_label.pack(side="left")
+        
+        # Auto-scroll para o final
+        scroll_passos.after(100, lambda: scroll_passos._parent_canvas.yview_moveto(1.0))
+    
+    def adicionar_passo_pular(subexpressao):
+        """Adiciona um passo de pular à área de passos"""
+        passo_frame = ctk.CTkFrame(
+            scroll_passos,
+            fg_color=Colors.SURFACE_MEDIUM,
+            corner_radius=Dimensions.CORNER_RADIUS_SMALL
+        )
+        passo_frame.pack(fill="x", padx=Spacing.SM, pady=Spacing.XS)
+        
+        titulo_passo = ctk.CTkLabel(
+            passo_frame,
+            text="Subexpressão Ignorada",
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_SECONDARY
+        )
+        titulo_passo.pack(pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM, anchor="w")
+        
+        sub_label = ctk.CTkLabel(
+            passo_frame,
+            text=f"↷ '{subexpressao}' foi ignorada",
+            font=get_font(Typography.SIZE_BODY_SMALL),
+            text_color=Colors.TEXT_SECONDARY
+        )
+        sub_label.pack(pady=(0, Spacing.SM), padx=Spacing.SM, anchor="w")
+        
+        # Auto-scroll para o final
+        scroll_passos.after(100, lambda: scroll_passos._parent_canvas.yview_moveto(1.0))
+    
+    def atualizar_area_passos():
+        """Atualiza a área de passos (chamada quando necessário)"""
+        # Esta função pode ser expandida se necessário para atualizações dinâmicas
+        pass
+    
+    def reconstruir_area_passos():
+        """Reconstrói a área de passos baseada no histórico atual"""
+        global scroll_passos
+        
+        # Limpa área atual
+        for widget in scroll_passos.winfo_children():
+            widget.destroy()
+        
+        # Adiciona passo inicial
+        if historico_interativo and len(historico_interativo) > 0:
+            # Extrai expressão inicial do primeiro item do histórico
+            primeiro_item = historico_interativo[0]
+            if "Expressão Inicial:" in primeiro_item:
+                expressao_inicial = primeiro_item.replace("Expressão Inicial:", "").strip()
+                adicionar_passo_inicial(expressao_inicial)
+            
+            # Reconstrói passos baseado no histórico
+            passo_num = 0
+            i = 1
+            while i < len(historico_interativo):
+                linha = historico_interativo[i]
+                if "✓ Lei" in linha and "aplicada com sucesso" in linha:
+                    passo_num += 1
+                    # Extrai nome da lei
+                    lei_match = re.search(r"Lei '(.+?)' aplicada", linha)
+                    lei_nome = lei_match.group(1) if lei_match else "Lei desconhecida"
+                    
+                    # Próxima linha deve ter a nova expressão
+                    if i + 1 < len(historico_interativo):
+                        proxima_linha = historico_interativo[i + 1]
+                        if "Nova Expressão:" in proxima_linha:
+                            nova_expr = proxima_linha.replace("Nova Expressão:", "").strip()
+                            adicionar_passo_sucesso(lei_nome, "", "(anterior)", "(simplificada)", nova_expr)
+                            i += 1  # Pula a próxima linha já processada
+                elif "↷ Sub-expressão" in linha and "ignorada" in linha:
+                    # Extrai subexpressão ignorada
+                    ignore_match = re.search(r"'(.+?)' ignorada", linha)
+                    subexpr = ignore_match.group(1) if ignore_match else "desconhecida"
+                    adicionar_passo_pular(subexpr)
+                i += 1
+    
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados, botao_desfazer
         global tentativas_atuais, tempo_inicio_expressao, expressao_global
@@ -940,6 +1185,7 @@ def inicializar_interface():
         botao_desfazer.configure(state="normal")
 
         lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
+        subexpressao_antes = str(passo_atual_info['no_atual'])
         tempo_antes = time.time()
         nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
         tempo_gasto = time.time() - tempo_antes
@@ -947,10 +1193,30 @@ def inicializar_interface():
         tentativas_atuais += 1
 
         if sucesso:
+            # Encontra a subexpressão após a transformação
+            subexpressao_depois = "(simplificada)"
+            try:
+                # Tenta encontrar a diferença na árvore
+                if nova_arvore != arvore_interativa:
+                    subexpressao_depois = str(nova_arvore).replace(str(arvore_interativa), "").strip()
+                    if not subexpressao_depois:
+                        subexpressao_depois = "(simplificada)"
+            except:
+                pass
+            
             arvore_interativa = nova_arvore
             historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada com sucesso.")
             historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
             nos_ignorados = set()
+            
+            # Adiciona passo visual
+            adicionar_passo_sucesso(
+                lei_usada,
+                subexpressao_antes,
+                subexpressao_antes,
+                subexpressao_depois,
+                str(arvore_interativa)
+            )
             
             # Registra o sucesso no log
             register_law(str(expressao_global), lei_usada, success=True, tempo_gasto=tempo_gasto)
@@ -973,42 +1239,54 @@ def inicializar_interface():
             salvar_estado_atual()
             botao_desfazer.configure(state="normal") 
 
+            subexpressao_ignorada = str(passo_atual_info['no_atual'])
             nos_ignorados.add(passo_atual_info['no_atual'])
-            historico_interativo.append(f"↷ Sub-expressão '{str(passo_atual_info['no_atual'])}' ignorada.")
+            historico_interativo.append(f"↷ Sub-expressão '{subexpressao_ignorada}' ignorada.")
+            
+            # Adiciona passo visual de pular
+            adicionar_passo_pular(subexpressao_ignorada)
+            
             iniciar_rodada_interativa()
 
     def atualizar_ui_interativa():
-        global botoes_leis
+        global botoes_leis, label_expressao_inicial, label_analise_atual, scroll_passos
         
-        area_expressao.configure(state="normal")
-        area_expressao.delete("1.0", "end")
-
-        texto_historico = "\n".join(historico_interativo)
-        area_expressao.insert("1.0", texto_historico)
-
+        # Atualiza expressão inicial
+        if label_expressao_inicial and arvore_interativa:
+            label_expressao_inicial.configure(text=str(arvore_interativa))
+        
+        # Atualiza análise atual
         if passo_atual_info:
             sub_expr = str(passo_atual_info['no_atual'])
-            area_expressao.insert("end", f"\n\n========================================\n")
-            area_expressao.insert("end", f"Analisando a sub-expressão: '{sub_expr}'\n")
-            area_expressao.insert("end", "Qual lei deseja aplicar?")
+            label_analise_atual.configure(
+                text=f"🔍 Analisando subexpressão: '{sub_expr}'\n📚 Selecione uma lei para aplicar.",
+                text_color=Colors.TEXT_PRIMARY
+            )
             
-            for botao in botoes_leis:
-                botao.configure(state="normal")
-            
-            botao_pular.configure(state="normal")
+            # Habilita botões
+            if botoes_leis:
+                for botao in botoes_leis:
+                    botao.configure(state="normal")
+            if botao_pular:
+                botao_pular.configure(state="normal")
         else:
-            area_expressao.insert("end", "\n\n========================================\n")
-            area_expressao.insert("end", "Simplificação finalizada. Nenhuma outra lei pôde ser aplicada.")
+            label_analise_atual.configure(
+                text="✅ Simplificação concluída!\n🎉 Nenhuma outra lei pode ser aplicada.",
+                text_color=Colors.SUCCESS
+            )
             
             # Finaliza a sessão quando não há mais possibilidades
             finalizar_sessao_expressao(str(expressao_global), resolvida=True)
             
-            for botao in botoes_leis:
-                botao.configure(state="disabled")
-            botao_pular.configure(state="disabled")
-
-        area_expressao.configure(state="disabled")
-        area_expressao.see("end")
+            # Desabilita botões
+            if botoes_leis:
+                for botao in botoes_leis:
+                    botao.configure(state="disabled")
+            if botao_pular:
+                botao_pular.configure(state="disabled")
+        
+        # Atualiza área de passos
+        atualizar_area_passos()
 
     def iniciar_rodada_interativa():
         global passo_atual_info
@@ -1031,6 +1309,10 @@ def inicializar_interface():
             go_back_to(scroll_frame2)
             return
 
+        # Limpa interface anterior para evitar duplicação
+        for widget in frame_interativo.winfo_children():
+            widget.destroy()
+        
         # Inicia o cronômetro para esta expressão
         iniciar_sessao_expressao(str(expressao_global))
 
@@ -1038,67 +1320,170 @@ def inicializar_interface():
         nos_ignorados = set()
         passo_atual_info = None
         historico_de_estados = []
-
-        escolher_caminho.pack_propagate(False)
-        escolher_caminho.pack(side="right", fill="y", padx=20, pady=20)
-        area_expressao.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+        
+        # Recria os componentes com design padronizado
+        criar_interface_interativa_padronizada()
+        
+        # Inicializa área de passos
+        inicializar_area_passos()
+        
+        # Inicia rodada após criar interface
+        iniciar_rodada_interativa()
+    
+    def criar_interface_interativa_padronizada():
+        """Cria interface interativa com design padronizado similar ao StepView"""
+        global escolher_caminho, area_expressao, botoes_leis, botao_pular, botao_desfazer
+        global frame_expressao_inicial, frame_analise, frame_passos, frame_controles_interativo
+        
+        # Container principal com scroll
+        main_container = ctk.CTkScrollableFrame(frame_interativo, fg_color=Colors.PRIMARY_BG)
+        main_container.pack(expand=True, fill="both", padx=Spacing.LG, pady=Spacing.LG)
+        
+        # Configurar grid para expansão
+        main_container.grid_rowconfigure(2, weight=1)  # frame_passos deve expandir
+        main_container.grid_columnconfigure(0, weight=1)
+        
+        # 1. SEÇÃO: Expressão Inicial
+        frame_expressao_inicial = ctk.CTkFrame(
+            main_container,
+            fg_color=Colors.SURFACE_LIGHT,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        )
+        frame_expressao_inicial.pack(fill="x", pady=(0, Spacing.MD))
+        
+        titulo_inicial = ctk.CTkLabel(
+            frame_expressao_inicial,
+            text="Expressão Inicial",
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_ACCENT
+        )
+        titulo_inicial.pack(pady=(Spacing.SM, Spacing.XS))
+        
+        # Label para mostrar a expressão inicial (será atualizada dinamicamente)
+        global label_expressao_inicial
+        label_expressao_inicial = ctk.CTkLabel(
+            frame_expressao_inicial,
+            text="",
+            font=get_font(Typography.SIZE_BODY),
+            text_color=Colors.TEXT_PRIMARY,
+            wraplength=800
+        )
+        label_expressao_inicial.pack(pady=(0, Spacing.SM), padx=Spacing.SM)
+        
+        # 2. SEÇÃO: Análise Atual
+        frame_analise = ctk.CTkFrame(
+            main_container,
+            fg_color=Colors.SURFACE_MEDIUM,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        )
+        frame_analise.pack(fill="x", pady=(0, Spacing.MD))
+        
+        titulo_analise = ctk.CTkLabel(
+            frame_analise,
+            text="Análise",
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_ACCENT
+        )
+        titulo_analise.pack(pady=(Spacing.SM, Spacing.XS))
+        
+        # Label para mostrar a subexpressão sendo analisada
+        global label_analise_atual
+        label_analise_atual = ctk.CTkLabel(
+            frame_analise,
+            text="Aguardando início da análise...",
+            font=get_font(Typography.SIZE_BODY_SMALL),
+            text_color=Colors.TEXT_SECONDARY,
+            wraplength=800
+        )
+        label_analise_atual.pack(pady=(0, Spacing.SM), padx=Spacing.SM)
+        
+        # 3. SEÇÃO: Passos da Simplificação (área scrollável)
+        frame_passos = ctk.CTkFrame(
+            main_container,
+            fg_color=Colors.SURFACE_DARK,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        )
+        frame_passos.pack(fill="both", expand=True, pady=(0, Spacing.MD))
+        
+        titulo_passos = ctk.CTkLabel(
+            frame_passos,
+            text="Passos da Simplificação",
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_ACCENT
+        )
+        titulo_passos.pack(pady=(Spacing.SM, Spacing.XS))
+        
+        # Área scrollável para os passos
+        global scroll_passos
+        scroll_passos = ctk.CTkScrollableFrame(
+            frame_passos,
+            fg_color=Colors.SURFACE_DARK,
+            corner_radius=Dimensions.CORNER_RADIUS_SMALL
+        )
+        scroll_passos.pack(fill="both", expand=True, padx=Spacing.SM, pady=(0, Spacing.SM))
+        
+        # 4. SEÇÃO: Seleção de Leis
+        frame_leis = ctk.CTkFrame(
+            main_container,
+            fg_color=Colors.SURFACE_MEDIUM,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        )
+        frame_leis.pack(fill="x", pady=(0, Spacing.MD))
+        
+        titulo_leis = ctk.CTkLabel(
+            frame_leis,
+            text="Selecione uma Lei para Aplicar:",
+            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_PRIMARY
+        )
+        titulo_leis.pack(pady=Spacing.SM)
+        
+        # Grid de botões de leis
+        frame_grid_leis = ctk.CTkFrame(frame_leis, fg_color="transparent")
+        frame_grid_leis.pack(fill="x", padx=Spacing.MD, pady=Spacing.SM)
         
         botoes_info = [
-            {"texto": "Inversa (A * ~A = 0)", "idx": 0},
-            {"texto": "Nula (A * 0 = 0)", "idx": 1},
-            {"texto": "Identidade (A * 1 = A)", "idx": 2},
-            {"texto": "Idempotente (A * A = A)", "idx": 3},
-            {"texto": "Absorção (A * (A+B) = A)", "idx": 4},
-            {"texto": "De Morgan (~(A*B) = ~A+~B)", "idx": 5},
-            {"texto": "Distributiva ((A+B)*(A+C))", "idx": 6},
-            {"texto": "Associativa ((A*B)*C)", "idx": 7},
-            {"texto": "Comutativa (B*A = A*B)", "idx": 8},
+            {"texto": "Inversa", "desc": "A * ~A = 0", "idx": 0},
+            {"texto": "Nula", "desc": "A * 0 = 0", "idx": 1},
+            {"texto": "Identidade", "desc": "A * 1 = A", "idx": 2},
+            {"texto": "Idempotente", "desc": "A * A = A", "idx": 3},
+            {"texto": "Absorção", "desc": "A * (A+B) = A", "idx": 4},
+            {"texto": "De Morgan", "desc": "~(A*B) = ~A+~B", "idx": 5},
+            {"texto": "Distributiva", "desc": "(A+B)*(A+C)", "idx": 6},
+            {"texto": "Associativa", "desc": "(A*B)*C", "idx": 7},
+            {"texto": "Comutativa", "desc": "B*A = A*B", "idx": 8},
         ]
-
-        for widget in escolher_caminho.winfo_children():
-            widget.destroy()
+        
         botoes_leis = []
-
-        for info in botoes_info:
-            btn = Button.botao_especial(
-                info["texto"], escolher_caminho,
-                fg_color=Colors.BUTTON_PRIMARY, 
-                hover_color=Colors.BUTTON_PRIMARY_HOVER,
-                text_color=Colors.BUTTON_TEXT,
-                width=250, height=45
-            )
+        for i, info in enumerate(botoes_info):
+            row = i // 3
+            col = i % 3
+            
+            btn = Button.botao_padrao(f"{info['texto']}\n({info['desc']})", frame_grid_leis)
             btn.configure(command=lambda idx=info["idx"]: on_lei_selecionada(idx))
-            btn.pack(pady=Spacing.XS, padx=Spacing.SM)
+            btn.grid(row=row, column=col, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
+            frame_grid_leis.grid_columnconfigure(col, weight=1)
             botoes_leis.append(btn)
         
-        global botao_pular, botao_desfazer
-
-        botao_voltar_interativo = Button.botao_voltar("Voltar", escolher_caminho)
-        botao_voltar_interativo.configure(command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), 
-                                                           go_back_to(frame_abas)], width=250, height=45)
-        botao_voltar_interativo.pack(pady=5, padx=10)
-
-        botao_pular = Button.botao_especial(
-            "Pular ↪", escolher_caminho,
-            fg_color=Colors.ACCENT_GOLD, 
-            hover_color=Colors.ACCENT_GOLD_HOVER,
-            text_color=Colors.BUTTON_TEXT,
-            width=100, height=Dimensions.BUTTON_HEIGHT_SMALL
+        # 5. SEÇÃO: Controles
+        frame_controles_interativo = ctk.CTkFrame(main_container, fg_color="transparent")
+        frame_controles_interativo.pack(fill="x", pady=Spacing.MD)
+        
+        # Botões de controle
+        botao_desfazer = Button.botao_padrao("↩ Desfazer", frame_controles_interativo)
+        botao_desfazer.configure(command=on_desfazer_selecionado, state="disabled")
+        botao_desfazer.pack(side="left", padx=Spacing.SM)
+        
+        botao_pular = Button.botao_padrao("↪ Pular", frame_controles_interativo)
+        botao_pular.configure(command=on_pular_selecionado)
+        botao_pular.pack(side="left", padx=Spacing.SM)
+        
+        # Botão voltar
+        botao_voltar_interativo = Button.botao_voltar("Voltar", frame_controles_interativo)
+        botao_voltar_interativo.configure(
+            command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), go_back_to(frame_abas)]
         )
-        botao_pular.configure(command=on_pular_selecionado, font=get_font(Typography.SIZE_BODY_SMALL))
-        botao_pular.pack(side="right", padx=Spacing.LG, pady=Spacing.MD)
-
-        botao_desfazer = Button.botao_especial(
-            "Desfazer ↩", escolher_caminho,
-            fg_color="#C0C0C0", 
-            hover_color="#A9A9A9",
-            text_color="#000000",
-            width=100, height=Dimensions.BUTTON_HEIGHT_SMALL
-        )
-        botao_desfazer.configure(command=on_desfazer_selecionado, state="disabled", font=get_font(Typography.SIZE_BODY_SMALL))
-        botao_desfazer.pack(side="left", padx=Spacing.LG, pady=Spacing.MD)
-
-        iniciar_rodada_interativa()
+        botao_voltar_interativo.pack(side="right", padx=Spacing.SM)
     #------------------------------------------------------------------------
     # BOTÃO DE RELATÓRIO HTML COMENTADO CONFORME SOLICITADO
     # botao_relatorio = Button.botao_padrao("📊 Gerar Relatório HTML", frame_inicio)
