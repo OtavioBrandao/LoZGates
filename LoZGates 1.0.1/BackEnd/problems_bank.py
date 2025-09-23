@@ -633,7 +633,7 @@ Problems_bank = [
 
             Monte a função booleana que representa todo o sistema de disparo.
             """,
-            answer = "(A&R&C & (!I|S)) & (P>O) & (E<>F)",
+            answer = "(A&R&C&(!I|S))&(P>O)&(E<>F)",
             difficulty = "Difícil" 
     ),
         Problems(
@@ -657,10 +657,10 @@ Problems_bank = [
             Protocolo de Supervisão Humana: Por diretriz do próprio Professor, se ele (P) iniciar o comando de ignição final manualmente,
             então sua assinatura biométrica (B) deve ser validada em tempo real pelo sistema.
 
-            Protocolo do "Interruptor de Schrodinger": Por segurança máxima, a ignição só prossegue se o campo de contenção externo (C) estiver
+            Protocolo do Interruptor de Schrodinger: Por segurança máxima, a ignição só prossegue se o campo de contenção externo (C) estiver
             ativo se, e somente se, o interruptor de segurança interno (K) estiver desativado. Um não pode existir no mesmo estado que o outro.
 
-            O Paradoxo da Criatividade: A validação final requer que a IA passe no "Teste de Turing Invertido" (T).
+            O Paradoxo da Criatividade: A validação final requer que a IA passe no Teste de Turing Invertido (T).
             Este teste é considerado bem-sucedido apenas se a IA demonstrar criatividade genuína (G) ou consciência emocional (S), 
             mas não ambos simultaneamente, pois a presença de ambos indicaria uma simulação perfeita em vez de uma senciência real.
             """,
