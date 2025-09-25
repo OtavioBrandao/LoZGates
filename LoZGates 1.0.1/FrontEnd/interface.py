@@ -12,6 +12,7 @@ import urllib.parse
 from contextlib import redirect_stdout
 import copy
 import re
+import traceback
 
 from config import ASSETS_PATH, informacoes, duvida_circuitos
 from FrontEnd.design_tokens import Colors, Typography, Dimensions, Spacing, TabConfig, get_font, get_title_font
@@ -31,6 +32,10 @@ from FrontEnd.step_view import StepView, StepParser
 
 from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
 from FrontEnd.circuit_mode_interface import CircuitModeSelector
+
+from FrontEnd.logging_system import DetailedUserLogger, DetailedDataSharingDialog, GoogleFormsSubmitter
+user_logger = DetailedUserLogger("1.0-beta")
+
 expressao_global = ""
 botao_ver_circuito = None
 label_convertida = None
@@ -166,9 +171,13 @@ def inicializar_interface():
     def trocar_para_abas():
         try:
             caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
+            start_time = time.time()
             expressao = entrada.get().strip().upper().replace(" ", "")
             
+            user_logger.log_expression_entered(expressao, bool(expressao))
+            
             if not expressao:
+                user_logger.log_error("validation_error", "Empty expression")
                 popup_erro("A expressão não pode estar vazia.")
                 return
                 
@@ -189,6 +198,8 @@ def inicializar_interface():
             
             # Mostrar frame das abas (a criação do circuito interativo acontecerá no callback da aba)
             show_frame(frame_abas)
+            duration = time.time() - start_time
+            user_logger.log_feature_used("circuit_generation", duration)
             
         except Exception as e:
             popup_erro(f"Erro ao processar expressão: {e}")
@@ -200,6 +211,7 @@ def inicializar_interface():
         global does_it_have_interaction
         try:
             atual_tab = abas.get()
+            user_logger.log_tab_changed("tab_navigation", atual_tab)
             if atual_tab == "  Circuito Interativo  ":
                 # Garante que a expressão existe antes de criar qualquer coisa
                 if not expressao_global:
@@ -240,37 +252,36 @@ def inicializar_interface():
         """Cria o circuito interativo com seleção de modos."""
         global circuito_interativo_instance, does_it_have_interaction
         
-        # Função para pegar expressão global
+        # LOG INÍCIO DO CIRCUITO INTERATIVO
+        user_logger.log_circuit_interaction_start()
+        
         def get_global_expression():
             return expressao_global if expressao_global else expressao
         
-        # Limpar instância anterior
         if circuito_interativo_instance:
             try:
                 circuito_interativo_instance.cleanup()
             except:
                 pass
         
-        # Limpar frame
         for widget in frame_circuito_interativo.winfo_children():
             widget.destroy()
         
         try:
-            # Criar nova interface com seletor de modos
             circuito_interativo_instance = CircuitModeSelector(
                 frame_circuito_interativo, 
                 CircuitModeManager(),
                 Button,
-                get_global_expression
+                get_global_expression,
+                logger=user_logger  # PASSA O LOGGER
             )
-            does_it_have_interaction = False  # Só marca como True quando usuário interagir
+            does_it_have_interaction = False
             print("Interface de circuito com modos criada!")
             
         except Exception as e:
             print(f"Erro ao criar interface: {e}")
             does_it_have_interaction = False
             
-            # Mostrar mensagem de erro
             error_label = ctk.CTkLabel(
                 frame_circuito_interativo,
                 text=f"Erro ao criar circuito interativo: {e}",
@@ -283,11 +294,15 @@ def inicializar_interface():
         if botao_ver_circuito:  
             botao_ver_circuito.destroy()
 
-        if not entrada.get().strip():
+        expressao_texto = entrada.get().strip()
+        if not expressao_texto:
+            user_logger.log_expression_entered("", False)
             popup_erro("A expressão não pode estar vazia.")
             return
         
-        # Reset do estado dos botões de simplificação
+        # LOG DA EXPRESSÃO INSERIDA
+        user_logger.log_expression_entered(expressao_texto.upper().replace(" ", ""), True)
+        
         try:
             esconder_botoes_simplificar()
         except:
@@ -353,16 +368,22 @@ def inicializar_interface():
                 return
             
             valor = tabela(expressao2, expressao3)
+            resultado = valor == 1
+
+            # NOVA CHAMADA DETALHADA
+            user_logger.log_equivalence_check(expressao2, expressao3, resultado)
             
-            if valor == 1:
+            if resultado:
                 equivalente.place(relx=0.5, y=360, anchor="center")
                 nao_equivalente.place_forget()
             else:
                 nao_equivalente.place(relx=0.5, y=360, anchor="center")
                 equivalente.place_forget()
+                
         except Exception as e:
+            user_logger.log_error("equivalence_check_error", str(e), "comparar_function")
             popup_erro(f"Erro ao comparar expressões: {e}")
-            print(f"Erro detalhado: {e}")  
+            print(f"Erro detalhado: {e}")
               
     def go_back_to(frame):
         try:
@@ -835,130 +856,6 @@ def inicializar_interface():
     botao_go_back_to_aba2 = Button.botao_voltar("Voltar", scroll_conteudo)
     botao_go_back_to_aba2.configure(command=voltar_para_abas)
     botao_go_back_to_aba2.pack(side="bottom", pady=Spacing.MD)
-    
-
-#------------------ LOGGING E REGISTRO DE USO ------------------
-
-    import json
-    import time
-    from datetime import datetime
-
-    # Variáveis globais para controle de tempo
-    tempo_inicio_sessao = None
-    tempo_inicio_expressao = None
-    tentativas_atuais = 0
-
-    # Função para carregar ou criar o JSON de registro
-    def load_log(caminho_log="logs.json"):
-        try:
-            with open(caminho_log, "r", encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return {
-                "expressoes": {},
-                "estatisticas_gerais": {
-                    "total_sessoes": 0,
-                    "expressoes_mais_tentadas": {},
-                    "leis_mais_usadas": {},
-                    "tempo_medio_por_expressao": 0
-                }
-            }
-
-    # Função para registrar o uso de uma lei
-    def register_law(expression, law_name, success=True, tempo_gasto=0, log_path="logs.json"):
-        logs = load_log(log_path)
-        
-        # Inicializa a expressão se não existir
-        if expression not in logs["expressoes"]:
-            logs["expressoes"][expression] = {
-                "leis_usadas": {},
-                "tentativas_totais": 0,
-                "sucessos_totais": 0,
-                "tempo_total_gasto": 0,
-                "tempo_medio": 0,
-                "simplificavel": None,  # None = ainda não determinado
-                "caminho_solucao": [],  # Sequência de leis que levaram ao sucesso
-                "primeira_tentativa": datetime.now().isoformat(),
-                "ultima_tentativa": datetime.now().isoformat(),
-                "sessoes": []
-            }
-        
-        # Atualiza dados da expressão
-        logs["expressoes"][expression]["tentativas_totais"] += 1
-        logs["expressoes"][expression]["tempo_total_gasto"] += tempo_gasto
-        logs["expressoes"][expression]["ultima_tentativa"] = datetime.now().isoformat()
-        
-        if tempo_gasto > 0:
-            logs["expressoes"][expression]["tempo_medio"] = (
-                logs["expressoes"][expression]["tempo_total_gasto"] / 
-                logs["expressoes"][expression]["tentativas_totais"]
-            )
-        
-        # Inicializa a lei se não existir
-        if law_name not in logs["expressoes"][expression]["leis_usadas"]:
-            logs["expressoes"][expression]["leis_usadas"][law_name] = {
-                "usos_sucesso": 0,
-                "tentativas_falha": 0,
-                "tempo_gasto": 0
-            }
-        
-        # Atualiza dados da lei
-        if success:
-            logs["expressoes"][expression]["leis_usadas"][law_name]["usos_sucesso"] += 1
-            logs["expressoes"][expression]["sucessos_totais"] += 1
-            logs["expressoes"][expression]["caminho_solucao"].append(law_name)
-            if logs["expressoes"][expression]["simplificavel"] is None:
-                logs["expressoes"][expression]["simplificavel"] = True
-        else:
-            logs["expressoes"][expression]["leis_usadas"][law_name]["tentativas_falha"] += 1
-        
-        logs["expressoes"][expression]["leis_usadas"][law_name]["tempo_gasto"] += tempo_gasto
-        
-        # Atualiza estatísticas gerais
-        if law_name not in logs["estatisticas_gerais"]["leis_mais_usadas"]:
-            logs["estatisticas_gerais"]["leis_mais_usadas"][law_name] = 0
-        logs["estatisticas_gerais"]["leis_mais_usadas"][law_name] += 1
-        
-        if expression not in logs["estatisticas_gerais"]["expressoes_mais_tentadas"]:
-            logs["estatisticas_gerais"]["expressoes_mais_tentadas"][expression] = 0
-        logs["estatisticas_gerais"]["expressoes_mais_tentadas"][expression] += 1
-        
-        # Salvar os dados no arquivo
-        with open(log_path, "w", encoding='utf-8') as f:
-            json.dump(logs, f, indent=4, ensure_ascii=False)
-
-    def iniciar_sessao_expressao(expression):
-        """Inicia o cronômetro para uma nova expressão"""
-        global tempo_inicio_expressao, tentativas_atuais
-        tempo_inicio_expressao = time.time()
-        tentativas_atuais = 0
-
-    def finalizar_sessao_expressao(expression, resolvida=False):
-        """Finaliza a sessão e registra os dados finais"""
-        global tempo_inicio_expressao, tentativas_atuais
-        
-        if tempo_inicio_expressao is None:
-            return
-            
-        tempo_total = time.time() - tempo_inicio_expressao
-        
-        logs = load_log()
-        if expression in logs["expressoes"]:
-            sessao_atual = {
-                "timestamp": datetime.now().isoformat(),
-                "tempo_gasto": tempo_total,
-                "tentativas_na_sessao": tentativas_atuais,
-                "resolvida": resolvida,
-                "caminho_usado": logs["expressoes"][expression]["caminho_solucao"][-tentativas_atuais:] if tentativas_atuais > 0 else []
-            }
-            logs["expressoes"][expression]["sessoes"].append(sessao_atual)
-            
-            # Salvar
-            with open("logs.json", "w", encoding='utf-8') as f:
-                json.dump(logs, f, indent=4, ensure_ascii=False)
-        
-        tempo_inicio_expressao = None
-        tentativas_atuais = 0
 
 #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES MODIFICADAS ----------------------
     def salvar_estado_atual():
@@ -981,17 +878,18 @@ def inicializar_interface():
             print("Nada para desfazer.") 
             return
 
+        # LOG DO UNDO
+        user_logger.log_simplification_undo()
+
         estado_anterior = historico_de_estados.pop()
         arvore_interativa = estado_anterior['arvore']
         historico_interativo = estado_anterior['historico']
         nos_ignorados = estado_anterior['ignorados']
         passo_atual_info = estado_anterior['passo_info']
         
-        # Diminui o contador de passos e reconstrói a área de passos
         if contador_passos > 0:
             contador_passos -= 1
         
-        # Reconstrói a área de passos baseada no histórico atual
         reconstruir_area_passos()
 
         if not historico_de_estados:
@@ -1173,79 +1071,56 @@ def inicializar_interface():
                     subexpr = ignore_match.group(1) if ignore_match else "desconhecida"
                     adicionar_passo_pular(subexpr)
                 i += 1
-    
+
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados, botao_desfazer
-        global tentativas_atuais, tempo_inicio_expressao, expressao_global
+        global expressao_global, contador_passos
 
         if not passo_atual_info:
             return
 
-        salvar_estado_atual() 
+        salvar_estado_atual()
         botao_desfazer.configure(state="normal")
 
         lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
         subexpressao_antes = str(passo_atual_info['no_atual'])
-        tempo_antes = time.time()
-        nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
-        tempo_gasto = time.time() - tempo_antes
         
-        tentativas_atuais += 1
-
+        nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
+        
+        # LOG DETALHADO DA APLICAÇÃO DE LEI
+        user_logger.log_law_applied(lei_usada, sucesso, contador_passos + 1)
+        
         if sucesso:
-            # Encontra a subexpressão após a transformação
-            subexpressao_depois = "(simplificada)"
-            try:
-                # Tenta encontrar a diferença na árvore
-                if nova_arvore != arvore_interativa:
-                    subexpressao_depois = str(nova_arvore).replace(str(arvore_interativa), "").strip()
-                    if not subexpressao_depois:
-                        subexpressao_depois = "(simplificada)"
-            except:
-                pass
-            
             arvore_interativa = nova_arvore
+            
             historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada com sucesso.")
             historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
             nos_ignorados = set()
             
-            # Adiciona passo visual
             adicionar_passo_sucesso(
-                lei_usada,
-                subexpressao_antes,
-                subexpressao_antes,
-                subexpressao_depois,
-                str(arvore_interativa)
+                lei_usada, subexpressao_antes, subexpressao_antes,
+                "(simplificada)", str(arvore_interativa)
             )
-            
-            # Registra o sucesso no log
-            register_law(str(expressao_global), lei_usada, success=True, tempo_gasto=tempo_gasto)
-            
             iniciar_rodada_interativa()
         else:
             historico_de_estados.pop()
             if not historico_de_estados:
                 botao_desfazer.configure(state="disabled")
-                
-            # Registra a falha no log
-            register_law(str(expressao_global), lei_usada, success=False, tempo_gasto=tempo_gasto)
-            
             popup_erro("Não foi possível aplicar esta lei.")
 
     def on_pular_selecionado():
-        global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer
+        global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer, contador_passos
         if passo_atual_info and passo_atual_info['no_atual']:
-            
             salvar_estado_atual()
-            botao_desfazer.configure(state="normal") 
-
+            botao_desfazer.configure(state="normal")
             subexpressao_ignorada = str(passo_atual_info['no_atual'])
+            
+            # LOG DETALHADO DO PULAR
+            user_logger.log_simplification_skip(contador_passos)
+            
             nos_ignorados.add(passo_atual_info['no_atual'])
             historico_interativo.append(f"↷ Sub-expressão '{subexpressao_ignorada}' ignorada.")
-            
-            # Adiciona passo visual de pular
             adicionar_passo_pular(subexpressao_ignorada)
-            
             iniciar_rodada_interativa()
 
     def atualizar_ui_interativa():
@@ -1275,9 +1150,6 @@ def inicializar_interface():
                 text_color=Colors.SUCCESS
             )
             
-            # Finaliza a sessão quando não há mais possibilidades
-            finalizar_sessao_expressao(str(expressao_global), resolvida=True)
-            
             # Desabilita botões
             if botoes_leis:
                 for botao in botoes_leis:
@@ -1303,174 +1175,101 @@ def inicializar_interface():
             return
             
         try:
+            start_time = time.time()
+            
+            # LOG INÍCIO DA SESSÃO INTERATIVA
+            user_logger.log_interactive_simplification_start(expressao_global)
+            
             arvore_interativa = simpli.construir_arvore(expressao_global)
         except Exception as e:
             popup_erro(f"Erro ao construir a expressão: {e}")
             go_back_to(scroll_frame2)
             return
 
-        # Limpa interface anterior para evitar duplicação
-        for widget in frame_interativo.winfo_children():
-            widget.destroy()
-        
-        # Inicia o cronômetro para esta expressão
-        iniciar_sessao_expressao(str(expressao_global))
-
+        # Resto da função continua igual...
         historico_interativo = [f"Expressão Inicial: {str(arvore_interativa)}"]
         nos_ignorados = set()
         passo_atual_info = None
         historico_de_estados = []
         
-        # Recria os componentes com design padronizado
         criar_interface_interativa_padronizada()
-        
-        # Inicializa área de passos
         inicializar_area_passos()
-        
-        # Inicia rodada após criar interface
         iniciar_rodada_interativa()
+        duration = time.time() - start_time
+        user_logger.log_feature_used("interactive_mode", duration)
     
     def criar_interface_interativa_padronizada():
-        """Cria interface interativa com design padronizado similar ao StepView"""
+        """Cria interface interativa com design flexível usando .grid()"""
         global escolher_caminho, area_expressao, botoes_leis, botao_pular, botao_desfazer
-        global frame_expressao_inicial, frame_analise, frame_passos, frame_controles_interativo
+        global frame_expressao_inicial, frame_analise, frame_passos, frame_controles_interativo, scroll_passos, label_expressao_inicial, label_analise_atual
         
         # Container principal com scroll
         main_container = ctk.CTkScrollableFrame(frame_interativo, fg_color=Colors.PRIMARY_BG)
         main_container.pack(expand=True, fill="both", padx=Spacing.LG, pady=Spacing.LG)
         
-        # Configurar grid para expansão
-        main_container.grid_rowconfigure(2, weight=1)  # frame_passos deve expandir
+        # --- CONFIGURAÇÃO DO GRID FLEXÍVEL ---
+        # Coluna 0 vai ocupar todo o espaço horizontal
         main_container.grid_columnconfigure(0, weight=1)
+        # Linha 2 (onde ficam os 'Passos') vai esticar verticalmente
+        main_container.grid_rowconfigure(2, weight=1)
         
-        # 1. SEÇÃO: Expressão Inicial
-        frame_expressao_inicial = ctk.CTkFrame(
-            main_container,
-            fg_color=Colors.SURFACE_LIGHT,
-            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
-        )
-        frame_expressao_inicial.pack(fill="x", pady=(0, Spacing.MD))
+        # 1. SEÇÃO: Expressão Inicial (ocupa a linha 0)
+        frame_expressao_inicial = ctk.CTkFrame(main_container, fg_color=Colors.SURFACE_LIGHT, corner_radius=Dimensions.CORNER_RADIUS_MEDIUM)
+        frame_expressao_inicial.grid(row=0, column=0, sticky="ew", pady=(0, Spacing.MD))
         
-        titulo_inicial = ctk.CTkLabel(
-            frame_expressao_inicial,
-            text="Expressão Inicial",
-            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
-            text_color=Colors.TEXT_ACCENT
-        )
+        titulo_inicial = ctk.CTkLabel(frame_expressao_inicial, text="Expressão Inicial", font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD), text_color=Colors.TEXT_ACCENT)
         titulo_inicial.pack(pady=(Spacing.SM, Spacing.XS))
         
-        # Label para mostrar a expressão inicial (será atualizada dinamicamente)
-        global label_expressao_inicial
-        label_expressao_inicial = ctk.CTkLabel(
-            frame_expressao_inicial,
-            text="",
-            font=get_font(Typography.SIZE_BODY),
-            text_color=Colors.TEXT_PRIMARY,
-            wraplength=800
-        )
+        label_expressao_inicial = ctk.CTkLabel(frame_expressao_inicial, text="", font=get_font(Typography.SIZE_BODY), text_color=Colors.TEXT_PRIMARY, wraplength=800)
         label_expressao_inicial.pack(pady=(0, Spacing.SM), padx=Spacing.SM)
         
-        # 2. SEÇÃO: Análise Atual
-        frame_analise = ctk.CTkFrame(
-            main_container,
-            fg_color=Colors.SURFACE_MEDIUM,
-            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
-        )
-        frame_analise.pack(fill="x", pady=(0, Spacing.MD))
+        # 2. SEÇÃO: Análise Atual (ocupa a linha 1)
+        frame_analise = ctk.CTkFrame(main_container, fg_color=Colors.SURFACE_MEDIUM, corner_radius=Dimensions.CORNER_RADIUS_MEDIUM)
+        frame_analise.grid(row=1, column=0, sticky="ew", pady=(0, Spacing.MD))
         
-        titulo_analise = ctk.CTkLabel(
-            frame_analise,
-            text="Análise",
-            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
-            text_color=Colors.TEXT_ACCENT
-        )
+        titulo_analise = ctk.CTkLabel(frame_analise, text="Análise", font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD), text_color=Colors.TEXT_ACCENT)
         titulo_analise.pack(pady=(Spacing.SM, Spacing.XS))
         
-        # Label para mostrar a subexpressão sendo analisada
-        global label_analise_atual
-        label_analise_atual = ctk.CTkLabel(
-            frame_analise,
-            text="Aguardando início da análise...",
-            font=get_font(Typography.SIZE_BODY_SMALL),
-            text_color=Colors.TEXT_SECONDARY,
-            wraplength=800
-        )
+        label_analise_atual = ctk.CTkLabel(frame_analise, text="Aguardando início da análise...", font=get_font(Typography.SIZE_BODY_SMALL), text_color=Colors.TEXT_SECONDARY, wraplength=800)
         label_analise_atual.pack(pady=(0, Spacing.SM), padx=Spacing.SM)
+
+        # 3. SEÇÃO: Passos da Simplificação (ocupa a linha 2, a que estica)
+        frame_passos = ctk.CTkFrame(main_container, fg_color=Colors.SURFACE_DARK, corner_radius=Dimensions.CORNER_RADIUS_MEDIUM)
+        frame_passos.grid(row=2, column=0, sticky="nsew", pady=(0, Spacing.MD))
+        frame_passos.grid_rowconfigure(1, weight=1)    # Faz o scroll_passos expandir dentro do frame_passos
+        frame_passos.grid_columnconfigure(0, weight=1) # Faz o scroll_passos expandir dentro do frame_passos
         
-        # 3. SEÇÃO: Passos da Simplificação (área scrollável)
-        frame_passos = ctk.CTkFrame(
-            main_container,
-            fg_color=Colors.SURFACE_DARK,
-            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
-        )
-        frame_passos.pack(fill="both", expand=True, pady=(0, Spacing.MD))
+        titulo_passos = ctk.CTkLabel(frame_passos, text="Passos da Simplificação", font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD), text_color=Colors.TEXT_ACCENT)
+        titulo_passos.grid(row=0, column=0, sticky="ew", pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM)
+
+        scroll_passos = ctk.CTkScrollableFrame(frame_passos, fg_color=Colors.SURFACE_DARK, corner_radius=Dimensions.CORNER_RADIUS_SMALL)
+        # REMOVEMOS A ALTURA FIXA e usamos .grid() para que ele preencha o espaço
+        scroll_passos.grid(row=1, column=0, sticky="nsew", padx=Spacing.SM, pady=(0, Spacing.SM))
         
-        titulo_passos = ctk.CTkLabel(
-            frame_passos,
-            text="Passos da Simplificação",
-            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
-            text_color=Colors.TEXT_ACCENT
-        )
-        titulo_passos.pack(pady=(Spacing.SM, Spacing.XS))
+        # 4. SEÇÃO: Seleção de Leis (ocupa a linha 3)
+        frame_leis = ctk.CTkFrame(main_container, fg_color=Colors.SURFACE_MEDIUM, corner_radius=Dimensions.CORNER_RADIUS_MEDIUM)
+        frame_leis.grid(row=3, column=0, sticky="ew", pady=(0, Spacing.MD))
         
-        # Área scrollável para os passos
-        global scroll_passos
-        scroll_passos = ctk.CTkScrollableFrame(
-            frame_passos,
-            fg_color=Colors.SURFACE_DARK,
-            corner_radius=Dimensions.CORNER_RADIUS_SMALL,
-            height=330
-        )
-        scroll_passos.pack(fill="both", expand=True, padx=Spacing.SM, pady=(0, Spacing.SM))
-        
-        # 4. SEÇÃO: Seleção de Leis
-        frame_leis = ctk.CTkFrame(
-            main_container,
-            fg_color=Colors.SURFACE_MEDIUM,
-            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
-        )
-        frame_leis.pack(fill="x", pady=(0, Spacing.MD))
-        
-        titulo_leis = ctk.CTkLabel(
-            frame_leis,
-            text="Selecione uma Lei para Aplicar:",
-            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
-            text_color=Colors.TEXT_PRIMARY
-        )
+        # (O conteúdo de frame_leis com os botões não precisa mudar, ele já usa .grid internamente)
+        titulo_leis = ctk.CTkLabel(frame_leis, text="Selecione uma Lei para Aplicar:", font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD), text_color=Colors.TEXT_PRIMARY)
         titulo_leis.pack(pady=Spacing.SM)
-        
-        # Grid de botões de leis
         frame_grid_leis = ctk.CTkFrame(frame_leis, fg_color="transparent")
         frame_grid_leis.pack(fill="x", padx=Spacing.MD, pady=Spacing.SM)
-        
-        botoes_info = [
-            {"texto": "Inversa", "desc": "A * ~A = 0", "idx": 0},
-            {"texto": "Nula", "desc": "A * 0 = 0", "idx": 1},
-            {"texto": "Identidade", "desc": "A * 1 = A", "idx": 2},
-            {"texto": "Idempotente", "desc": "A * A = A", "idx": 3},
-            {"texto": "Absorção", "desc": "A * (A+B) = A", "idx": 4},
-            {"texto": "De Morgan", "desc": "~(A*B) = ~A+~B", "idx": 5},
-            {"texto": "Distributiva", "desc": "(A+B)*(A+C)", "idx": 6},
-            {"texto": "Associativa", "desc": "(A*B)*C", "idx": 7},
-            {"texto": "Comutativa", "desc": "B*A = A*B", "idx": 8},
-        ]
-        
+        botoes_info = [{"texto": "Inversa", "desc": "A * ~A = 0", "idx": 0}, {"texto": "Nula", "desc": "A * 0 = 0", "idx": 1}, {"texto": "Identidade", "desc": "A * 1 = A", "idx": 2}, {"texto": "Idempotente", "desc": "A * A = A", "idx": 3}, {"texto": "Absorção", "desc": "A * (A+B) = A", "idx": 4}, {"texto": "De Morgan", "desc": "~(A*B) = ~A+~B", "idx": 5}, {"texto": "Distributiva", "desc": "(A+B)*(A+C)", "idx": 6}, {"texto": "Associativa", "desc": "(A*B)*C", "idx": 7}, {"texto": "Comutativa", "desc": "B*A = A*B", "idx": 8}]
         botoes_leis = []
         for i, info in enumerate(botoes_info):
             row = i // 3
             col = i % 3
-            
             btn = Button.botao_padrao(f"{info['texto']}\n({info['desc']})", frame_grid_leis)
             btn.configure(command=lambda idx=info["idx"]: on_lei_selecionada(idx))
             btn.grid(row=row, column=col, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
             frame_grid_leis.grid_columnconfigure(col, weight=1)
             botoes_leis.append(btn)
-        
-        # 5. SEÇÃO: Controles
+
+        # 5. SEÇÃO: Controles (ocupa a linha 4)
         frame_controles_interativo = ctk.CTkFrame(main_container, fg_color="transparent")
-        frame_controles_interativo.pack(fill="x", pady=Spacing.MD)
+        frame_controles_interativo.grid(row=4, column=0, sticky="ew", pady=Spacing.MD)
         
-        # Botões de controle
         botao_desfazer = Button.botao_padrao("↩ Desfazer", frame_controles_interativo)
         botao_desfazer.configure(command=on_desfazer_selecionado, state="disabled")
         botao_desfazer.pack(side="left", padx=Spacing.SM)
@@ -1479,12 +1278,10 @@ def inicializar_interface():
         botao_pular.configure(command=on_pular_selecionado)
         botao_pular.pack(side="left", padx=Spacing.SM)
         
-        # Botão voltar
         botao_voltar_interativo = Button.botao_voltar("Voltar", frame_controles_interativo)
-        botao_voltar_interativo.configure(
-            command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), go_back_to(frame_abas)]
-        )
-        botao_voltar_interativo.pack(side="right", padx=Spacing.SM)
+        botao_voltar_interativo.configure(command=lambda: go_back_to(frame_abas))
+        botao_voltar_interativo.pack(side="right", padx=Spacing.SM) 
+        
     #------------------------------------------------------------------------
     # BOTÃO DE RELATÓRIO HTML COMENTADO CONFORME SOLICITADO
     # botao_relatorio = Button.botao_padrao("📊 Gerar Relatório HTML", frame_inicio)
@@ -1580,6 +1377,48 @@ def inicializar_interface():
         text_color=Colors.ERROR, 
         fg_color=None
     )
- 
+    
+    def on_closing():
+        """Função chamada quando a aplicação é fechada."""
+        user_logger.end_session()
+        
+        if user_logger.should_prompt_data_sharing():
+            try:
+                # USA O NOVO DIALOG DETALHADO
+                dialog = DetailedDataSharingDialog(user_logger)
+                result = dialog.show_dialog()
+                
+                if result == True:
+                    print("Usuário aceitou enviar os dados detalhados. Preparando para envio...")
+                    
+                    FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd9QNzL1_1MpD0cy_PUA4b59Kpy998015HIsfIT60VC6nOHZA/formResponse"
+                    
+                    ENTRY_MAPPING = {
+                        'app_version': 'entry.695751574',
+                        'platform': 'entry.2115172041',
+                        'submission_date': 'entry.1953189469',
+                        'summary_json': 'entry.415910834'
+                    }
+                    
+                    submitter = GoogleFormsSubmitter(FORM_URL, ENTRY_MAPPING)
+                    data_to_send = user_logger.create_shareable_data()
+                    
+                    success = submitter.submit_data(data_to_send)
+                    
+                    if success:
+                        user_logger._save_settings() 
+                    else:
+                        print("O envio falhou. Os dados não foram enviados.")
+                    
+                elif result == "never":
+                    user_logger.logging_enabled = False
+                    user_logger._save_settings()
+                    
+            except Exception as e:
+                print(f"Erro no dialog de compartilhamento: {e}")
+        
+        janela.destroy()
+        
+    janela.protocol("WM_DELETE_WINDOW", on_closing) 
     show_frame(frame_inicio)
     janela.mainloop()

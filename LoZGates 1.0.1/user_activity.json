@@ -1,0 +1,1167 @@
+{
+  "app_info": {
+    "name": "LoZ Gates",
+    "version": "1.0-beta",
+    "created": "2025-09-23T23:26:36.710913"
+  },
+  "sessions": [
+    {
+      "session_id": "280262339a89",
+      "start_time": "2025-09-23T23:57:52.253238",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-23T23:58:05.458856",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-23T23:58:05.491717",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.03
+          }
+        },
+        {
+          "timestamp": "2025-09-23T23:58:08.268913",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  "
+          }
+        },
+        {
+          "timestamp": "2025-09-23T23:59:13.710638",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-23T23:59:15.611784",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-23T23:59:15.746972",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.14
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:00:16.591169",
+      "duration_seconds": 144.34,
+      "events_count": 6
+    },
+    {
+      "session_id": "23ecf7d060c8",
+      "start_time": "2025-09-24T00:07:34.327255",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-24T00:07:41.705880",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:07:41.737023",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.03
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:07:42.615354",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:08:39.299244",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:08:41.284563",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:08:41.422102",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.14
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:09:26.429534",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:09:26.595824",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.17
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:09:37.753948",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:09:37.888298",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.13
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:09:40.014684",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:09:40.171297",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.16
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:09:46.141947",
+      "duration_seconds": 131.81,
+      "events_count": 12
+    },
+    {
+      "session_id": "1d85408ce6de",
+      "start_time": "2025-09-24T00:15:10.235987",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-24T00:15:14.512874",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:15:14.545370",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.03
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:15:15.330341",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:16:02.772482",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:16:04.842819",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:16:04.974077",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.13
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:16:25.844446",
+      "duration_seconds": 75.61,
+      "events_count": 6
+    },
+    {
+      "session_id": "ed969c2b7c4d",
+      "start_time": "2025-09-24T00:19:31.542450",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-24T00:19:38.991107",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:19:39.085101",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.09
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:19:40.261952",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:19:42.552825",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:19:42.696924",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.14
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:20:34.056766",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:20:34.069655",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.01
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:20:37.145280",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:20:37.307754",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.16
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:20:59.004042",
+      "duration_seconds": 87.46,
+      "events_count": 9
+    },
+    {
+      "session_id": "80952bec5fa8",
+      "start_time": "2025-09-24T00:24:13.861428",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-24T00:24:24.555722",
+          "type": "error_occurred",
+          "data": {
+            "error_type": "equivalence_check_error",
+            "error_message": "type dict doesn't define __round__ method"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:25:25.443561",
+          "type": "error_occurred",
+          "data": {
+            "error_type": "equivalence_check_error",
+            "error_message": "type dict doesn't define __round__ method"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:25:37.138524",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:25:37.204735",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.07
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:25:39.831258",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:25:41.750185",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:25:41.914924",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.16
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:26:23.894342",
+      "duration_seconds": 130.03,
+      "events_count": 7
+    },
+    {
+      "session_id": "e419e570d8e1",
+      "start_time": "2025-09-24T00:34:06.533252",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-24T00:34:18.694127",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1_length": 3,
+            "expression2_length": 3,
+            "result": "equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:34:27.641599",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1_length": 3,
+            "expression2_length": 4,
+            "result": "not_equivalent"
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:34:53.147486",
+      "duration_seconds": 46.61,
+      "events_count": 2
+    },
+    {
+      "session_id": "b9956f76471c",
+      "start_time": "2025-09-24T00:37:19.827019",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-24T00:37:31.799910",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:37:31.871228",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.07
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:37:32.982957",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:32.427664",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:34.780700",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:34.917238",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.14
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:37.628426",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Nula (A * 0 = 0)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:40.308111",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:42.008040",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "(P+Q)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:43.544084",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "expression_before": "~(P+Q)",
+            "expression_after": "(((~P*~Q)+~P)*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:47.122038",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Inversa (A * ~A = 0)",
+            "sub_expression": "((~P*~Q)+~P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:48.893297",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "expression_before": "((~P*~Q)+~P)",
+            "expression_after": "(~P*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:50.255539",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Inversa (A * ~A = 0)",
+            "expression_before": "(~P*P)",
+            "expression_after": "0"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:38:59.247675",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1_length": 13,
+            "expression2_length": 3,
+            "result": "not_equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:39:06.151569",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1_length": 4,
+            "expression2_length": 3,
+            "result": "equivalent"
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:39:08.636133",
+      "duration_seconds": 108.81,
+      "events_count": 15
+    },
+    {
+      "session_id": "b1bdddb3b6a9",
+      "start_time": "2025-09-24T00:43:52.445299",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-24T00:44:04.870352",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:44:04.937471",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.07
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:44:05.837928",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:04.778021",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:08.016395",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:08.149737",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.13
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:10.839687",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Nula (A * 0 = 0)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:12.991060",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Inversa (A * ~A = 0)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:16.163132",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:18.503180",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:21.447422",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "sub_expression": "(P+Q)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:23.344344",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "(P+Q)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:24.246594",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "expression_before": "~(P+Q)",
+            "expression_after": "(((~P*~Q)+~P)*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:25.800404",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "expression_before": "((~P*~Q)+~P)",
+            "expression_after": "(~P*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:27.247223",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Inversa (A * ~A = 0)",
+            "expression_before": "(~P*P)",
+            "expression_after": "0"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:35.254903",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1_length": 13,
+            "expression2_length": 3,
+            "result": "not_equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:40.271018",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1_length": 4,
+            "expression2_length": 3,
+            "result": "equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:45:46.015303",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1_length": 4,
+            "expression2_length": 3,
+            "result": "not_equivalent"
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:45:48.026684",
+      "duration_seconds": 115.58,
+      "events_count": 18
+    },
+    {
+      "session_id": "d2f5a9944a78",
+      "start_time": "2025-09-24T00:52:49.920759",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-24T00:53:01.621349",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:53:01.685878",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.06
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:53:02.517307",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:09.586044",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:12.191120",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:12.321932",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.13
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:13.534451",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Nula (A * 0 = 0)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:15.183481",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Inversa (A * ~A = 0)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:17.490896",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:19.535648",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:21.060009",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "sub_expression": "(P+Q)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:22.616198",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Idempotente (A * A = A)",
+            "sub_expression": "(P+Q)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:24.271600",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "(P+Q)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:25.055397",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "expression_before": "~(P+Q)",
+            "expression_after": "(((~P*~Q)+~P)*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:26.430455",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "expression_before": "((~P*~Q)+~P)",
+            "expression_after": "(~P*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:27.742261",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Inversa (A * ~A = 0)",
+            "expression_before": "(~P*P)",
+            "expression_after": "0"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:36.877142",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1": "(!(P|Q)|!P)&P",
+            "expression2": "P>Q",
+            "result": "not_equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:41.925560",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1": "!P|Q",
+            "expression2": "P>Q",
+            "result": "equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:45.686874",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1": "!P|Q",
+            "expression2": "P&Q",
+            "result": "not_equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-24T00:54:51.223970",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1": "Q&P",
+            "expression2": "P&Q",
+            "result": "equivalent"
+          }
+        }
+      ],
+      "end_time": "2025-09-24T00:54:53.240688",
+      "duration_seconds": 123.32,
+      "events_count": 20
+    },
+    {
+      "session_id": "85b571e443b8",
+      "start_time": "2025-09-25T00:54:02.072818",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-25T00:54:09.857849",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1": "(!(P|Q)|!P)&P",
+            "expression2": "(!(P|Q)|!P)&P",
+            "result": "equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:54:12.689663",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1": "(!(P|Q)|!P)&P",
+            "expression2": "!(!(P|Q)|!P)&P",
+            "result": "not_equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:54:19.920850",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1": "P|Q",
+            "expression2": "P>Q",
+            "result": "not_equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:54:21.760699",
+          "type": "equivalence_check_performed",
+          "data": {
+            "expression1": "!P|Q",
+            "expression2": "P>Q",
+            "result": "equivalent"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:54:25.184318",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "variable_count": 2,
+            "is_valid": true
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:54:25.376797",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.19
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:54:34.347382",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  "
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:55:42.333533",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      "
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:55:44.859016",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode_start"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:55:44.987131",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.13
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:55:48.649540",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Inversa (A * ~A = 0)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:55:53.192933",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_fail",
+            "law_name": "Nula (A * 0 = 0)",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:55:56.272840",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:55:59.417503",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "(P+Q)"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:55:59.971023",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "expression_before": "~(P+Q)",
+            "expression_after": "(((~P*~Q)+~P)*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:01.048852",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "((~P*~Q)+~P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:03.648920",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "(((~P*~Q)+~P)*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:10.434308",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "expression_before": "((~P*~Q)+~P)",
+            "expression_after": "(((~P*~Q)+~P)*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:12.282430",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:14.241513",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "~P"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:16.577514",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "~Q"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:18.196377",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "skip_expression",
+            "sub_expression": "(~P*~Q)"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:19.808398",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Absorção (A * (A+B) = A)",
+            "expression_before": "((~P*~Q)+~P)",
+            "expression_after": "(~P*P)"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T00:56:22.448928",
+          "type": "interactive_simplification",
+          "data": {
+            "action": "apply_law_success",
+            "law_name": "Inversa (A * ~A = 0)",
+            "expression_before": "(~P*P)",
+            "expression_after": "0"
+          }
+        }
+      ],
+      "end_time": "2025-09-25T00:56:27.126319",
+      "duration_seconds": 145.05,
+      "events_count": 24
+    }
+  ]
+}

@@ -8,11 +8,13 @@ from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, ge
 class CircuitModeSelector:
     """Seletor de modos."""
     
-    def __init__(self, parent_frame: ctk.CTkFrame, circuit_manager, Button, get_global_expression_func):
+    def __init__(self, parent_frame: ctk.CTkFrame, circuit_manager, Button, get_global_expression_func, logger=None):
         self.parent_frame = parent_frame
         self.circuit_manager = circuit_manager
         self.Button = Button
         self.get_global_expression = get_global_expression_func  #Função para pegar expressão global
+        
+        self.logger = logger #adicionei para o log
         
         #Estados
         self.is_circuit_active = False
