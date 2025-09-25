@@ -1,15 +1,11 @@
 """
     Módulo para gerenciar diferentes modos de circuito interativo.
 """
-
 import tkinter as tk
 from typing import List, Optional, Dict, Any
 from .interactive.interactive_circuit import CircuitoInterativoManual
 
 class CircuitModeManager:
-    """Gerenciador dos diferentes modos de circuito interativo."""
-    
-    #Definição dos modos disponíveis
     MODES = {
         'livre': {
             'name': 'Modo Livre',
@@ -92,16 +88,13 @@ class CircuitModeManager:
         self.current_circuit = None
         self.circuit_frame = None
         
-    def get_mode_info(self, mode_key: str) -> Dict[str, Any]:
-        """Retorna informações sobre um modo específico."""
+    def get_mode_info(self, mode_key: str) -> Dict[str, Any]: #Retorna informações sobre um modo específico.
         return self.MODES.get(mode_key, self.MODES['livre'])
     
-    def get_all_modes(self) -> Dict[str, Dict[str, Any]]:
-        """Retorna todos os modos disponíveis."""
+    def get_all_modes(self) -> Dict[str, Dict[str, Any]]: #Retorna todos os modos disponíveis.
         return self.MODES
     
-    def set_mode(self, mode_key: str):
-        """Define o modo atual."""
+    def set_mode(self, mode_key: str): #Define o modo atual.
         if mode_key in self.MODES:
             self.current_mode = mode_key
             print(f"Modo definido para: {mode_key}")
@@ -109,12 +102,10 @@ class CircuitModeManager:
             print(f"Modo inválido: {mode_key}")
             self.current_mode = None
     
-    def get_current_mode(self) -> str:
-        """Retorna o modo atual."""
+    def get_current_mode(self) -> str: #Retorna o modo atual.
         return self.current_mode
     
-    def has_mode_selected(self) -> bool:
-        """Verifica se um modo foi selecionado."""
+    def has_mode_selected(self) -> bool: #Verifica se um modo foi selecionado.
         return self.current_mode is not None
     
     ''' NÃO TO USANDO ISSO POR ENQUANTO
@@ -135,8 +126,7 @@ class CircuitModeManager:
         return self.SUGGESTED_EXPRESSIONS.get(mapped_difficulty, self.SUGGESTED_EXPRESSIONS['iniciante'])
     '''
     
-    def create_circuit(self, parent_frame: tk.Widget, expression: str) -> CircuitoInterativoManual:
-        """Cria um circuito com as restrições do modo atual."""
+    def create_circuit(self, parent_frame: tk.Widget, expression: str, logger=None) -> CircuitoInterativoManual: #Cria um circuito com as restrições do modo atual.
         #Para instância anterior se existir
         if self.current_circuit:
             try:
@@ -166,7 +156,8 @@ class CircuitModeManager:
             self.current_circuit = CircuitoInterativoManual(
                 parent_frame, 
                 expression, 
-                gate_restrictions=restrictions
+                gate_restrictions=restrictions,
+                logger=logger
             )
             self.circuit_frame = parent_frame
             print("Circuito criado com sucesso!")
@@ -177,8 +168,7 @@ class CircuitModeManager:
             print(f"Erro ao criar circuito: {e}")
             raise e
     
-    def stop_current_circuit(self):
-        """Para o circuito atual."""
+    def stop_current_circuit(self): #Para o circuito atual.
         if self.current_circuit:
             try:
                 self.current_circuit.stop()
@@ -188,8 +178,7 @@ class CircuitModeManager:
             finally:
                 self.current_circuit = None
     
-    def get_mode_tips(self, mode_key: str = None) -> List[str]:
-        """Retorna dicas específicas para o modo."""
+    def get_mode_tips(self, mode_key: str = None) -> List[str]: #Retorna dicas específicas para o modo.
         if mode_key is None:
             mode_key = self.current_mode
             
@@ -232,8 +221,7 @@ class CircuitModeManager:
         
         return tips.get(mode_key, tips['livre'])
     
-    def validate_expression_for_mode(self, expression: str, mode_key: str = None) -> tuple[bool, str]:
-        """Valida se uma expressão é adequada para o modo."""
+    def validate_expression_for_mode(self, expression: str, mode_key: str = None) -> tuple[bool, str]: #Valida se uma expressão é adequada para o modo.
         if mode_key is None:
             mode_key = self.current_mode
             
@@ -266,8 +254,8 @@ class CircuitModeManager:
         
         return True, "Expressão válida"
     
-    def get_completion_message(self, mode_key: str = None) -> str:
-        """Retorna mensagem de conclusão específica do modo."""
+    def get_completion_message(self, mode_key: str = None) -> str: #Retorna mensagem de conclusão específica do modo.
+        #NÂO TO USANDO ESSA FUNÇÃO POR ENQUANTO
         if mode_key is None:
             mode_key = self.current_mode
             
@@ -287,6 +275,4 @@ class CircuitModeManager:
         base_message = messages.get(mode_key, messages['livre'])
         return f"{mode_info['icon']} {base_message} {mode_info['icon']}"
 
-
-#Instância global para uso em toda a aplicação
 circuit_mode_manager = CircuitModeManager()
