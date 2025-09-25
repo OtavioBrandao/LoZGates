@@ -1,13 +1,8 @@
-#Interface para circuito interativo - UI/UX padronizada
-#Atualizado com design tokens e componentes unificados
-
 import customtkinter as ctk
 import tkinter as tk
 from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
 
 class CircuitModeSelector:
-    """Seletor de modos."""
-    
     def __init__(self, parent_frame: ctk.CTkFrame, circuit_manager, Button, get_global_expression_func, logger=None):
         self.parent_frame = parent_frame
         self.circuit_manager = circuit_manager
@@ -21,13 +16,11 @@ class CircuitModeSelector:
         self.current_mode = None  #Inicializa como None ao invés de 'livre'
         
         #Armazena referências dos botões de modo
-        self.mode_buttons = {}  #{mode_key: button_widget}
+        self.mode_buttons = {} 
         
         self.setup_interface()
     
-    def setup_interface(self):
-        """Configura a interface."""
-        #Container principal
+    def setup_interface(self): #Configura a interface.
         self.main_container = ctk.CTkScrollableFrame(self.parent_frame, fg_color=Colors.PRIMARY_BG)
         self.main_container.pack(fill="both", expand=True, padx=Spacing.SM, pady=Spacing.SM)
         
@@ -80,8 +73,7 @@ class CircuitModeSelector:
         #Panel de informações
         self.create_info_panel()
     
-    def create_mode_buttons(self, parent):
-        """Cria os botões de seleção de modo."""
+    def create_mode_buttons(self, parent): #Cria os botões de seleção de modo.
         button_frame = ctk.CTkFrame(parent, fg_color="transparent")
         button_frame.pack(pady=Spacing.MD)
         
@@ -127,8 +119,7 @@ class CircuitModeSelector:
         )
         self.mode_description.pack(pady=Spacing.MD)
     
-    def create_control_panel(self):
-        """Cria o painel de controles."""
+    def create_control_panel(self): #Cria o painel de controles.
         control_frame = ctk.CTkFrame(
             self.main_container, 
             fg_color=Colors.SURFACE_DARK,
@@ -237,8 +228,7 @@ class CircuitModeSelector:
         )
         self.circuit_frame.pack(fill="both", expand=True, padx=Spacing.SM, pady=(0, Spacing.SM))
     
-    def create_info_panel(self):
-        """Cria painel de informações."""
+    def create_info_panel(self): #Cria painel de informações.
         self.info_container = ctk.CTkFrame(
             self.main_container, 
             fg_color=Colors.SURFACE_MEDIUM,
@@ -263,8 +253,7 @@ class CircuitModeSelector:
         )
         self.info_text.pack(fill="x", padx=Spacing.MD, pady=(0, Spacing.MD))
     
-    def update_expression_display(self):
-        """Atualiza a exibição da expressão atual."""
+    def update_expression_display(self): #Atualiza a exibição da expressão atual.
         expression = self.get_global_expression()
         if expression:
             self.expression_display.configure(
@@ -277,8 +266,7 @@ class CircuitModeSelector:
                 text_color=Colors.WARNING
             )
     
-    def update_mode_buttons_state(self):
-        """Atualiza o estado dos botões de modo baseado no status do circuito."""
+    def update_mode_buttons_state(self): #Atualiza o estado dos botões de modo baseado no status do circuito.
         for mode_key, button in self.mode_buttons.items():
             if self.is_circuit_active:
                 #Desabilita todos os botões exceto o selecionado
@@ -290,8 +278,7 @@ class CircuitModeSelector:
                 #Reabilita todos os botões
                 button.configure(state="normal")
     
-    def select_mode(self, mode_key: str):
-        """Seleciona um modo."""
+    def select_mode(self, mode_key: str): #Seleciona um modo.
         #Só permite trocar de modo se o circuito não estiver ativo
         if self.is_circuit_active and mode_key != self.current_mode:
             self.status_label.configure(
@@ -337,8 +324,7 @@ class CircuitModeSelector:
                 text_color=Colors.WARNING
             )
     
-    def start_circuit(self):
-        """Inicia o circuito interativo."""
+    def start_circuit(self): #Inicia o circuito interativo.
         expression = self.get_global_expression()
         
         if not expression:
@@ -348,7 +334,6 @@ class CircuitModeSelector:
             )
             return
         
-        #Verifica se um modo foi selecionado
         if self.current_mode is None:
             self.status_label.configure(
                 text="⚠️ Selecione um modo de desafio primeiro",
@@ -357,12 +342,18 @@ class CircuitModeSelector:
             return
         
         try:
-            #Mostra área do circuito
+            # LOG DO MODO SELECIONADO
+            if self.logger:
+                self.logger.log_event("circuit_mode_selected", {
+                    "mode": self.current_mode,
+                    "expression": expression[:30],
+                    "restrictions": self.circuit_manager.get_mode_info(self.current_mode).get('restrictions')
+                })
+            
             self.circuit_container.pack(fill="both", expand=True, pady=Spacing.MD, padx=Spacing.LG)
             
-            #Cria circuito com validação melhorada
-            circuit = self.circuit_manager.create_circuit(self.circuit_frame, expression)
-            
+            circuit = self.circuit_manager.create_circuit(self.circuit_frame, expression, logger=self.logger)
+
             #Atualiza estados
             self.is_circuit_active = True
             
@@ -396,8 +387,7 @@ class CircuitModeSelector:
             )
             print(f"❌ Erro: {e}")
     
-    def stop_circuit(self):
-        """Para o circuito."""
+    def stop_circuit(self): #Para o circuito.
         try:
             self.circuit_manager.stop_current_circuit()
             
@@ -423,8 +413,12 @@ class CircuitModeSelector:
         except Exception as e:
             print(f"Erro ao parar circuito: {e}")
     
-    def show_tips(self):
-        """Mostra dicas específicas do modo."""
+    def show_tips(self): #Mostra dicas específicas do modo.
+        if self.logger and self.current_mode:
+            self.logger.log_event("circuit_tips_viewed", {
+                "mode": self.current_mode,
+                "circuit_active": self.is_circuit_active
+            })
         if self.current_mode is None:
             tips_text = "Primeiro selecione um modo de desafio para ver dicas específicas."
         else:
@@ -446,8 +440,7 @@ class CircuitModeSelector:
         if not self.info_container.winfo_ismapped():
             self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
     
-    def show_controls(self):
-        """Mostra informações de controle do jogo."""
+    def show_controls(self): #Mostra informações de controle do jogo.
         #Mostra painel se não estiver visível
         if not self.info_container.winfo_ismapped():
             self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
@@ -476,13 +469,11 @@ class CircuitModeSelector:
         self.info_text.delete("1.0", "end")
         self.info_text.insert("1.0", controls_text)
     
-    def cleanup(self):
-        """Limpa recursos."""
+    def cleanup(self): #Limpa recursos.
         if self.is_circuit_active:
             self.stop_circuit()
     
-    def _darken_color(self, hex_color: str) -> str:
-        """Escurece cor para hover."""
+    def _darken_color(self, hex_color: str) -> str: #Escurece cor para hover.
         hex_color = hex_color.lstrip('#')
         rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
         darker_rgb = tuple(max(0, int(c * 0.7)) for c in rgb)
