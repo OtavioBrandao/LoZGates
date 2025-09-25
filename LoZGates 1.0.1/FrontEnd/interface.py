@@ -316,43 +316,119 @@ def inicializar_interface():
         try:
             janela_tabela = ctk.CTkToplevel(janela)
             janela_tabela.title("Tabela Verdade")
-            janela_tabela.geometry("800x600") #Aumentei a largura para caber, ja que nao sei colocar scroll pro lado
+            janela_tabela.geometry("1000x700")
             janela_tabela.lift()
             janela_tabela.attributes('-topmost', True)
             janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
-            janela_tabela.configure(fg_color="#FFFFFF")
+            janela_tabela.configure(fg_color=Colors.PRIMARY_BG)
 
-            #Gera a tabela verdade usando a função do backend
+            # Gera a tabela verdade usando a função do backend
             dados_tabela = gerar_tabela_verdade(expressao)
             
-            #Extrai os dados do dicionário retornado
+            # Extrai os dados do dicionário retornado
             colunas = dados_tabela["colunas"]
             tabela = dados_tabela["tabela"]
             resultados_finais = dados_tabela["resultados_finais"]
 
-            #Cria um frame para exibir a tabela verdade
-            frame_tabela = ctk.CTkScrollableFrame(janela_tabela)
-            frame_tabela.pack(pady=10, padx=10, fill="both", expand=True)
-            frame_tabela.configure(fg_color="#082347")
+            # Container principal
+            main_container = ctk.CTkFrame(
+                janela_tabela,
+                fg_color=Colors.PRIMARY_BG,
+                corner_radius=0
+            )
+            main_container.pack(fill="both", expand=True, padx=Spacing.LG, pady=Spacing.LG)
 
-            cabecalho_str = " | ".join([f"{col:^10}" for col in colunas])
-            label_cabecalho = ctk.CTkLabel(frame_tabela, text=cabecalho_str, font=("Trebuchet MS", 14, "bold"))
-            label_cabecalho.pack(pady=(5, 0))
+            # Título da janela
+            titulo_tabela = ctk.CTkLabel(
+                main_container,
+                text=f"Tabela Verdade: {expressao}",
+                font=get_title_font(Typography.SIZE_TITLE_MEDIUM),
+                text_color=Colors.TEXT_ACCENT
+            )
+            titulo_tabela.pack(pady=(Spacing.SM, Spacing.LG))
 
-            separador_str = "-".join(["-" * 10 for _ in colunas])
-            separador = ctk.CTkLabel(frame_tabela, text=separador_str, font=("Trebuchet MS", 14))
-            separador.pack()
+            # Frame da tabela com design padronizado
+            frame_tabela_container = ctk.CTkFrame(
+                main_container,
+                fg_color=Colors.SURFACE_LIGHT,
+                corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+            )
+            frame_tabela_container.pack(fill="both", expand=True, pady=(0, Spacing.MD))
 
-            #Adiciona as linhas da tabela
-            for linha_valores in tabela:
-                linha_str = " | ".join([f"{str(val):^10}" for val in linha_valores])
-                label_linha = ctk.CTkLabel(frame_tabela, text=linha_str, font=("Trebuchet MS", 14))
-                label_linha.pack()
+            # Área scrollável para a tabela
+            frame_tabela = ctk.CTkScrollableFrame(
+                frame_tabela_container,
+                fg_color=Colors.SURFACE_DARK,
+                corner_radius=Dimensions.CORNER_RADIUS_SMALL
+            )
+            frame_tabela.pack(fill="both", expand=True, padx=Spacing.SM, pady=Spacing.SM)
 
-            #Verifica a conclusão da expressão (Tautologia, Contradição ou Satisfatível)
+            # Cabeçalho da tabela
+            header_frame = ctk.CTkFrame(
+                frame_tabela,
+                fg_color=Colors.SURFACE_MEDIUM,
+                corner_radius=Dimensions.CORNER_RADIUS_SMALL
+            )
+            header_frame.pack(fill="x", pady=(0, Spacing.XS))
+
+            cabecalho_str = " | ".join([f"{col:^12}" for col in colunas])
+            label_cabecalho = ctk.CTkLabel(
+                header_frame,
+                text=cabecalho_str,
+                font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+                text_color=Colors.TEXT_ACCENT
+            )
+            label_cabecalho.pack(pady=Spacing.SM)
+
+            # Linhas da tabela
+            for i, linha_valores in enumerate(tabela):
+                linha_frame = ctk.CTkFrame(
+                    frame_tabela,
+                    fg_color=Colors.SURFACE_LIGHT if i % 2 == 0 else Colors.SURFACE_MEDIUM,
+                    corner_radius=Dimensions.CORNER_RADIUS_SMALL
+                )
+                linha_frame.pack(fill="x", pady=Spacing.XS)
+
+                linha_str = " | ".join([f"{str(val):^12}" for val in linha_valores])
+                label_linha = ctk.CTkLabel(
+                    linha_frame,
+                    text=linha_str,
+                    font=get_font(Typography.SIZE_BODY),
+                    text_color=Colors.TEXT_PRIMARY
+                )
+                label_linha.pack(pady=Spacing.XS)
+
+            # Frame para conclusão
+            conclusao_frame = ctk.CTkFrame(
+                main_container,
+                fg_color=Colors.SURFACE_MEDIUM,
+                corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+            )
+            conclusao_frame.pack(fill="x", pady=(0, Spacing.MD))
+
+            # Verifica a conclusão da expressão
             conclusao = verificar_conclusao(resultados_finais)
-            label_conclusao = ctk.CTkLabel(frame_tabela, text=conclusao, font=("Trebuchet MS", 16, "bold"))
-            label_conclusao.pack(pady=20)
+            
+            # Define cor baseada no tipo de conclusão
+            if "TAUTOLOGIA" in conclusao:
+                cor_conclusao = Colors.SUCCESS
+            elif "CONTRADIÇÃO" in conclusao:
+                cor_conclusao = Colors.ERROR
+            else:
+                cor_conclusao = Colors.INFO
+
+            label_conclusao = ctk.CTkLabel(
+                conclusao_frame,
+                text=conclusao,
+                font=get_font(Typography.SIZE_SUBTITLE, Typography.WEIGHT_BOLD),
+                text_color=cor_conclusao
+            )
+            label_conclusao.pack(pady=Spacing.MD)
+
+            # Botão para fechar
+            botao_fechar = Button.botao_padrao("Fechar", main_container)
+            botao_fechar.configure(command=janela_tabela.destroy)
+            botao_fechar.pack(pady=Spacing.SM)
             
         except Exception as e:
             popup_erro(f"Erro ao gerar tabela verdade: {e}")
