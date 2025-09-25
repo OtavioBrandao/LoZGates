@@ -359,6 +359,15 @@ def inicializar_interface():
             )
             frame_tabela.pack(fill="both", expand=True, padx=Spacing.SM, pady=Spacing.SM)
 
+            # Calcular larguras otimizadas para cada coluna
+            larguras = []
+            for i, col in enumerate(colunas):
+                max_len = len(str(col))
+                for linha in tabela:
+                    if i < len(linha):
+                        max_len = max(max_len, len(str(linha[i])))
+                larguras.append(max(max_len + 1, 3))  # Mínimo 3, +1 para espaçamento
+
             # Cabeçalho da tabela
             header_frame = ctk.CTkFrame(
                 frame_tabela,
@@ -367,11 +376,11 @@ def inicializar_interface():
             )
             header_frame.pack(fill="x", pady=(0, Spacing.XS))
 
-            cabecalho_str = " | ".join([f"{col:^12}" for col in colunas])
+            cabecalho_str = " │ ".join([f"{str(col):^{w}}" for col, w in zip(colunas, larguras)])
             label_cabecalho = ctk.CTkLabel(
                 header_frame,
                 text=cabecalho_str,
-                font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+                font=("Consolas", 12, "bold"),
                 text_color=Colors.TEXT_ACCENT
             )
             label_cabecalho.pack(pady=Spacing.SM)
@@ -385,11 +394,11 @@ def inicializar_interface():
                 )
                 linha_frame.pack(fill="x", pady=Spacing.XS)
 
-                linha_str = " | ".join([f"{str(val):^12}" for val in linha_valores])
+                linha_str = " │ ".join([f"{str(val):^{w}}" for val, w in zip(linha_valores, larguras)])
                 label_linha = ctk.CTkLabel(
                     linha_frame,
                     text=linha_str,
-                    font=get_font(Typography.SIZE_BODY),
+                    font=("Consolas", 12),
                     text_color=Colors.TEXT_PRIMARY
                 )
                 label_linha.pack(pady=Spacing.XS)

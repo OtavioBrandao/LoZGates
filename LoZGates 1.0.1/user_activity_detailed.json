@@ -1365,6 +1365,1452 @@
       "end_time": "2025-09-25T19:51:31.627009",
       "duration_seconds": 220.51,
       "events_count": 76
+    },
+    {
+      "session_id": "4f5d2c0647e7",
+      "start_time": "2025-09-25T20:09:22.370693",
+      "user_id": "86af758cb9c146d8",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-25T20:11:43.424811",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 24,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "7d3d9a1c"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:11:44.245545",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 24,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "7d3d9a1c"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:11:44.423223",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.18
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:11:56.025202",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 153.6545193195343
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:11:56.025301",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:00.382921",
+          "type": "circuit_mode_selected",
+          "data": {
+            "mode": "livre",
+            "expression": "((~(P+Q)+~P)*P)+(P*~P*Q)",
+            "restrictions": null
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:20.815770",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 1
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:22.904585",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 2
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:25.203365",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 3
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:37.361158",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 4
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:38.958985",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 5
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:50.149714",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 6
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:13:42.124880",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 7
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:01.752123",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 8
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:03.673845",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 9
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:29.929729",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 10
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:34.611779",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 11
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:43.826392",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 12
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:48.229826",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 13
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:50.139783",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 14
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:15:04.183254",
+          "type": "circuit_test",
+          "data": {
+            "success": false,
+            "attempt_number": 1,
+            "success_rate": 0.0
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:15:14.368145",
+          "type": "circuit_test",
+          "data": {
+            "success": false,
+            "attempt_number": 2,
+            "success_rate": 0.0
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:15:26.112060",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 363.74137711524963
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:08.174447",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "61068d06",
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:08.333049",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.16
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:27.814081",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "61068d06",
+            "session_number": 2
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:27.952252",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.14
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:30.374769",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:33.029348",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 2
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:33.699121",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 3
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:37.144606",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 1,
+            "timestamp_detail": 1758842197.1446047
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:42.652271",
+          "type": "law_application",
+          "data": {
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "success": true,
+            "step_number": 2,
+            "timestamp_detail": 1758842202.6522698
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:05.496534",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": false,
+            "step_number": 3,
+            "timestamp_detail": 1758842225.4965327
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:05.496550",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "step_number": 3,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+            "expression_state": "((((~P*~Q)+~P)*P)+(0*Q))",
+            "timestamp_detail": 1758842225.4965498
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:09.528864",
+          "type": "law_application",
+          "data": {
+            "law_name": "Identidade (A * 1 = A)",
+            "success": false,
+            "step_number": 3,
+            "timestamp_detail": 1758842229.528862
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:09.528879",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Identidade (A * 1 = A)",
+            "step_number": 3,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+            "expression_state": "((((~P*~Q)+~P)*P)+(0*Q))",
+            "timestamp_detail": 1758842229.5288785
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:11.245561",
+          "type": "law_application",
+          "data": {
+            "law_name": "Idempotente (A * A = A)",
+            "success": false,
+            "step_number": 3,
+            "timestamp_detail": 1758842231.2455595
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:11.245573",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Idempotente (A * A = A)",
+            "step_number": 3,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+            "expression_state": "((((~P*~Q)+~P)*P)+(0*Q))",
+            "timestamp_detail": 1758842231.2455728
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:12.547819",
+          "type": "law_application",
+          "data": {
+            "law_name": "Associativa ((A*B)*C = A*(B*C))",
+            "success": false,
+            "step_number": 3,
+            "timestamp_detail": 1758842232.5478175
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:12.547840",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Associativa ((A*B)*C = A*(B*C))",
+            "step_number": 3,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+            "expression_state": "((((~P*~Q)+~P)*P)+(0*Q))",
+            "timestamp_detail": 1758842232.5478396
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:26.011109",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "73f718d8"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:26.803895",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "73f718d8"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:26.982746",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.18
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:32.437285",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "b39c7233",
+            "session_number": 3
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:32.562368",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.13
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:34.809550",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 4
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:35.515532",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 5
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:36.681175",
+          "type": "law_application",
+          "data": {
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "success": true,
+            "step_number": 1,
+            "timestamp_detail": 1758842256.6811733
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:38.481503",
+          "type": "law_application",
+          "data": {
+            "law_name": "Absorção (A * (A+B) = A)",
+            "success": true,
+            "step_number": 2,
+            "timestamp_detail": 1758842258.4815023
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:40.339712",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 3,
+            "timestamp_detail": 1758842260.339711
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:42.484781",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 2
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 4,
+        "expressions_valid": 4,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 2,
+        "interactive_sessions": 3,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 2,
+        "avg_feature_time": 0.16,
+        "overall_success_rate": 0.0
+      },
+      "interactive_simplification": {
+        "sessions_started": 3,
+        "total_steps": 5,
+        "laws_applied": {
+          "Inversa (A * ~A = 0)": 2,
+          "De Morgan (~(A*B) = ~A+~B)": 2,
+          "Absorção (A * (A+B) = A)": 1
+        },
+        "skips_used": 5,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0,
+        "failed_attempts": {
+          "Inversa (A * ~A = 0)": [
+            {
+              "step": 3,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+              "expression": "((((~P*~Q)+~P)*P)+(0*Q))",
+              "timestamp": 1758842225.4965491
+            }
+          ],
+          "Identidade (A * 1 = A)": [
+            {
+              "step": 3,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+              "expression": "((((~P*~Q)+~P)*P)+(0*Q))",
+              "timestamp": 1758842229.5288773
+            }
+          ],
+          "Idempotente (A * A = A)": [
+            {
+              "step": 3,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+              "expression": "((((~P*~Q)+~P)*P)+(0*Q))",
+              "timestamp": 1758842231.2455723
+            }
+          ],
+          "Associativa ((A*B)*C = A*(B*C))": [
+            {
+              "step": 3,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+              "expression": "((((~P*~Q)+~P)*P)+(0*Q))",
+              "timestamp": 1758842232.547839
+            }
+          ]
+        }
+      },
+      "interactive_circuit": {
+        "sessions_started": 2,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 14,
+        "test_attempts": 2,
+        "successful_circuits": 0,
+        "failed_circuits": 2,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 4
+        },
+        "operator_usage": {
+          "AND": 8,
+          "OR": 10,
+          "NOT": 10
+        },
+        "expression_lengths": {
+          "24": 2,
+          "13": 2
+        },
+        "common_expressions": {
+          "7d3d9a1c": 2,
+          "73f718d8": 2
+        }
+      },
+      "end_time": "2025-09-25T20:17:51.398582",
+      "duration_seconds": 509.03,
+      "events_count": 51
+    },
+    {
+      "session_id": "4f5d2c0647e7",
+      "start_time": "2025-09-25T20:09:22.370693",
+      "user_id": "86af758cb9c146d8",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-25T20:11:43.424811",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 24,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "7d3d9a1c"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:11:44.245545",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 24,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "7d3d9a1c"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:11:44.423223",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.18
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:11:56.025202",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 153.6545193195343
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:11:56.025301",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:00.382921",
+          "type": "circuit_mode_selected",
+          "data": {
+            "mode": "livre",
+            "expression": "((~(P+Q)+~P)*P)+(P*~P*Q)",
+            "restrictions": null
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:20.815770",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 1
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:22.904585",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 2
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:25.203365",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 3
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:37.361158",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 4
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:38.958985",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 5
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:12:50.149714",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 6
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:13:42.124880",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 7
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:01.752123",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 8
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:03.673845",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 9
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:29.929729",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 10
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:34.611779",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 11
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:43.826392",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 12
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:48.229826",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 13
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:14:50.139783",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 14
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:15:04.183254",
+          "type": "circuit_test",
+          "data": {
+            "success": false,
+            "attempt_number": 1,
+            "success_rate": 0.0
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:15:14.368145",
+          "type": "circuit_test",
+          "data": {
+            "success": false,
+            "attempt_number": 2,
+            "success_rate": 0.0
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:15:26.112060",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 363.74137711524963
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:08.174447",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "61068d06",
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:08.333049",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.16
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:27.814081",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "61068d06",
+            "session_number": 2
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:27.952252",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.14
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:30.374769",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:33.029348",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 2
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:33.699121",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 3
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:37.144606",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 1,
+            "timestamp_detail": 1758842197.1446047
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:16:42.652271",
+          "type": "law_application",
+          "data": {
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "success": true,
+            "step_number": 2,
+            "timestamp_detail": 1758842202.6522698
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:05.496534",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": false,
+            "step_number": 3,
+            "timestamp_detail": 1758842225.4965327
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:05.496550",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "step_number": 3,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+            "expression_state": "((((~P*~Q)+~P)*P)+(0*Q))",
+            "timestamp_detail": 1758842225.4965498
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:09.528864",
+          "type": "law_application",
+          "data": {
+            "law_name": "Identidade (A * 1 = A)",
+            "success": false,
+            "step_number": 3,
+            "timestamp_detail": 1758842229.528862
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:09.528879",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Identidade (A * 1 = A)",
+            "step_number": 3,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+            "expression_state": "((((~P*~Q)+~P)*P)+(0*Q))",
+            "timestamp_detail": 1758842229.5288785
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:11.245561",
+          "type": "law_application",
+          "data": {
+            "law_name": "Idempotente (A * A = A)",
+            "success": false,
+            "step_number": 3,
+            "timestamp_detail": 1758842231.2455595
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:11.245573",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Idempotente (A * A = A)",
+            "step_number": 3,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+            "expression_state": "((((~P*~Q)+~P)*P)+(0*Q))",
+            "timestamp_detail": 1758842231.2455728
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:12.547819",
+          "type": "law_application",
+          "data": {
+            "law_name": "Associativa ((A*B)*C = A*(B*C))",
+            "success": false,
+            "step_number": 3,
+            "timestamp_detail": 1758842232.5478175
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:12.547840",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Associativa ((A*B)*C = A*(B*C))",
+            "step_number": 3,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+            "expression_state": "((((~P*~Q)+~P)*P)+(0*Q))",
+            "timestamp_detail": 1758842232.5478396
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:26.011109",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "73f718d8"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:26.803895",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "73f718d8"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:26.982746",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.18
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:32.437285",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "b39c7233",
+            "session_number": 3
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:32.562368",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.13
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:34.809550",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 4
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:35.515532",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 5
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:36.681175",
+          "type": "law_application",
+          "data": {
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "success": true,
+            "step_number": 1,
+            "timestamp_detail": 1758842256.6811733
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:38.481503",
+          "type": "law_application",
+          "data": {
+            "law_name": "Absorção (A * (A+B) = A)",
+            "success": true,
+            "step_number": 2,
+            "timestamp_detail": 1758842258.4815023
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:40.339712",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 3,
+            "timestamp_detail": 1758842260.339711
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:17:42.484781",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 2
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 4,
+        "expressions_valid": 4,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 2,
+        "interactive_sessions": 3,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 2,
+        "avg_feature_time": 0.16,
+        "overall_success_rate": 0.0
+      },
+      "interactive_simplification": {
+        "sessions_started": 3,
+        "total_steps": 5,
+        "laws_applied": {
+          "Inversa (A * ~A = 0)": 2,
+          "De Morgan (~(A*B) = ~A+~B)": 2,
+          "Absorção (A * (A+B) = A)": 1
+        },
+        "skips_used": 5,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0,
+        "failed_attempts": {
+          "Inversa (A * ~A = 0)": [
+            {
+              "step": 3,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+              "expression": "((((~P*~Q)+~P)*P)+(0*Q))",
+              "timestamp": 1758842225.4965491
+            }
+          ],
+          "Identidade (A * 1 = A)": [
+            {
+              "step": 3,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+              "expression": "((((~P*~Q)+~P)*P)+(0*Q))",
+              "timestamp": 1758842229.5288773
+            }
+          ],
+          "Idempotente (A * A = A)": [
+            {
+              "step": 3,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+              "expression": "((((~P*~Q)+~P)*P)+(0*Q))",
+              "timestamp": 1758842231.2455723
+            }
+          ],
+          "Associativa ((A*B)*C = A*(B*C))": [
+            {
+              "step": 3,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '((((~P*~Q)+~P)*P)+(0*Q))'",
+              "expression": "((((~P*~Q)+~P)*P)+(0*Q))",
+              "timestamp": 1758842232.547839
+            }
+          ]
+        }
+      },
+      "interactive_circuit": {
+        "sessions_started": 2,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 14,
+        "test_attempts": 2,
+        "successful_circuits": 0,
+        "failed_circuits": 2,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 4
+        },
+        "operator_usage": {
+          "AND": 8,
+          "OR": 10,
+          "NOT": 10
+        },
+        "expression_lengths": {
+          "24": 2,
+          "13": 2
+        },
+        "common_expressions": {
+          "7d3d9a1c": 2,
+          "73f718d8": 2
+        }
+      },
+      "end_time": "2025-09-25T20:17:53.498674",
+      "duration_seconds": 511.13,
+      "events_count": 51
+    },
+    {
+      "session_id": "f93169a066e4",
+      "start_time": "2025-09-25T20:32:06.223592",
+      "user_id": "86af758cb9c146d8",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-25T20:33:04.323192",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:37.973170",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "73f718d8"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:38.587316",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "73f718d8"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:38.752068",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.16
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:39.842683",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 153.6190996170044
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:39.842768",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:40.584076",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 154.36049222946167
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:44.187842",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "b39c7233",
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:44.332303",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.14
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:47.589851",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:34:48.152618",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 2
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 3,
+        "expressions_valid": 3,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 1,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 2,
+        "avg_feature_time": 0.15,
+        "overall_success_rate": 0.0
+      },
+      "interactive_simplification": {
+        "sessions_started": 1,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 2,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 1,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 3
+        },
+        "operator_usage": {
+          "AND": 2,
+          "OR": 5,
+          "NOT": 5
+        },
+        "expression_lengths": {
+          "3": 1,
+          "13": 2
+        },
+        "common_expressions": {
+          "af1ada8b": 1,
+          "73f718d8": 2
+        }
+      },
+      "end_time": "2025-09-25T20:35:08.818873",
+      "duration_seconds": 182.6,
+      "events_count": 11
     }
   ]
 }
