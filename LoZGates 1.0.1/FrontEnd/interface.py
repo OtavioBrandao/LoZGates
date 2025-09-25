@@ -31,6 +31,7 @@ from FrontEnd.step_view import StepView, StepParser
 
 from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
 from FrontEnd.circuit_mode_interface import CircuitModeSelector
+from FrontEnd.ai_chat_popup import AIChatPopup
 expressao_global = ""
 botao_ver_circuito = None
 label_convertida = None
@@ -1406,6 +1407,20 @@ def inicializar_interface():
         # Inicia rodada após criar interface
         iniciar_rodada_interativa()
     
+    def abrir_chat_ia():
+        """Abre o popup de chat com IA para o simplificador interativo"""
+        try:
+            expressao_atual = str(arvore_interativa) if arvore_interativa else expressao_global
+            contexto_passo = ""
+            
+            if passo_atual_info:
+                subexpr = str(passo_atual_info['no_atual'])
+                contexto_passo = f"Analisando subexpressão: {subexpr}"
+            
+            AIChatPopup(janela, expressao_atual, contexto_passo)
+        except Exception as e:
+            popup_erro(f"Erro ao abrir chat com IA: {e}")
+    
     def criar_interface_interativa_padronizada():
         """Cria interface interativa com design padronizado similar ao StepView"""
         global escolher_caminho, area_expressao, botoes_leis, botao_pular, botao_desfazer
@@ -1427,13 +1442,27 @@ def inicializar_interface():
         )
         frame_expressao_inicial.pack(fill="x", pady=(0, Spacing.MD))
         
+        # Container para título e botão IA
+        header_frame = ctk.CTkFrame(frame_expressao_inicial, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM)
+        
         titulo_inicial = ctk.CTkLabel(
-            frame_expressao_inicial,
+            header_frame,
             text="Expressão Inicial",
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
             text_color=Colors.TEXT_ACCENT
         )
-        titulo_inicial.pack(pady=(Spacing.SM, Spacing.XS))
+        titulo_inicial.pack(side="left")
+        
+        # Botão Sugestão de IA
+        botao_ia = Button.botao_padrao("🤖 Sugestão de IA", header_frame)
+        botao_ia.configure(
+            command=abrir_chat_ia,
+            width=140,
+            height=32,
+            font=get_font(Typography.SIZE_BODY_SMALL)
+        )
+        botao_ia.pack(side="right")
         
         # Label para mostrar a expressão inicial (será atualizada dinamicamente)
         global label_expressao_inicial
