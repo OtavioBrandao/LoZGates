@@ -602,30 +602,35 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
         except Exception as e:
             print(f"Erro ao criar dados compartilháveis formatados: {e}")
             return {}
-    
-    def log_simplification_step_failed(self, law_name: str, step_number: int, reason: str = ""): #Registra quando uma lei falha ao ser aplicada.
+
+    def log_simplification_step_failed(self, law_name: str, step_number: int, reason: str = "", expression_state: str = ""): # MODIFIED
         if not self.logging_enabled:
             return
-        
+
         interactive_data = self.current_session["interactive_simplification"]
-        
-        #Adiciona estrutura para falhas se não existir
+
         if "failed_attempts" not in interactive_data:
             interactive_data["failed_attempts"] = {}
-        
+
         if law_name not in interactive_data["failed_attempts"]:
-            interactive_data["failed_attempts"][law_name] = 0
-        
-        interactive_data["failed_attempts"][law_name] += 1
-        
+            interactive_data["failed_attempts"][law_name] = [] # MODIFIED to store more details
+
+        # Armazena detalhes da falha
+        failure_details = {
+            "step": step_number,
+            "reason": reason,
+            "expression": expression_state,
+            "timestamp": time.time()
+        }
+        interactive_data["failed_attempts"][law_name].append(failure_details)
+
         self.log_event("law_application_failed", {
             "law_name": law_name,
             "step_number": step_number,
             "reason": reason,
+            "expression_state": expression_state, # ADDED
             "timestamp_detail": time.time()
         })
-
-
 
 class DetailedDataSharingDialog:
     def __init__(self, logger: DetailedUserLogger):

@@ -1190,7 +1190,9 @@ def inicializar_interface():
             iniciar_rodada_interativa()
         else:
             # LOG DA FALHA
-            user_logger.log_simplification_step_failed(lei_usada, contador_passos + 1, "Lei não aplicável")
+            full_expression_state = str(arvore_interativa)
+            reason_for_failure = f"Lei não aplicável à subexpressão '{subexpressao_antes}' no contexto de '{full_expression_state}'"
+            user_logger.log_simplification_step_failed(lei_usada, contador_passos + 1, reason_for_failure, full_expression_state)
             
             historico_de_estados.pop()
             if not historico_de_estados:
@@ -1238,6 +1240,14 @@ def inicializar_interface():
                 text="✅ Simplificação concluída!\n🎉 Nenhuma outra lei pode ser aplicada.",
                 text_color=Colors.SUCCESS
             )
+            
+            if historico_interativo: # Garante que a sessão foi iniciada
+                total_steps = contador_passos
+                laws_used = [line for line in historico_interativo if "✓ Lei" in line]
+                user_logger.log_simplification_completed(total_steps, laws_used)
+                
+                # Reseta o histórico para não logar a mesma sessão duas vezes
+                historico_interativo = [] 
             
             # Finaliza a sessão quando não há mais possibilidades
             finalizar_sessao_expressao(str(expressao_global), resolvida=True)
