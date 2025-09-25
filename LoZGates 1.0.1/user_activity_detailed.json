@@ -2811,6 +2811,127 @@
       "end_time": "2025-09-25T20:35:08.818873",
       "duration_seconds": 182.6,
       "events_count": 11
+    },
+    {
+      "session_id": "8f3c03731f8a",
+      "start_time": "2025-09-25T20:43:52.551180",
+      "user_id": "86af758cb9c146d8",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-25T20:43:57.448366",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:44:01.693332",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:44:02.082390",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:44:02.272411",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.19
+          }
+        },
+        {
+          "timestamp": "2025-09-25T20:44:02.869388",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 10.318214178085327
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 3,
+        "expressions_valid": 3,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 0,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 1,
+        "avg_feature_time": 0.19
+      },
+      "interactive_simplification": {
+        "sessions_started": 0,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 0,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 0,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 3
+        },
+        "operator_usage": {
+          "AND": 0,
+          "OR": 3,
+          "NOT": 3
+        },
+        "expression_lengths": {
+          "3": 3
+        },
+        "common_expressions": {
+          "af1ada8b": 3
+        }
+      },
+      "end_time": "2025-09-25T20:44:08.022595",
+      "duration_seconds": 15.47,
+      "events_count": 5
     }
   ]
 }
