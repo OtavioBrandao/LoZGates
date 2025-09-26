@@ -71,7 +71,11 @@ def inicializar_interface():
     janela.grid_columnconfigure(0, weight=1)
     bytes_per_row = 32  #Número de bytes por linha na matriz
     icon = converte_matrix_para_tkinter_imagem_icon(bytes_per_row)
-    janela.iconbitmap(icon)
+    try:
+        janela.iconbitmap(icon)
+    except Exception as e:
+        print(f"Erro ao gerar o icone: {e}")
+        
     janela.resizable(True, True)
 
     def show_frame(frame):
