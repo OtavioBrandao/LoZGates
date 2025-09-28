@@ -2,9 +2,8 @@ import customtkinter as ctk
 from customtkinter import CTkFont
 import threading
 import tkinter as tk
-from tkinter import filedialog, font
+from tkinter import filedialog
 import os
-import sys
 from PIL import Image, ImageTk, ImageOps
 import time
 import webbrowser
@@ -25,12 +24,16 @@ import BackEnd.simplificador_interativo as simpli
 import BackEnd.principal as circuito_integrado
 
 from FrontEnd.buttons import Button
-from FrontEnd.problems_interface import IntegratedProblemsInterface, setup_problems_interface
-from FrontEnd.generate_log import generate_html_log, update_log
+from FrontEnd.problems_interface import setup_problems_interface
 from FrontEnd.step_view import StepView, StepParser
 
 from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
 from FrontEnd.circuit_mode_interface import CircuitModeSelector
+from FrontEnd.ai_chat_popup import AIChatPopup
+
+from FrontEnd.logging_system import DetailedUserLogger, DetailedDataSharingDialog, ImprovedGoogleFormsSubmitter
+user_logger = DetailedUserLogger("1.0-beta")
+
 expressao_global = ""
 botao_ver_circuito = None
 label_convertida = None
@@ -77,7 +80,6 @@ def inicializar_interface():
     def ver_circuito_pygame(expressao):
         def rodar_pygame():
             try:
-                # Chamada corrigida para a função de plotagem
                 circuito_integrado.plotar_circuito_logico(expressao, 0, 1200, 800)
                 print("Circuito gerado com sucesso!")
             except Exception as e:
@@ -166,9 +168,13 @@ def inicializar_interface():
     def trocar_para_abas():
         try:
             caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
+            start_time = time.time()
             expressao = entrada.get().strip().upper().replace(" ", "")
             
+            user_logger.log_expression_entered(expressao, bool(expressao))
+            
             if not expressao:
+                user_logger.log_error("validation_error", "Empty expression")
                 popup_erro("A expressão não pode estar vazia.")
                 return
                 
@@ -189,6 +195,8 @@ def inicializar_interface():
             
             # Mostrar frame das abas (a criação do circuito interativo acontecerá no callback da aba)
             show_frame(frame_abas)
+            duration = time.time() - start_time
+            user_logger.log_feature_used("circuit_generation", duration)
             
         except Exception as e:
             popup_erro(f"Erro ao processar expressão: {e}")
@@ -196,10 +204,10 @@ def inicializar_interface():
             
     #Detecta mudança de aba e recria o circuito se necessário
     def on_tab_change():
-        """Callback quando aba é alterada."""
         global does_it_have_interaction
         try:
             atual_tab = abas.get()
+            user_logger.log_tab_changed("tab_navigation", atual_tab)
             if atual_tab == "  Circuito Interativo  ":
                 # Garante que a expressão existe antes de criar qualquer coisa
                 if not expressao_global:
@@ -240,37 +248,36 @@ def inicializar_interface():
         """Cria o circuito interativo com seleção de modos."""
         global circuito_interativo_instance, does_it_have_interaction
         
-        # Função para pegar expressão global
+        # LOG INÍCIO DO CIRCUITO INTERATIVO
+        user_logger.log_circuit_interaction_start()
+        
         def get_global_expression():
             return expressao_global if expressao_global else expressao
         
-        # Limpar instância anterior
         if circuito_interativo_instance:
             try:
                 circuito_interativo_instance.cleanup()
             except:
                 pass
         
-        # Limpar frame
         for widget in frame_circuito_interativo.winfo_children():
             widget.destroy()
         
         try:
-            # Criar nova interface com seletor de modos
             circuito_interativo_instance = CircuitModeSelector(
                 frame_circuito_interativo, 
                 CircuitModeManager(),
                 Button,
-                get_global_expression
+                get_global_expression,
+                logger=user_logger 
             )
-            does_it_have_interaction = False  # Só marca como True quando usuário interagir
+            does_it_have_interaction = False
             print("Interface de circuito com modos criada!")
             
         except Exception as e:
             print(f"Erro ao criar interface: {e}")
             does_it_have_interaction = False
             
-            # Mostrar mensagem de erro
             error_label = ctk.CTkLabel(
                 frame_circuito_interativo,
                 text=f"Erro ao criar circuito interativo: {e}",
@@ -283,11 +290,15 @@ def inicializar_interface():
         if botao_ver_circuito:  
             botao_ver_circuito.destroy()
 
-        if not entrada.get().strip():
+        expressao_texto = entrada.get().strip()
+        if not expressao_texto:
+            user_logger.log_expression_entered("", False)
             popup_erro("A expressão não pode estar vazia.")
             return
         
-        # Reset do estado dos botões de simplificação
+        # LOG DA EXPRESSÃO INSERIDA
+        user_logger.log_expression_entered(expressao_texto.upper().replace(" ", ""), True)
+        
         try:
             esconder_botoes_simplificar()
         except:
@@ -438,16 +449,23 @@ def inicializar_interface():
                 return
             
             valor = tabela(expressao2, expressao3)
+            resultado = valor == 1
+
+            # LOG DETALHADO COM EXPRESSÕES REAIS
+            user_logger.log_equivalence_check_with_expressions(
+                expressao2, expressao3, resultado
+            )
             
-            if valor == 1:
+            if resultado:
                 equivalente.place(relx=0.5, y=360, anchor="center")
                 nao_equivalente.place_forget()
             else:
                 nao_equivalente.place(relx=0.5, y=360, anchor="center")
                 equivalente.place_forget()
+                
         except Exception as e:
+            user_logger.log_error("equivalence_check_error", str(e), "comparar_function")
             popup_erro(f"Erro ao comparar expressões: {e}")
-            print(f"Erro detalhado: {e}")  
               
     def go_back_to(frame):
         try:
@@ -921,129 +939,19 @@ def inicializar_interface():
     botao_go_back_to_aba2.configure(command=voltar_para_abas)
     botao_go_back_to_aba2.pack(side="bottom", pady=Spacing.MD)
     
-
-#------------------ LOGGING E REGISTRO DE USO ------------------
-
-    import json
-    import time
-    from datetime import datetime
-
-    # Variáveis globais para controle de tempo
-    tempo_inicio_sessao = None
-    tempo_inicio_expressao = None
-    tentativas_atuais = 0
-
-    # Função para carregar ou criar o JSON de registro
-    def load_log(caminho_log="logs.json"):
-        try:
-            with open(caminho_log, "r", encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return {
-                "expressoes": {},
-                "estatisticas_gerais": {
-                    "total_sessoes": 0,
-                    "expressoes_mais_tentadas": {},
-                    "leis_mais_usadas": {},
-                    "tempo_medio_por_expressao": 0
-                }
-            }
-
-    # Função para registrar o uso de uma lei
-    def register_law(expression, law_name, success=True, tempo_gasto=0, log_path="logs.json"):
-        logs = load_log(log_path)
-        
-        # Inicializa a expressão se não existir
-        if expression not in logs["expressoes"]:
-            logs["expressoes"][expression] = {
-                "leis_usadas": {},
-                "tentativas_totais": 0,
-                "sucessos_totais": 0,
-                "tempo_total_gasto": 0,
-                "tempo_medio": 0,
-                "simplificavel": None,  # None = ainda não determinado
-                "caminho_solucao": [],  # Sequência de leis que levaram ao sucesso
-                "primeira_tentativa": datetime.now().isoformat(),
-                "ultima_tentativa": datetime.now().isoformat(),
-                "sessoes": []
-            }
-        
-        # Atualiza dados da expressão
-        logs["expressoes"][expression]["tentativas_totais"] += 1
-        logs["expressoes"][expression]["tempo_total_gasto"] += tempo_gasto
-        logs["expressoes"][expression]["ultima_tentativa"] = datetime.now().isoformat()
-        
-        if tempo_gasto > 0:
-            logs["expressoes"][expression]["tempo_medio"] = (
-                logs["expressoes"][expression]["tempo_total_gasto"] / 
-                logs["expressoes"][expression]["tentativas_totais"]
-            )
-        
-        # Inicializa a lei se não existir
-        if law_name not in logs["expressoes"][expression]["leis_usadas"]:
-            logs["expressoes"][expression]["leis_usadas"][law_name] = {
-                "usos_sucesso": 0,
-                "tentativas_falha": 0,
-                "tempo_gasto": 0
-            }
-        
-        # Atualiza dados da lei
-        if success:
-            logs["expressoes"][expression]["leis_usadas"][law_name]["usos_sucesso"] += 1
-            logs["expressoes"][expression]["sucessos_totais"] += 1
-            logs["expressoes"][expression]["caminho_solucao"].append(law_name)
-            if logs["expressoes"][expression]["simplificavel"] is None:
-                logs["expressoes"][expression]["simplificavel"] = True
-        else:
-            logs["expressoes"][expression]["leis_usadas"][law_name]["tentativas_falha"] += 1
-        
-        logs["expressoes"][expression]["leis_usadas"][law_name]["tempo_gasto"] += tempo_gasto
-        
-        # Atualiza estatísticas gerais
-        if law_name not in logs["estatisticas_gerais"]["leis_mais_usadas"]:
-            logs["estatisticas_gerais"]["leis_mais_usadas"][law_name] = 0
-        logs["estatisticas_gerais"]["leis_mais_usadas"][law_name] += 1
-        
-        if expression not in logs["estatisticas_gerais"]["expressoes_mais_tentadas"]:
-            logs["estatisticas_gerais"]["expressoes_mais_tentadas"][expression] = 0
-        logs["estatisticas_gerais"]["expressoes_mais_tentadas"][expression] += 1
-        
-        # Salvar os dados no arquivo
-        with open(log_path, "w", encoding='utf-8') as f:
-            json.dump(logs, f, indent=4, ensure_ascii=False)
-
-    def iniciar_sessao_expressao(expression):
-        """Inicia o cronômetro para uma nova expressão"""
-        global tempo_inicio_expressao, tentativas_atuais
-        tempo_inicio_expressao = time.time()
-        tentativas_atuais = 0
-
     def finalizar_sessao_expressao(expression, resolvida=False):
-        """Finaliza a sessão e registra os dados finais"""
-        global tempo_inicio_expressao, tentativas_atuais
+        # """Finaliza a sessão e registra os dados finais"""
+        # global tempo_inicio_expressao, tentativas_atuais
+    
+        # if tempo_inicio_expressao is None:
+        #     return
         
-        if tempo_inicio_expressao is None:
-            return
-            
-        tempo_total = time.time() - tempo_inicio_expressao
-        
-        logs = load_log()
-        if expression in logs["expressoes"]:
-            sessao_atual = {
-                "timestamp": datetime.now().isoformat(),
-                "tempo_gasto": tempo_total,
-                "tentativas_na_sessao": tentativas_atuais,
-                "resolvida": resolvida,
-                "caminho_usado": logs["expressoes"][expression]["caminho_solucao"][-tentativas_atuais:] if tentativas_atuais > 0 else []
-            }
-            logs["expressoes"][expression]["sessoes"].append(sessao_atual)
-            
-            # Salvar
-            with open("logs.json", "w", encoding='utf-8') as f:
-                json.dump(logs, f, indent=4, ensure_ascii=False)
-        
-        tempo_inicio_expressao = None
-        tentativas_atuais = 0
+        # tempo_total = time.time() - tempo_inicio_expressao
+    
+        # tempo_inicio_expressao = None
+        # tentativas_atuais = 0
+        pass
+
 
 #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES MODIFICADAS ----------------------
     def salvar_estado_atual():
@@ -1066,17 +974,18 @@ def inicializar_interface():
             print("Nada para desfazer.") 
             return
 
+        # LOG DO UNDO
+        user_logger.log_simplification_undo()
+
         estado_anterior = historico_de_estados.pop()
         arvore_interativa = estado_anterior['arvore']
         historico_interativo = estado_anterior['historico']
         nos_ignorados = estado_anterior['ignorados']
         passo_atual_info = estado_anterior['passo_info']
         
-        # Diminui o contador de passos e reconstrói a área de passos
         if contador_passos > 0:
             contador_passos -= 1
         
-        # Reconstrói a área de passos baseada no histórico atual
         reconstruir_area_passos()
 
         if not historico_de_estados:
@@ -1258,79 +1167,61 @@ def inicializar_interface():
                     subexpr = ignore_match.group(1) if ignore_match else "desconhecida"
                     adicionar_passo_pular(subexpr)
                 i += 1
-    
+
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados, botao_desfazer
-        global tentativas_atuais, tempo_inicio_expressao, expressao_global
+        global expressao_global, contador_passos
 
         if not passo_atual_info:
             return
 
-        salvar_estado_atual() 
+        salvar_estado_atual()
         botao_desfazer.configure(state="normal")
 
         lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
         subexpressao_antes = str(passo_atual_info['no_atual'])
-        tempo_antes = time.time()
-        nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
-        tempo_gasto = time.time() - tempo_antes
         
-        tentativas_atuais += 1
-
+        nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
+        
+        # LOG DA APLICAÇÃO DE LEI
+        user_logger.log_law_applied(lei_usada, sucesso, contador_passos + 1)
+        
         if sucesso:
-            # Encontra a subexpressão após a transformação
-            subexpressao_depois = "(simplificada)"
-            try:
-                # Tenta encontrar a diferença na árvore
-                if nova_arvore != arvore_interativa:
-                    subexpressao_depois = str(nova_arvore).replace(str(arvore_interativa), "").strip()
-                    if not subexpressao_depois:
-                        subexpressao_depois = "(simplificada)"
-            except:
-                pass
-            
             arvore_interativa = nova_arvore
+            
             historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada com sucesso.")
             historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
             nos_ignorados = set()
             
-            # Adiciona passo visual
             adicionar_passo_sucesso(
-                lei_usada,
-                subexpressao_antes,
-                subexpressao_antes,
-                subexpressao_depois,
-                str(arvore_interativa)
+                lei_usada, subexpressao_antes, subexpressao_antes,
+                "(simplificada)", str(arvore_interativa)
             )
-            
-            # Registra o sucesso no log
-            register_law(str(expressao_global), lei_usada, success=True, tempo_gasto=tempo_gasto)
-            
             iniciar_rodada_interativa()
         else:
+            # LOG DA FALHA
+            full_expression_state = str(arvore_interativa)
+            reason_for_failure = f"Lei não aplicável à subexpressão '{subexpressao_antes}' no contexto de '{full_expression_state}'"
+            user_logger.log_simplification_step_failed(lei_usada, contador_passos + 1, reason_for_failure, full_expression_state)
+            
             historico_de_estados.pop()
             if not historico_de_estados:
                 botao_desfazer.configure(state="disabled")
-                
-            # Registra a falha no log
-            register_law(str(expressao_global), lei_usada, success=False, tempo_gasto=tempo_gasto)
-            
             popup_erro("Não foi possível aplicar esta lei.")
 
     def on_pular_selecionado():
-        global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer
+        global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer, contador_passos
         if passo_atual_info and passo_atual_info['no_atual']:
-            
             salvar_estado_atual()
-            botao_desfazer.configure(state="normal") 
-
+            botao_desfazer.configure(state="normal")
             subexpressao_ignorada = str(passo_atual_info['no_atual'])
+            
+            # LOG DO PULAR
+            user_logger.log_simplification_skip(contador_passos)
+            
             nos_ignorados.add(passo_atual_info['no_atual'])
             historico_interativo.append(f"↷ Sub-expressão '{subexpressao_ignorada}' ignorada.")
-            
-            # Adiciona passo visual de pular
             adicionar_passo_pular(subexpressao_ignorada)
-            
             iniciar_rodada_interativa()
 
     def atualizar_ui_interativa():
@@ -1360,6 +1251,14 @@ def inicializar_interface():
                 text_color=Colors.SUCCESS
             )
             
+            if historico_interativo: # Garante que a sessão foi iniciada
+                total_steps = contador_passos
+                laws_used = [line for line in historico_interativo if "✓ Lei" in line]
+                user_logger.log_simplification_completed(total_steps, laws_used)
+                
+                # Reseta o histórico para não logar a mesma sessão duas vezes
+                historico_interativo = [] 
+            
             # Finaliza a sessão quando não há mais possibilidades
             finalizar_sessao_expressao(str(expressao_global), resolvida=True)
             
@@ -1379,7 +1278,7 @@ def inicializar_interface():
         atualizar_ui_interativa()
         
     def parte_interativa():
-        global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis, historico_de_estados
+        global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis, historico_de_estados, simplification_start_time
         
         if not expressao_global:
             popup_erro("Por favor, primeiro insira e converta uma expressão.")
@@ -1388,35 +1287,47 @@ def inicializar_interface():
             return
             
         try:
+            simplification_start_time = time.time()
+            
+            # LOG INÍCIO DA SESSÃO INTERATIVA
+            user_logger.log_interactive_simplification_start(expressao_global)
+            
             arvore_interativa = simpli.construir_arvore(expressao_global)
         except Exception as e:
             popup_erro(f"Erro ao construir a expressão: {e}")
             go_back_to(scroll_frame2)
             return
 
-        # Limpa interface anterior para evitar duplicação
-        for widget in frame_interativo.winfo_children():
-            widget.destroy()
-        
-        # Inicia o cronômetro para esta expressão
-        iniciar_sessao_expressao(str(expressao_global))
-
         historico_interativo = [f"Expressão Inicial: {str(arvore_interativa)}"]
         nos_ignorados = set()
         passo_atual_info = None
         historico_de_estados = []
         
-        # Recria os componentes com design padronizado
         criar_interface_interativa_padronizada()
-        
-        # Inicializa área de passos
         inicializar_area_passos()
-        
-        # Inicia rodada após criar interface
         iniciar_rodada_interativa()
+        duration = time.time() - simplification_start_time
+        user_logger.log_feature_used("interactive_mode", duration)
+        
+    def limpar_frame_interativo():
+        for widget in frame_interativo.winfo_children():
+            widget.destroy()
+    
+    def abrir_chat_ia():
+        """Abre o popup de chat com IA para o simplificador interativo"""
+        try:
+            expressao_atual = str(arvore_interativa) if arvore_interativa else expressao_global
+            contexto_passo = ""
+            
+            if passo_atual_info:
+                subexpr = str(passo_atual_info['no_atual'])
+                contexto_passo = f"Analisando subexpressão: {subexpr}"
+            
+            AIChatPopup(janela, expressao_atual, contexto_passo)
+        except Exception as e:
+            popup_erro(f"Erro ao abrir chat com IA: {e}")
     
     def criar_interface_interativa_padronizada():
-        """Cria interface interativa com design padronizado similar ao StepView"""
         global escolher_caminho, area_expressao, botoes_leis, botao_pular, botao_desfazer
         global frame_expressao_inicial, frame_analise, frame_passos, frame_controles_interativo
         
@@ -1436,13 +1347,27 @@ def inicializar_interface():
         )
         frame_expressao_inicial.pack(fill="x", pady=(0, Spacing.MD))
         
+        # Container para título e botão IA
+        header_frame = ctk.CTkFrame(frame_expressao_inicial, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM)
+        
         titulo_inicial = ctk.CTkLabel(
-            frame_expressao_inicial,
+            header_frame,
             text="Expressão Inicial",
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
             text_color=Colors.TEXT_ACCENT
         )
-        titulo_inicial.pack(pady=(Spacing.SM, Spacing.XS))
+        titulo_inicial.pack(side="left")
+        
+        # Botão Sugestão de IA
+        botao_ia = Button.botao_padrao("🤖 Sugestão de IA", header_frame)
+        botao_ia.configure(
+            command=abrir_chat_ia,
+            width=140,
+            height=32,
+            font=get_font(Typography.SIZE_BODY_SMALL)
+        )
+        botao_ia.pack(side="right")
         
         # Label para mostrar a expressão inicial (será atualizada dinamicamente)
         global label_expressao_inicial
@@ -1567,7 +1492,7 @@ def inicializar_interface():
         # Botão voltar
         botao_voltar_interativo = Button.botao_voltar("Voltar", frame_controles_interativo)
         botao_voltar_interativo.configure(
-            command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), go_back_to(frame_abas)]
+            command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), limpar_frame_interativo(), go_back_to(frame_abas)]
         )
         botao_voltar_interativo.pack(side="right", padx=Spacing.SM)
     #------------------------------------------------------------------------
@@ -1665,6 +1590,46 @@ def inicializar_interface():
         text_color=Colors.ERROR, 
         fg_color=None
     )
- 
+    
+    def on_closing(): #Função chamada quando a aplicação é fechada.
+        user_logger.end_session()
+        
+        if user_logger.should_prompt_data_sharing():
+            try:
+                dialog = DetailedDataSharingDialog(user_logger)
+                result = dialog.show_dialog()
+                
+                if result == True:
+                    print("Usuário aceitou enviar os dados detalhados. Preparando para envio...")
+                    
+                    FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd9QNzL1_1MpD0cy_PUA4b59Kpy998015HIsfIT60VC6nOHZA/formResponse"
+                    
+                    ENTRY_MAPPING = {
+                        'app_version': 'entry.695751574',
+                        'platform': 'entry.2115172041',
+                        'submission_date': 'entry.1953189469',
+                        'summary_json': 'entry.415910834'
+                    }
+                    
+                    submitter = ImprovedGoogleFormsSubmitter(FORM_URL, ENTRY_MAPPING)
+                    data_to_send = DetailedUserLogger.create_formatted_shareable_data(user_logger)  # NOVA FUNÇÃO
+                    
+                    success = submitter.submit_data(data_to_send)
+                    
+                    if success:
+                        user_logger._save_settings() 
+                    else:
+                        print("O envio falhou. Os dados não foram enviados.")
+                        
+                elif result == "never":
+                    user_logger.logging_enabled = False
+                    user_logger._save_settings()
+                    
+            except Exception as e:
+                print(f"Erro no dialog de compartilhamento: {e}")
+        
+        janela.destroy()
+        
+    janela.protocol("WM_DELETE_WINDOW", on_closing) 
     show_frame(frame_inicio)
     janela.mainloop()

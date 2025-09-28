@@ -7,17 +7,15 @@ import os
 import math
 import time
 
-from .components import Component, Wire, ComponentFactory
+from .components import Wire, ComponentFactory
 from .palette import ComponentPalette
 from ..rendering.camera import Camera
 from ..rendering.drawer import CircuitDrawer
-from ..logic.parser import criar_ast_de_expressao, _coletar_variaveis, _coletar_operadores
+from ..logic.parser import criar_ast_de_expressao, _coletar_variaveis
 from ..utils.history import CircuitHistory
 
-class CircuitoInterativoManual:
-    """Classe principal para o circuito interativo manual com painel de componentes."""
-    
-    def __init__(self, parent_frame, expressao, gate_restrictions=None):
+class CircuitoInterativoManual:    
+    def __init__(self, parent_frame, expressao, gate_restrictions=None, logger=None):
         self.parent_frame = parent_frame
         self.expressao = expressao
         self.gate_restrictions = gate_restrictions  #Lista de portas permitidas ou None
@@ -59,16 +57,18 @@ class CircuitoInterativoManual:
         
         #Sistema de colisão
         self.collision_margin = 10  #Margem mínima entre componentes
+
+        #referencia logger
+        self.logger = logger
     
-    def init_pygame(self):
-        """Inicializa o Pygame e configura a interface."""
+    def init_pygame(self): #Inicializa o Pygame e configura a interface.
         try:
             #Garante que o frame esteja visível e com tamanho definido
             self.parent_frame.update_idletasks()
             
             #Espera o frame estar pronto
             if self.parent_frame.winfo_width() <= 1 or self.parent_frame.winfo_height() <= 1:
-                self.parent_frame.after(200, self.init_pygame)  #Tenta novamente
+                self.parent_frame.after(200, self.init_pygame) 
                 return
             
             #Configurações do Pygame
@@ -123,8 +123,7 @@ class CircuitoInterativoManual:
             print(f"❌ Erro ao inicializar Pygame: {e}")
             tk.Label(self.parent_frame, text=f"Erro Pygame: {e}", fg="red", bg="black").pack()
     
-    def init_basic_components(self):
-        """Inicializa apenas variáveis e saída - usuário adiciona as portas."""
+    def init_basic_components(self): #Inicializa apenas variáveis e saída - usuário adiciona as portas.
         try:
             #Analisa a expressão para determinar variáveis necessárias
             ast_root = criar_ast_de_expressao(self.expressao)
@@ -143,17 +142,14 @@ class CircuitoInterativoManual:
         output_comp = ComponentFactory.create_component('output', 300, 0, 'SAÍDA')
         self.components.append(output_comp)
     
-    def extract_variables(self, expressao):
-        """Extrai variáveis únicas da expressão."""
+    def extract_variables(self, expressao): #Extrai variáveis únicas da expressão.
         variables = set()
         for char in expressao:
             if char.isalpha() and char.upper() not in ['AND', 'OR', 'NOT']:
                 variables.add(char.upper())
         return sorted(list(variables))
     
-    def check_collision(self, component, x, y, exclude_component=None):
-        """Verifica se há colisão entre componentes na posição especificada."""
-        # Cria retângulo temporário para o componente na nova posição
+    def check_collision(self, component, x, y, exclude_component=None): #"Verifica se há colisão entre componentes na posição especificada.
         temp_rect = pygame.Rect(
             x - self.collision_margin, 
             y - self.collision_margin,
@@ -161,17 +157,17 @@ class CircuitoInterativoManual:
             component.height + 2 * self.collision_margin
         )
         
-        # Verifica colisão com outros componentes
+        #Verifica colisão com outros componentes
         for other_comp in self.components:
-            # Ignora o próprio componente e componente excluído
+            #Ignora o próprio componente e componente excluído
             if other_comp == component or other_comp == exclude_component:
                 continue
             
-            # Ignora componente fantasma se estiver sendo colocado
+            #Ignora componente fantasma se estiver sendo colocado
             if other_comp == self.ghost_component:
                 continue
             
-            # Cria retângulo do outro componente com margem
+            #Cria retângulo do outro componente com margem
             other_rect = pygame.Rect(
                 other_comp.x - self.collision_margin,
                 other_comp.y - self.collision_margin, 
@@ -179,25 +175,23 @@ class CircuitoInterativoManual:
                 other_comp.height + 2 * self.collision_margin
             )
             
-            # Verifica sobreposição
+            #Verifica sobreposição
             if temp_rect.colliderect(other_rect):
                 return True
         
         return False
     
-    def find_valid_position(self, component, preferred_x, preferred_y):
-        """Encontra uma posição válida próxima à posição preferida."""
-        # Se a posição preferida não tem colisão, usa ela
+    def find_valid_position(self, component, preferred_x, preferred_y): #Encontra uma posição válida próxima à posição preferida (sem colisão).
         if not self.check_collision(component, preferred_x, preferred_y):
             return preferred_x, preferred_y
         
-        # Busca em espiral a partir da posição preferida
-        max_offset = 200  # Máximo de deslocamento para buscar
-        step = 30  # Tamanho do passo
+        #Busca em espiral a partir da posição preferida
+        max_offset = 200  #Máximo de deslocamento para buscar
+        step = 30  #Tamanho do passo
         
         for radius in range(step, max_offset, step):
-            # Testa posições em círculo ao redor da posição preferida
-            for angle in range(0, 360, 30):  # A cada 30 graus
+            #Testa posições em círculo ao redor da posição preferida
+            for angle in range(0, 360, 30):  #A cada 30 graus
                 offset_x = radius * math.cos(math.radians(angle))
                 offset_y = radius * math.sin(math.radians(angle))
                 
@@ -207,12 +201,14 @@ class CircuitoInterativoManual:
                 if not self.check_collision(component, test_x, test_y):
                     return test_x, test_y
         
-        # Se não encontrou posição válida, retorna a preferida mesmo com colisão
+        #Se não encontrou posição válida, retorna a preferida mesmo com colisão
         print(f"⚠️ Não foi possível encontrar posição sem colisão para {component.type}")
         return preferred_x, preferred_y
     
-    def add_component_at_position(self, comp_type, world_pos):
-        """Adiciona um componente na posição especificada, verificando colisão."""
+    def add_component_at_position(self, comp_type, world_pos): #Adiciona um componente na posição especificada, verificando colisão.
+        if self.logger:
+            self.logger.log_component_action("add", comp_type)
+            
         x, y = world_pos
         #Centraliza o componente na posição do mouse
         x -= 40  #metade da largura padrão
@@ -220,7 +216,7 @@ class CircuitoInterativoManual:
         
         new_component = ComponentFactory.create_component(comp_type, x, y)
         
-        # Verifica e ajusta posição para evitar colisão
+        #Verifica e ajusta posição para evitar colisão
         valid_x, valid_y = self.find_valid_position(new_component, x, y)
         new_component.x = valid_x
         new_component.y = valid_y
@@ -229,14 +225,13 @@ class CircuitoInterativoManual:
         self.components.append(new_component)
         self.save_state(f"Add {comp_type} component")
         
-        # Feedback visual se houve ajuste de posição
+        #Feedback visual se houve ajuste de posição
         if abs(valid_x - x) > 5 or abs(valid_y - y) > 5:
             print(f"🔄 Posição ajustada para evitar colisão: {comp_type}")
         
         return new_component
     
-    def save_state(self, action_description=""):
-        """Salva o estado atual no histórico."""
+    def save_state(self, action_description=""): #Salva o estado atual no histórico.
         current_time = time.time()
         
         if current_time - self.last_action_time > 0.5:
@@ -245,8 +240,7 @@ class CircuitoInterativoManual:
             if action_description:
                 print(f"Estado salvo: {action_description}")
     
-    def restore_state(self, state_data):
-        """Restaura um estado do histórico."""
+    def restore_state(self, state_data): #Restaura um estado do histórico.
         if not state_data:
             return
         
@@ -287,8 +281,11 @@ class CircuitoInterativoManual:
             end_comp.input_connections[wire_data['end_input']] = wire
     
     def undo(self):
-        """Executa undo."""
         if self.history.can_undo():
+            #Log do undo
+            if hasattr(self, 'logger') and self.logger:
+                self.logger.log_component_action("undo")
+            
             state = self.history.undo()
             self.restore_state(state)
             print("Undo executado")
@@ -296,7 +293,6 @@ class CircuitoInterativoManual:
         return False
     
     def redo(self):
-        """Executa redo."""
         if self.history.can_redo():
             state = self.history.redo()
             self.restore_state(state)
@@ -304,8 +300,7 @@ class CircuitoInterativoManual:
             return True
         return False
     
-    def _on_key_press(self, e):
-        """Processa teclas pressionadas."""
+    def _on_key_press(self, e): #Processa teclas pressionadas.
         k = (e.keysym or "").lower()
         ctrl_pressed = (e.state & 0x4) != 0
         
@@ -343,8 +338,7 @@ class CircuitoInterativoManual:
         if k == 'space':        #Testar circuito
             self.test_circuit_manual()
             
-    def _on_key_release(self, e):
-        """Processa teclas liberadas."""
+    def _on_key_release(self, e): #Processa teclas liberadas.
         k = (e.keysym or "").lower()
         if k in ('w', 'up'):    self._move['up'] = False
         if k in ('s', 'down'):  self._move['down'] = False
@@ -352,10 +346,13 @@ class CircuitoInterativoManual:
         if k in ('d', 'right'): self._move['right'] = False
     
     def delete_selected(self):
-        """Deleta componente ou fio selecionado."""
         deleted_something = False
         
         if self.selected_component:
+            #Log da deleção
+            if self.logger:
+                self.logger.log_component_action("delete", self.selected_component.type)
+            
             #Remove conexões do componente
             for wire in self.wires[:]:
                 if wire.start_comp == self.selected_component or wire.end_comp == self.selected_component:
@@ -377,6 +374,8 @@ class CircuitoInterativoManual:
         #Remove fios selecionados
         for wire in self.wires[:]:
             if wire.selected:
+                if self.logger:
+                    self.logger.log_component_action("delete_connection")
                 if wire in wire.start_comp.output_connections:
                     wire.start_comp.output_connections.remove(wire)
                 if wire.end_input in wire.end_comp.input_connections:
@@ -388,22 +387,19 @@ class CircuitoInterativoManual:
         return deleted_something
     
     def cancel_connection(self):
-        """Cancela conexão em andamento."""
         self.connecting = False
         self.connection_start = None
     
-    def find_connection_point(self, component, world_pos):
-        """Encontra qual ponto de conexão foi clicado."""
-        #Raio de detecção para as bolinhas
+    def find_connection_point(self, component, world_pos): #Encontra qual ponto de conexão foi clicado.
         detection_radius = 15
         
-        #Verifica pontos de saída (bolinhas verdes)
+        #Verifica pontos de saída 
         for i, output_pos in enumerate(component.outputs):
             distance = math.sqrt((world_pos[0] - output_pos[0])**2 + (world_pos[1] - output_pos[1])**2)
             if distance <= detection_radius:
                 return ('output', i)
         
-        #Verifica pontos de entrada (bolinhas azuis/vermelhas)
+        #Verifica pontos de entrada 
         for i, input_pos in enumerate(component.inputs):
             distance = math.sqrt((world_pos[0] - input_pos[0])**2 + (world_pos[1] - input_pos[1])**2)
             if distance <= detection_radius:
@@ -411,8 +407,7 @@ class CircuitoInterativoManual:
         
         return None
     
-    def handle_mouse_click(self, pos):
-        """Gerencia cliques do mouse - VERSÃO COM COLOCAÇÃO NO MOUSE."""
+    def handle_mouse_click(self, pos): #"Gerencia cliques do mouse
         #Se está colocando componente, finaliza a colocação
         if self.placing_component and self.ghost_component:
             self.place_ghost_component(pos)
@@ -469,8 +464,7 @@ class CircuitoInterativoManual:
             self.deselect_all()
             self.cancel_connection()
 
-    def start_component_placement(self, component_type):
-        """Inicia o modo de colocação de componente."""
+    def start_component_placement(self, component_type): #Inicia o modo de colocação de componente.
         self.placing_component = True
         self.ghost_component_type = component_type
         
@@ -489,26 +483,25 @@ class CircuitoInterativoManual:
         
         print(f"🎯 Modo colocação ativado: {component_type}")
 
-    def place_ghost_component(self, screen_pos):
-        """Finaliza a colocação do componente fantasma com verificação de colisão."""
+    def place_ghost_component(self, screen_pos): #Finaliza a colocação do componente fantasma com verificação de colisão.
         if not self.ghost_component:
             return
         
         world_pos = self.camera.screen_to_world(screen_pos)
         
-        # Calcula posição centralizada
+        #Calcula posição centralizada
         preferred_x = world_pos[0] - 40
         preferred_y = world_pos[1] - 30
         
-        # Encontra posição válida sem colisão
+        #Encontra posição válida sem colisão
         valid_x, valid_y = self.find_valid_position(self.ghost_component, preferred_x, preferred_y)
         
-        # Atualiza posição final
+        #Atualiza posição final
         self.ghost_component.x = valid_x
         self.ghost_component.y = valid_y
         self.ghost_component.update_connection_points()
         
-        # Feedback visual se houve ajuste
+        #Feedback visual se houve ajuste
         if abs(valid_x - preferred_x) > 5 or abs(valid_y - preferred_y) > 5:
             print(f"🔄 Componente reposicionado para evitar colisão")
         
@@ -522,8 +515,7 @@ class CircuitoInterativoManual:
         self.ghost_component = None
         self.ghost_component_type = None
 
-    def cancel_component_placement(self):
-        """Cancela a colocação de componente."""
+    def cancel_component_placement(self): #Cancela a colocação de componente.
         if self.ghost_component and self.ghost_component in self.components:
             self.components.remove(self.ghost_component)
         
@@ -533,8 +525,7 @@ class CircuitoInterativoManual:
         
         print("❌ Colocação de componente cancelada")
 
-    def update_ghost_component_position(self):
-        """Atualiza posição do componente fantasma para seguir o mouse."""
+    def update_ghost_component_position(self): #Atualiza posição do componente fantasma para seguir o mouse.
         if self.placing_component and self.ghost_component:
             mouse_pos = pygame.mouse.get_pos()
             world_pos = self.camera.screen_to_world(mouse_pos)
@@ -543,8 +534,7 @@ class CircuitoInterativoManual:
             self.ghost_component.y = world_pos[1] - 30
             self.ghost_component.update_connection_points()
         
-    def select_component(self, component):
-        """Seleciona um componente."""
+    def select_component(self, component): #Seleciona um componente.
         #Deseleciona outros
         for comp in self.components:
             comp.selected = False
@@ -554,16 +544,14 @@ class CircuitoInterativoManual:
         component.selected = True
         self.selected_component = component
     
-    def deselect_all(self):
-        """Deseleciona todos os componentes e fios."""
+    def deselect_all(self): #Deseleciona todos os componentes e fios.
         for comp in self.components:
             comp.selected = False
         for wire in self.wires:
             wire.selected = False
         self.selected_component = None
     
-    def start_connection(self, component, conn_type, index):
-        """Inicia uma conexão a partir de um ponto de saída."""
+    def start_connection(self, component, conn_type, index): #Inicia uma conexão a partir de um ponto de saída.
         if conn_type == 'output':
             self.connecting = True
             self.connection_start = {
@@ -573,8 +561,7 @@ class CircuitoInterativoManual:
             }
             print(f"🔗 Iniciando conexão de {component.type} saída {index}")
 
-    def try_connect_to_input(self, target_component, input_index):
-        """Tenta conectar à entrada especificada do componente alvo."""
+    def try_connect_to_input(self, target_component, input_index): #Tenta conectar à entrada especificada do componente alvo.
         if not self.connection_start:
             return
         
@@ -589,6 +576,9 @@ class CircuitoInterativoManual:
             print("❌ Não é possível conectar componente a si mesmo!")
             self.cancel_connection()
             return
+        
+        if hasattr(self, 'logger') and self.logger:
+            self.logger.log_component_action("connect")
         
         #Cria o fio
         wire = Wire(
@@ -613,8 +603,7 @@ class CircuitoInterativoManual:
         
         self.cancel_connection()
     
-    def handle_mouse_drag(self, pos):
-        """Gerencia arraste do mouse com verificação de colisão."""
+    def handle_mouse_drag(self, pos): #Gerencia arraste do mouse com verificação de colisão.
         if self.selected_component and not self.connecting:
             world_pos = self.camera.screen_to_world(pos)
             
@@ -624,9 +613,9 @@ class CircuitoInterativoManual:
                 new_x = world_pos[0] - self.selected_component.width // 2
                 new_y = world_pos[1] - self.selected_component.height // 2
                 
-                # Verifica colisão na nova posição
+                #Verifica colisão na nova posição
                 if not self.check_collision(self.selected_component, new_x, new_y, exclude_component=self.selected_component):
-                    # Posição válida - move o componente
+                    #Posição válida - move o componente
                     self.selected_component.x = new_x
                     self.selected_component.y = new_y
                     self.selected_component.update_connection_points()
@@ -635,22 +624,21 @@ class CircuitoInterativoManual:
                     if abs(old_x - self.selected_component.x) > 10 or abs(old_y - self.selected_component.y) > 10:
                         self.save_state("Move component")
                 else:
-                    # Posição inválida - tenta encontrar posição próxima válida
+                    #Posição inválida - tenta encontrar posição próxima válida
                     valid_x, valid_y = self.find_valid_position(self.selected_component, new_x, new_y)
                     
-                    # Se a posição válida encontrada está relativamente próxima, usa ela
+                    #Se a posição válida encontrada está relativamente próxima, usa ela
                     distance_to_valid = math.sqrt((valid_x - new_x)**2 + (valid_y - new_y)**2)
-                    if distance_to_valid < 50:  # Threshold de proximidade
+                    if distance_to_valid < 50:  #Threshold de proximidade
                         self.selected_component.x = valid_x
                         self.selected_component.y = valid_y
                         self.selected_component.update_connection_points()
                         
                         if abs(old_x - self.selected_component.x) > 10 or abs(old_y - self.selected_component.y) > 10:
                             self.save_state("Move component")
-                    # Senão, mantém na posição anterior (não move)
+                    #Senão, mantém na posição anterior (não move)
     
-    def _tick(self):
-        """Loop principal de renderização."""
+    def _tick(self): #Loop principal de renderização.
         if not self.running:
             try: 
                 pygame.quit()
@@ -700,7 +688,7 @@ class CircuitoInterativoManual:
                 #Desenha componente fantasma com transparência
                 self.drawer.draw_component(component)
                 
-                # Desenha indicador de colisão se houver
+                #Desenha indicador de colisão se houver
                 if self.check_collision(component, component.x, component.y):
                     self.draw_collision_warning(component)
             else:
@@ -737,16 +725,15 @@ class CircuitoInterativoManual:
         if self.running:
             self.parent_frame.after(16, self._tick)
     
-    def draw_collision_warning(self, component):
-        """Desenha aviso visual de colisão."""
-        # Desenha X vermelho no centro se houver colisão
+    def draw_collision_warning(self, component): #Desenha aviso visual de colisão.
+        #Desenha X vermelho no centro se houver colisão
         center_x = component.x + component.width // 2
         center_y = component.y + component.height // 2
         
-        # Converte para coordenadas de tela
+        #Converte para coordenadas de tela
         screen_center = self.camera.world_to_screen((center_x, center_y))
         
-        # Desenha X
+        #Desenha X
         size = 15
         pygame.draw.line(self.screen, (255, 0, 0), 
                         (screen_center[0] - size, screen_center[1] - size),
@@ -756,83 +743,85 @@ class CircuitoInterativoManual:
                         (screen_center[0] - size, screen_center[1] + size), 3)
             
     def stop(self):
-        """Para o circuito."""
         self.running = False
         print("🛑 Circuito interativo parado")
     
-    def test_circuit_manual(self):
-        """Testa o circuito manualmente quando o usuário pressiona ESPAÇO."""
+    def test_circuit_manual(self): #Testa o circuito manualmente quando o usuário pressiona ESPAÇO.
         print("🧪 Testando circuito manualmente...")
         
         try:
-            if self.is_circuit_correct():
+            is_correct = self.is_circuit_correct()
+            
+            if hasattr(self, 'logger') and self.logger:
+                self.logger.log_circuit_test(is_correct)
+
+            if is_correct:
                 self.show_success_message = True
-                self.success_message_timer = 300  # 5 segundos a 60fps
+                self.success_message_timer = 300
                 self.show_error_message = False
                 print("✅ Circuito correto!")
             else:
                 self.show_error_message = True
-                self.error_message_timer = 300  # 5 segundos a 60fps
+                self.error_message_timer = 300
                 self.show_success_message = False
                 print("❌ Circuito incorreto!")
                 
         except Exception as e:
+            if hasattr(self, 'logger') and self.logger:
+                self.logger.log_error("interactive_circuit_exception", str(e), "circuit_test")
+
             self.show_error_message = True
             self.error_message_timer = 300
             self.error_message_text = f"Erro na validação: {str(e)}"
             self.show_success_message = False
             print(f"❌ Erro ao testar circuito: {e}")
-
+            
     def check_circuit_completion(self):
-        """Método mantido para compatibilidade, mas não usado mais automaticamente."""
-        # Removido - agora só testamos manualmente
+        #Removido - agora só testamos manualmente - continua aqui para compatibilidade
         pass
 
-    def is_circuit_correct(self):
-        """Verifica se o circuito implementa a expressão através de simulação com tabela verdade."""
+    def is_circuit_correct(self): #Verifica se o circuito implementa a expressão através de simulação com tabela verdade.
         try:
-            # Extrai variáveis da expressão
+            #Extrai variáveis da expressão
             variables = self.extract_variables(self.expressao)
             
-            # Encontra componente de saída
+            #Encontra componente de saída
             output_component = self.find_output_component()
             if not output_component:
                 print("❌ Componente de saída não encontrado ou não conectado")
                 return False
             
-            # VALIDAÇÃO CRÍTICA: Verifica se TODAS as variáveis da expressão estão sendo usadas
+            #VALIDAÇÃO CRÍTICA: Verifica se TODAS as variáveis da expressão estão sendo usadas
             if not self.all_variables_connected(variables, output_component):
                 print("❌ Nem todas as variáveis da expressão estão conectadas ao circuito")
                 return False
             
-            # Verifica se o circuito tem pelo menos uma porta lógica
+            #Verifica se o circuito tem pelo menos uma porta lógica
             if not self.has_logic_gates_connected():
                 print("❌ Circuito não possui portas lógicas conectadas")
                 return False
             
-            # Simula todas as combinações possíveis
+            #Simula todas as combinações possíveis
             return self.validate_truth_table(variables, output_component)
             
         except Exception as e:
             print(f"Erro na validação: {e}")
             return False
         
-    def all_variables_connected(self, required_variables, output_component):
-        """Verifica se TODAS as variáveis da expressão estão conectadas no caminho até a saída."""
-        # Encontra todas as variáveis que estão realmente conectadas ao circuito
+    def all_variables_connected(self, required_variables, output_component): #Verifica se TODAS as variáveis da expressão estão conectadas no caminho até a saída.
         connected_variables = set()
         visited = set()
         
         self._collect_connected_variables(output_component, visited, connected_variables)
         
-        # Converte para sets para comparação
+        #Converte para sets para comparação
         required_set = set(required_variables)
         connected_set = connected_variables
         
         print(f"🔍 Variáveis necessárias: {required_set}")
         print(f"🔍 Variáveis conectadas: {connected_set}")
         
-        # Verifica se todas as variáveis necessárias estão conectadas
+        #Verifica se todas as variáveis necessárias estão conectadas
         missing_variables = required_set - connected_set
         if missing_variables:
             print(f"❌ Variáveis não conectadas: {missing_variables}")
@@ -840,8 +829,7 @@ class CircuitoInterativoManual:
         
         return True
     
-    def has_logic_gates_connected(self):
-        """Verifica se o circuito tem pelo menos uma porta lógica conectada ao caminho da saída."""
+    def has_logic_gates_connected(self): #Verifica se o circuito tem pelo menos uma porta lógica conectada ao caminho da saída.
         output_component = None
         for comp in self.components:
             if comp.type == 'output':
@@ -851,50 +839,47 @@ class CircuitoInterativoManual:
         if not output_component or len(output_component.input_connections) == 0:
             return False
         
-        # Verifica se há pelo menos uma porta lógica no caminho até a saída
+        #Verifica se há pelo menos uma porta lógica no caminho até a saída
         visited = set()
         return self._has_logic_gate_in_path(output_component, visited)
 
-    def _has_logic_gate_in_path(self, component, visited):
-        """Recursivamente verifica se há portas lógicas no caminho até as variáveis."""
+    def _has_logic_gate_in_path(self, component, visited): #Recursivamente verifica se há portas lógicas no caminho até as variáveis.
         if component in visited:
             return False
         
         visited.add(component)
         
-        # Se é uma porta lógica, encontrou o que procura
+        #Se é uma porta lógica, encontrou o que procura
         if component.type in ['and', 'or', 'not', 'nand', 'nor', 'xor', 'xnor']:
             return True
         
-        # Se é uma variável, chegou ao fim sem encontrar porta lógica
+        #Se é uma variável, chegou ao fim sem encontrar porta lógica
         if component.type == 'variable':
             return False
         
-        # Para outros tipos (output), verifica as conexões de entrada
+        #Para outros tipos (output), verifica as conexões de entrada
         for input_idx, wire in component.input_connections.items():
             if self._has_logic_gate_in_path(wire.start_comp, visited):
                 return True
         
         return False
     
-    def _collect_connected_variables(self, component, visited, connected_variables):
-        """Recursivamente coleta todas as variáveis conectadas no caminho."""
+    def _collect_connected_variables(self, component, visited, connected_variables): #Recursivamente coleta todas as variáveis conectadas no caminho.
         if component in visited:
             return
         
         visited.add(component)
         
-        # Se é uma variável, adiciona ao conjunto
+        #Se é uma variável, adiciona ao conjunto
         if component.type == 'variable':
             connected_variables.add(component.name)
             return
         
-        # Para outros tipos, verifica as conexões de entrada
+        #Para outros tipos, verifica as conexões de entrada
         for input_idx, wire in component.input_connections.items():
             self._collect_connected_variables(wire.start_comp, visited, connected_variables)
                 
-    def find_output_component(self):
-        """Encontra e valida o componente de saída"""
+    def find_output_component(self): #Encontra e valida o componente de saída
         output_component = None
         for comp in self.components:
             if comp.type == 'output':
@@ -907,8 +892,7 @@ class CircuitoInterativoManual:
         
         return output_component
 
-    def validate_truth_table(self, variables, output_component):
-        """Valida o circuito comparando com a expressão original"""
+    def validate_truth_table(self, variables, output_component): #Valida o circuito comparando com a expressão original
         import itertools
         
         total_combinations = 2 ** len(variables)
@@ -920,13 +904,13 @@ class CircuitoInterativoManual:
         for combination in itertools.product([False, True], repeat=len(variables)):
             var_values = dict(zip(variables, combination))
             
-            # Resultado esperado da expressão
+            #Resultado esperado da expressão
             expected = self.evaluate_expression(self.expressao, var_values)
             
-            # Resultado do circuito
+            #Resultado do circuito
             actual = self.simulate_circuit_simple(var_values)
             
-            # Se não conseguiu simular o circuito, é erro
+            #Se não conseguiu simular o circuito, é erro
             if actual is None:
                 print(f"❌ Não foi possível simular o circuito para {var_values}")
                 return False
@@ -940,10 +924,10 @@ class CircuitoInterativoManual:
                     'actual': actual
                 })
         
-        # Se houve falhas, mostra detalhes
+        #Se houve falhas, mostra detalhes
         if failed_combinations:
             print(f"❌ {len(failed_combinations)} combinações incorretas:")
-            for fail in failed_combinations[:3]:  # Mostra só as 3 primeiras
+            for fail in failed_combinations[:3]:  #Mostra só as 3 primeiras
                 print(f"   {fail['inputs']} -> Esperado: {fail['expected']}, Obtido: {fail['actual']}")
             if len(failed_combinations) > 3:
                 print(f"   ... e mais {len(failed_combinations) - 3} falhas")
@@ -954,8 +938,7 @@ class CircuitoInterativoManual:
         
         return True
 
-    def evaluate_expression(self, expression, var_values):
-        """Avalia a expressão booleana com os valores fornecidos"""
+    def evaluate_expression(self, expression, var_values): #Avalia a expressão booleana com os valores fornecidos
         try:
             #Substitui variáveis pelos valores
             expr = expression.upper().replace(" ", "")
@@ -975,11 +958,10 @@ class CircuitoInterativoManual:
             print(f"Erro ao avaliar expressão: {e}")
             return False
 
-    def simulate_circuit_simple(self, var_values):
-        """Simulação simplificada do circuito"""
+    def simulate_circuit_simple(self, var_values): #Simulação simplificada do circuito.
         component_outputs = {}
         
-        # Define valores das variáveis de entrada
+        #Define valores das variáveis de entrada
         variables_set = False
         for comp in self.components:
             if comp.type == 'variable' and comp.name in var_values:
@@ -990,49 +972,48 @@ class CircuitoInterativoManual:
             print("❌ Nenhuma variável foi definida no circuito")
             return None
         
-        # Propaga valores através do circuito (máximo 15 iterações)
+        #Propaga valores através do circuito (máximo 15 iterações)
         for iteration in range(15):
             changes_made = False
             
             for comp in self.components:
-                # Pula se já tem valor calculado
+                #Pula se já tem valor calculado
                 if comp in component_outputs:
                     continue
                     
-                # Verifica se é uma porta lógica ou saída
+                #Verifica se é uma porta lógica ou saída
                 if comp.type in ['and', 'or', 'not', 'nand', 'nor', 'xor', 'xnor', 'output']:
                     input_values = self.get_component_inputs(comp, component_outputs)
                     
-                    if input_values is not None:  # Todas as entradas estão prontas
+                    if input_values is not None:  #Todas as entradas estão prontas
                         output = self.calculate_gate_output_simple(comp.type, input_values)
                         if output is not None:
                             component_outputs[comp] = output
                             changes_made = True
             
-            # Se nenhuma mudança foi feita, para a simulação
+            #Se nenhuma mudança foi feita, para a simulação
             if not changes_made:
                 break
         
-        # Retorna o valor da saída
+        #Retorna o valor da saída
         for comp in self.components:
             if comp.type == 'output' and comp in component_outputs:
                 return component_outputs[comp]
         
-        # Se chegou aqui, não conseguiu simular completamente
+        #Se chegou aqui, não conseguiu simular completamente
         print("⚠️ Simulação incompleta - circuito pode não estar totalmente conectado")
         return None
 
 
-    def get_component_inputs(self, component, component_outputs):
-        """Obtém valores de entrada de um componente"""
+    def get_component_inputs(self, component, component_outputs): #Obtém valores de entrada de um componente
         input_values = []
         
-        # Determina quantas entradas o componente deveria ter
+        #Determina quantas entradas o componente deveria ter
         expected_inputs = self.get_expected_input_count(component.type)
         if expected_inputs == 0:
             return []
         
-        # Coleta valores das entradas conectadas
+        #Coleta valores das entradas conectadas
         for input_idx in range(expected_inputs):
             if input_idx in component.input_connections:
                 wire = component.input_connections[input_idx]
@@ -1041,23 +1022,21 @@ class CircuitoInterativoManual:
                 if source_comp in component_outputs:
                     input_values.append(component_outputs[source_comp])
                 else:
-                    return None  # Entrada não está pronta
+                    return None  #Entrada não está pronta
             else:
                 print(f"⚠️ {component.type} entrada {input_idx} não conectada")
-                return None  # Entrada não conectada
+                return None  #Entrada não conectada
         
         return input_values
 
-    def get_expected_input_count(self, gate_type):
-        """Retorna o número esperado de entradas para cada tipo de porta"""
+    def get_expected_input_count(self, gate_type): #Retorna o número esperado de entradas para cada tipo de porta.
         input_counts = {
             'and': 2, 'or': 2, 'not': 1, 'nand': 2, 
             'nor': 2, 'xor': 2, 'xnor': 2, 'output': 1
         }
         return input_counts.get(gate_type, 0)
 
-    def calculate_gate_output_simple(self, gate_type, inputs):
-        """Calcula saída da porta lógica - versão simplificada"""
+    def calculate_gate_output_simple(self, gate_type, inputs): #Calcula saída da porta lógica - versão simplificada
         if not inputs and gate_type != 'not':
             return False
         
@@ -1085,14 +1064,13 @@ class CircuitoInterativoManual:
             return None
 
     
-    def draw_success_message(self):
-        """Desenha mensagem de parabéns quando o circuito está correto"""
+    def draw_success_message(self): #Desenha mensagem de parabéns quando o circuito está correto
         if not self.font:
             return
         
         #Fundo semi-transparente
         overlay = pygame.Surface((self.screen_width, self.screen_height))
-        overlay.fill((0, 50, 0))  # Verde escuro
+        overlay.fill((0, 50, 0))  #Verde escuro
         overlay.set_alpha(180)
         self.screen.blit(overlay, (0, 0))
         
@@ -1133,14 +1111,13 @@ class CircuitoInterativoManual:
             except:
                 pass
 
-    def draw_error_message(self):
-        """Desenha mensagem de erro quando o circuito está incorreto"""
+    def draw_error_message(self): #Desenha mensagem de erro quando o circuito está incorreto
         if not self.font:
             return
         
         #Fundo semi-transparente vermelho
         overlay = pygame.Surface((self.screen_width, self.screen_height))
-        overlay.fill((50, 0, 0))  # Vermelho escuro
+        overlay.fill((50, 0, 0))  #Vermelho escuro
         overlay.set_alpha(180)
         self.screen.blit(overlay, (0, 0))
         
