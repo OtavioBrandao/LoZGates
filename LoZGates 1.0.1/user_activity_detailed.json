@@ -1,0 +1,1080 @@
+{
+  "app_info": {
+    "name": "LoZ Gates",
+    "version": "1.0-beta",
+    "created": "2025-09-29T16:17:55.280336"
+  },
+  "sessions": [
+    {
+      "session_id": "6efabd1116fc",
+      "start_time": "2025-09-29T16:17:55.280336",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-29T16:18:05.680167",
+          "type": "equivalence_check",
+          "data": {
+            "result": true,
+            "expr1_preview": "P&!P&Q",
+            "expr2_preview": "P&!P&Q",
+            "complexity_difference": 0
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:08.850476",
+          "type": "equivalence_check",
+          "data": {
+            "result": false,
+            "expr1_preview": "P&!P&Q",
+            "expr2_preview": "!P&!P&Q",
+            "complexity_difference": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:11.340720",
+          "type": "equivalence_check",
+          "data": {
+            "result": false,
+            "expr1_preview": "P&!P&Q",
+            "expr2_preview": "P>Q",
+            "complexity_difference": 3
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:14.871381",
+          "type": "equivalence_check",
+          "data": {
+            "result": true,
+            "expr1_preview": "!P|Q",
+            "expr2_preview": "P>Q",
+            "complexity_difference": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:18.630471",
+          "type": "equivalence_check",
+          "data": {
+            "result": false,
+            "expr1_preview": "P<>Q",
+            "expr2_preview": "P>Q",
+            "complexity_difference": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:25.272911",
+          "type": "equivalence_check",
+          "data": {
+            "result": true,
+            "expr1_preview": "P<>Q",
+            "expr2_preview": "P>Q&Q>P",
+            "complexity_difference": 3
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:28.740426",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 6,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "732a8973"
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:29.425377",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 6,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "732a8973"
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:29.484247",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.06
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:30.514761",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 35.23442554473877
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:30.514761",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:31.982887",
+          "type": "circuit_mode_selected",
+          "data": {
+            "mode": "livre",
+            "expression": "P*~P*Q",
+            "restrictions": null
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:39.652435",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 1
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:40.992150",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 2
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:44.100492",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 3
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:45.956616",
+          "type": "circuit_test",
+          "data": {
+            "success": false,
+            "attempt_number": 1,
+            "success_rate": 0.0
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:47.509430",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 4
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:50.005147",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 5
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:55.756367",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 0,
+              "connections_made": 6
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:56.818718",
+          "type": "circuit_test",
+          "data": {
+            "success": false,
+            "attempt_number": 2,
+            "success_rate": 0.0
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:18:58.158970",
+          "type": "circuit_test",
+          "data": {
+            "success": false,
+            "attempt_number": 3,
+            "success_rate": 0.0
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:02.557343",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "delete",
+            "component_type": "or",
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 1,
+              "connections_made": 6
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:03.440632",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "delete",
+            "component_type": "or",
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 6
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:07.513680",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 7
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:09.864958",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 8
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:10.750202",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 9
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:12.017524",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 10
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:13.636604",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 11
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:13.884592",
+          "type": "circuit_test",
+          "data": {
+            "success": true,
+            "attempt_number": 4,
+            "success_rate": 0.25
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:16.565084",
+          "type": "circuit_tips_viewed",
+          "data": {
+            "mode": "livre",
+            "circuit_active": true
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:21.244081",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 85.96374535560608
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:23.839535",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "901b1c7f",
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:24.052968",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.21
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:28.918979",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": false,
+            "step_number": 1,
+            "timestamp_detail": 1759173568.9189792
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:28.918979",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "step_number": 1,
+            "reason": "Lei não aplicável à subexpressão '~P' no contexto de '((P*~P)*Q)'",
+            "expression_state": "((P*~P)*Q)",
+            "timestamp_detail": 1759173568.9189792
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:34.584376",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:37.487566",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 1,
+            "timestamp_detail": 1759173577.487567
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:39.023224",
+          "type": "law_application",
+          "data": {
+            "law_name": "Idempotente (A * A = A)",
+            "success": false,
+            "step_number": 2,
+            "timestamp_detail": 1759173579.0232246
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:39.023224",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Idempotente (A * A = A)",
+            "step_number": 2,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '(0*Q)'",
+            "expression_state": "(0*Q)",
+            "timestamp_detail": 1759173579.0232246
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:40.783435",
+          "type": "law_application",
+          "data": {
+            "law_name": "Comutativa (B*A = A*B)",
+            "success": false,
+            "step_number": 2,
+            "timestamp_detail": 1759173580.7834353
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:40.783435",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Comutativa (B*A = A*B)",
+            "step_number": 2,
+            "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '(0*Q)'",
+            "expression_state": "(0*Q)",
+            "timestamp_detail": 1759173580.7834353
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:43.994770",
+          "type": "simplification_undo",
+          "data": {
+            "total_undos_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:46.784126",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 1,
+            "timestamp_detail": 1759173586.7841263
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:48.129042",
+          "type": "law_application",
+          "data": {
+            "law_name": "Nula (A * 0 = 0)",
+            "success": false,
+            "step_number": 2,
+            "timestamp_detail": 1759173588.1290426
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:48.129042",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Nula (A * 0 = 0)",
+            "step_number": 2,
+            "reason": "Lei não aplicável à subexpressão '~P' no contexto de '((P*~P)*Q)'",
+            "expression_state": "((P*~P)*Q)",
+            "timestamp_detail": 1759173588.1290426
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:50.992672",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 1,
+            "total_skips_session": 2
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:52.886159",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 2,
+            "timestamp_detail": 1759173592.88616
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:19:54.519264",
+          "type": "law_application",
+          "data": {
+            "law_name": "Nula (A * 0 = 0)",
+            "success": true,
+            "step_number": 3,
+            "timestamp_detail": 1759173594.5192647
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:12.642219",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "73f718d8"
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:13.154554",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "73f718d8"
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:13.319209",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.16
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:15.001310",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Circuito      ",
+            "session_time": 139.72097396850586
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:16.440352",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 141.1600158214569
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:16.440352",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 2
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:19.597822",
+          "type": "circuit_mode_selected",
+          "data": {
+            "mode": "basic_gates",
+            "expression": "(~(P+Q)+~P)*P",
+            "restrictions": [
+              "and",
+              "or",
+              "not"
+            ]
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:32.636642",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 12
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:34.153174",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 13
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:20:37.662760",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 14
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:03.254360",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 15
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:05.259109",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 16
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:08.868612",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 17
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:12.484479",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 18
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:18.772685",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 19
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:21.650627",
+          "type": "circuit_component_action",
+          "data": {
+            "action": "connect",
+            "component_type": null,
+            "session_totals": {
+              "components_added": 0,
+              "components_deleted": 2,
+              "connections_made": 20
+            }
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:21.921478",
+          "type": "circuit_test",
+          "data": {
+            "success": true,
+            "attempt_number": 5,
+            "success_rate": 0.4
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:25.670338",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 210.3900020122528
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:27.128647",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "b39c7233",
+            "session_number": 2
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:27.304375",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.18
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:29.734532",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 3
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:31.360090",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 4
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:32.871510",
+          "type": "law_application",
+          "data": {
+            "law_name": "De Morgan (~(A*B) = ~A+~B)",
+            "success": true,
+            "step_number": 1,
+            "timestamp_detail": 1759173692.87151
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:36.838917",
+          "type": "law_application",
+          "data": {
+            "law_name": "Absorção (A * (A+B) = A)",
+            "success": true,
+            "step_number": 2,
+            "timestamp_detail": 1759173696.838918
+          }
+        },
+        {
+          "timestamp": "2025-09-29T16:21:39.702098",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 3,
+            "timestamp_detail": 1759173699.7020981
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 4,
+        "expressions_valid": 4,
+        "expressions_invalid": 0,
+        "equivalence_checks": 6,
+        "circuit_generations": 2,
+        "interactive_sessions": 2,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 5,
+        "avg_feature_time": 0.15,
+        "overall_success_rate": 0.286
+      },
+      "interactive_simplification": {
+        "sessions_started": 2,
+        "total_steps": 7,
+        "laws_applied": {
+          "Inversa (A * ~A = 0)": 4,
+          "Nula (A * 0 = 0)": 1,
+          "De Morgan (~(A*B) = ~A+~B)": 1,
+          "Absorção (A * (A+B) = A)": 1
+        },
+        "skips_used": 4,
+        "undo_operations": 1,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0,
+        "failed_attempts": {
+          "Inversa (A * ~A = 0)": [
+            {
+              "step": 1,
+              "reason": "Lei não aplicável à subexpressão '~P' no contexto de '((P*~P)*Q)'",
+              "expression": "((P*~P)*Q)",
+              "timestamp": 1759173568.9189792
+            }
+          ],
+          "Idempotente (A * A = A)": [
+            {
+              "step": 2,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '(0*Q)'",
+              "expression": "(0*Q)",
+              "timestamp": 1759173579.0232246
+            }
+          ],
+          "Comutativa (B*A = A*B)": [
+            {
+              "step": 2,
+              "reason": "Lei não aplicável à subexpressão '(0*Q)' no contexto de '(0*Q)'",
+              "expression": "(0*Q)",
+              "timestamp": 1759173580.7834353
+            }
+          ],
+          "Nula (A * 0 = 0)": [
+            {
+              "step": 2,
+              "reason": "Lei não aplicável à subexpressão '~P' no contexto de '((P*~P)*Q)'",
+              "expression": "((P*~P)*Q)",
+              "timestamp": 1759173588.1290426
+            }
+          ]
+        }
+      },
+      "interactive_circuit": {
+        "sessions_started": 2,
+        "components_added": {},
+        "components_deleted": 2,
+        "connections_made": 20,
+        "test_attempts": 5,
+        "successful_circuits": 2,
+        "failed_circuits": 3,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 6,
+        "equivalent_pairs": 3,
+        "non_equivalent_pairs": 3,
+        "expression_pairs": [
+          {
+            "expr1": "P&!P&Q",
+            "expr2": "P&!P&Q",
+            "expr1_full": "P&!P&Q",
+            "expr2_full": "P&!P&Q",
+            "expr1_hash": "732a8973",
+            "expr2_hash": "732a8973",
+            "result": true,
+            "timestamp": "2025-09-29T16:18:05.680167",
+            "check_number": 1
+          },
+          {
+            "expr1": "P&!P&Q",
+            "expr2": "!P&!P&Q",
+            "expr1_full": "P&!P&Q",
+            "expr2_full": "!P&!P&Q",
+            "expr1_hash": "732a8973",
+            "expr2_hash": "cdca27be",
+            "result": false,
+            "timestamp": "2025-09-29T16:18:08.850476",
+            "check_number": 2
+          },
+          {
+            "expr1": "P&!P&Q",
+            "expr2": "P>Q",
+            "expr1_full": "P&!P&Q",
+            "expr2_full": "P>Q",
+            "expr1_hash": "732a8973",
+            "expr2_hash": "af1ada8b",
+            "result": false,
+            "timestamp": "2025-09-29T16:18:11.340720",
+            "check_number": 3
+          },
+          {
+            "expr1": "!P|Q",
+            "expr2": "P>Q",
+            "expr1_full": "!P|Q",
+            "expr2_full": "P>Q",
+            "expr1_hash": "50e9fdad",
+            "expr2_hash": "af1ada8b",
+            "result": true,
+            "timestamp": "2025-09-29T16:18:14.871381",
+            "check_number": 4
+          },
+          {
+            "expr1": "P<>Q",
+            "expr2": "P>Q",
+            "expr1_full": "P<>Q",
+            "expr2_full": "P>Q",
+            "expr1_hash": "0aa6b66b",
+            "expr2_hash": "af1ada8b",
+            "result": false,
+            "timestamp": "2025-09-29T16:18:18.630471",
+            "check_number": 5
+          },
+          {
+            "expr1": "P<>Q",
+            "expr2": "P>Q&Q>P",
+            "expr1_full": "P<>Q",
+            "expr2_full": "P>Q&Q>P",
+            "expr1_hash": "0aa6b66b",
+            "expr2_hash": "362bd6aa",
+            "result": true,
+            "timestamp": "2025-09-29T16:18:25.272911",
+            "check_number": 6
+          }
+        ]
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 4
+        },
+        "operator_usage": {
+          "AND": 6,
+          "OR": 4,
+          "NOT": 6
+        },
+        "expression_lengths": {
+          "6": 2,
+          "13": 2
+        },
+        "common_expressions": {
+          "732a8973": 2,
+          "73f718d8": 2
+        }
+      },
+      "end_time": "2025-09-29T16:21:47.150808",
+      "duration_seconds": 231.87,
+      "events_count": 73
+    },
+    {
+      "session_id": "7e5a57e5622f",
+      "start_time": "2025-09-29T21:10:01.784795",
+      "user_id": "fe5f279a09ca1913",
+      "app_version": "1.0-beta",
+      "platform": "Windows-10-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-09-29T21:10:24.608782",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-09-29T21:10:26.038651",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-09-29T21:10:26.179588",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.14
+          }
+        },
+        {
+          "timestamp": "2025-09-29T21:10:27.403060",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 25.6182644367218
+          }
+        },
+        {
+          "timestamp": "2025-09-29T21:10:27.403060",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-09-29T21:10:31.580664",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 29.795868635177612
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 2,
+        "expressions_valid": 2,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 0,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 2,
+        "avg_feature_time": 0.14
+      },
+      "interactive_simplification": {
+        "sessions_started": 0,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 0,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 1,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 2
+        },
+        "operator_usage": {
+          "AND": 0,
+          "OR": 2,
+          "NOT": 2
+        },
+        "expression_lengths": {
+          "3": 2
+        },
+        "common_expressions": {
+          "af1ada8b": 2
+        }
+      },
+      "end_time": "2025-09-29T21:12:01.782093",
+      "duration_seconds": 120.0,
+      "events_count": 6
+    }
+  ]
+}

@@ -27,6 +27,8 @@ from FrontEnd.buttons import Button
 from FrontEnd.problems_interface import setup_problems_interface
 from FrontEnd.step_view import StepView, StepParser
 
+from FrontEnd.interactive_help import show_interactive_help
+
 from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
 from FrontEnd.circuit_mode_interface import CircuitModeSelector
 from FrontEnd.ai_chat_popup import AIChatPopup
@@ -610,7 +612,7 @@ def inicializar_interface():
     botao_equivalencia.place(relx=0.5, y=400, anchor="center")
     
     botao_info = Button.botao_padrao("❔Ajuda", frame_inicio)
-    botao_info.configure(command=lambda: show_frame(frame_info))
+    botao_info.configure(command=lambda: show_interactive_help(janela))
     botao_info.place(relx=0.5, y=500, anchor="center")
 
     #---------------- FRAME DOS CIRCUITOS E DAS EXPRESSÕES ----------------

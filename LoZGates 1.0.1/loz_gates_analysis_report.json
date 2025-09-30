@@ -1,0 +1,55 @@
+{
+  "analysis_date": "2025-09-29T21:24:39.608205",
+  "total_sessions_analyzed": 2,
+  "simplification_analysis": {
+    "most_used_laws": {
+      "Inversa (A * ~A = 0)": 4,
+      "Nula (A * 0 = 0)": 1,
+      "De Morgan (~(A*B) = ~A+~B)": 1,
+      "Absorção (A * (A+B) = A)": 1
+    },
+    "avg_skip_rate": 2.0,
+    "avg_completion_rate": 0.0,
+    "avg_steps_per_session": 3.5
+  },
+  "circuit_analysis": {
+    "component_popularity": {},
+    "avg_tests_per_session": 2.5,
+    "avg_success_rate": 0.4,
+    "avg_deletion_rate": 0,
+    "avg_undo_usage": 0.0
+  },
+  "equivalence_analysis": {
+    "total_checks": 6,
+    "equivalent_rate": 0.5
+  },
+  "expression_complexity": {
+    "variable_distribution": {
+      "2": 6
+    },
+    "length_distribution": {
+      "6": 2,
+      "13": 2,
+      "3": 2
+    },
+    "operator_preferences": {
+      "AND": 6,
+      "OR": 6,
+      "NOT": 8
+    }
+  },
+  "error_patterns": {
+    "total_errors": 0,
+    "sessions_with_errors_rate": 0.0,
+    "common_error_types": {}
+  },
+  "user_engagement": {
+    "avg_session_duration_minutes": 2.93225,
+    "median_session_duration_minutes": 2.93225,
+    "avg_events_per_session": 39.5,
+    "most_used_features": {
+      "circuit_generation": 3,
+      "interactive_mode": 2
+    }
+  }
+}
