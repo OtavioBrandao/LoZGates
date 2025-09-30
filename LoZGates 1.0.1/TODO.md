@@ -30,6 +30,7 @@
     - Se a dica estiver aberta e clicar outra vez, fecha (ou apertando o botão parar). -Otavio
     - Mesma coisa para o controle. -Otavio
     - Tirar a possibilidade de ter como escrever na caixa de dicas e controle -Otavio
+    - Desafio minimo deveria mostrar a mensagem de parabêns mesmo que nem todas as variaveis sejam conectadas, basta uma. (resolver de uma forma que respeite poo)
 
 # Banco de questões
     - Levar a resposta para ser analisada no circuito e na simplificação.
