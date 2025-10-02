@@ -1,0 +1,596 @@
+
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Relatório de Análise - LoZ Gates</title>
+            
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                overflow: hidden;
+                animation: fadeIn 0.5s ease-in;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 40px 30px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 2.8em;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            }
+
+            .header .subtitle {
+                font-size: 1.2em;
+                opacity: 0.95;
+                margin-bottom: 15px;
+            }
+
+            .timestamp {
+                font-size: 0.95em;
+                opacity: 0.85;
+                font-style: italic;
+            }
+
+            .content {
+                padding: 30px;
+            }
+
+            /* Cards de Estatísticas */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 25px;
+                margin-bottom: 40px;
+            }
+
+            .stat-card {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                padding: 30px;
+                border-radius: 15px;
+                color: white;
+                text-align: center;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                cursor: pointer;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            }
+
+            .stat-card:nth-child(2) {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            }
+
+            .stat-card:nth-child(3) {
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            }
+
+            .stat-card:nth-child(4) {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            }
+
+            .stat-number {
+                font-size: 3em;
+                font-weight: bold;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .stat-label {
+                font-size: 1.15em;
+                opacity: 0.95;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            /* Seções */
+            .section {
+                margin: 40px 0;
+                padding: 30px;
+                background: #f8f9fa;
+                border-radius: 15px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+                transition: transform 0.3s ease;
+            }
+
+            .section:hover {
+                transform: translateX(5px);
+            }
+
+            .section h2 {
+                color: #2c3e50;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 15px;
+                margin-bottom: 25px;
+                font-size: 2em;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .section h3 {
+                color: #34495e;
+                margin: 25px 0 15px;
+                font-size: 1.4em;
+            }
+
+            /* Info Rows */
+            .info-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 12px 0;
+                padding: 15px 20px;
+                background: white;
+                border-radius: 10px;
+                border-left: 4px solid #3498db;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                transition: all 0.3s ease;
+            }
+
+            .info-row:hover {
+                transform: translateX(5px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+            .info-row strong {
+                color: #2c3e50;
+                font-size: 1.1em;
+            }
+
+            /* Ranking Items */
+            .ranking-item {
+                background: white;
+                margin: 12px 0;
+                padding: 18px 25px;
+                border-radius: 10px;
+                border-left: 5px solid #f39c12;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+                transition: all 0.3s ease;
+            }
+
+            .ranking-item:hover {
+                transform: translateX(8px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+                border-left-color: #e67e22;
+            }
+
+            .ranking-item:nth-child(1) { border-left-color: #e74c3c; }
+            .ranking-item:nth-child(2) { border-left-color: #e67e22; }
+            .ranking-item:nth-child(3) { border-left-color: #f39c12; }
+
+            .ranking-item strong {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 0.95em;
+            }
+
+            /* Charts Container */
+            .chart-container {
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+                margin: 20px 0;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            }
+
+            /* Progress Bars */
+            .progress-bar {
+                width: 100%;
+                height: 30px;
+                background: #ecf0f1;
+                border-radius: 15px;
+                overflow: hidden;
+                margin: 10px 0;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                padding-right: 15px;
+                color: white;
+                font-weight: bold;
+                transition: width 1s ease;
+            }
+
+            /* Tabs */
+            .tabs {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #ecf0f1;
+            }
+
+            .tab {
+                padding: 12px 25px;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                font-size: 1em;
+                color: #7f8c8d;
+                transition: all 0.3s ease;
+                border-bottom: 3px solid transparent;
+            }
+
+            .tab:hover {
+                color: #3498db;
+            }
+
+            .tab.active {
+                color: #3498db;
+                border-bottom-color: #3498db;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: block;
+                animation: fadeIn 0.3s ease;
+            }
+
+            /* Footer */
+            .footer {
+                background: #2c3e50;
+                color: white;
+                padding: 25px;
+                text-align: center;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .header h1 {
+                    font-size: 2em;
+                }
+                
+                .stat-number {
+                    font-size: 2.5em;
+                }
+            }
+
+            /* Print Styles */
+            @media print {
+                body {
+                    background: white;
+                }
+                
+                .container {
+                    box-shadow: none;
+                }
+                
+                .stat-card:hover, .section:hover {
+                    transform: none;
+                }
+            }
+        </style>
+        
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📊 Relatório de Análise LoZ Gates</h1>
+                    <p class="subtitle">Análise Detalhada da Atividade dos Usuários</p>
+                    <p class="timestamp">Gerado em: 29/09/2025 às 21:24:39</p>
+                </div>
+
+                <div class="content">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" data-suffix="">2</div>
+                            <div class="stat-label">Sessões Analisadas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" data-suffix=" min">2.93225</div>
+                            <div class="stat-label">Duração Média</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" data-suffix="%">0.0</div>
+                            <div class="stat-label">Taxa de Conclusão</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" data-suffix="%">40.0</div>
+                            <div class="stat-label">Taxa de Sucesso</div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <button class="tab active" onclick="openTab(event, 'simplification')">🔍 Simplificação</button>
+                        <button class="tab" onclick="openTab(event, 'circuit')">🔧 Circuito</button>
+                        <button class="tab" onclick="openTab(event, 'complexity')">📈 Complexidade</button>
+                        <button class="tab" onclick="openTab(event, 'errors')">⚠️ Erros</button>
+                    </div>
+
+                    <!-- Tab: Simplificação -->
+                    <div id="simplification" class="tab-content active">
+                        <div class="section">
+                            <h2>🔍 Análise de Simplificação Interativa</h2>
+                            
+                            <div class="info-row">
+                                <span>Taxa Média de Conclusão:</span>
+                                <strong>0.0%</strong>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <h3>Taxa de Conclusão</h3>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0.0%">
+                                        0.0%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-row">
+                                <span>Média de Passos por Sessão:</span>
+                                <strong>3.5</strong>
+                            </div>
+
+                            <h3>🏆 Leis Mais Utilizadas</h3>
+                            <div class="ranking-item">
+                                <span>Inversa</span>
+                                <strong>4 aplicações</strong>
+                            </div><div class="ranking-item">
+                                <span>Nula</span>
+                                <strong>1 aplicações</strong>
+                            </div><div class="ranking-item">
+                                <span>De Morgan</span>
+                                <strong>1 aplicações</strong>
+                            </div><div class="ranking-item">
+                                <span>Absorção</span>
+                                <strong>1 aplicações</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Circuito -->
+                    <div id="circuit" class="tab-content">
+                        <div class="section">
+                            <h2>🔧 Análise de Construção de Circuitos</h2>
+                            
+                            <div class="chart-container">
+                                <h3>Taxa de Sucesso</h3>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 40.0%">
+                                        40.0%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-row">
+                                <span>Média de Testes por Sessão:</span>
+                                <strong>2.5</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <span>Taxa de Deleções:</span>
+                                <strong>0.0%</strong>
+                            </div>
+
+                            <h3>🎯 Componentes Mais Populares</h3>
+                            
+                        </div>
+                    </div>
+
+                    <!-- Tab: Complexidade -->
+                    <div id="complexity" class="tab-content">
+                        <div class="section">
+                            <h2>📈 Análise de Complexidade das Expressões</h2>
+                            
+                            <h3>Distribuição de Variáveis</h3>
+                            <div class="info-row">
+                                <span>2 variáveis:</span>
+                                <strong>6 expressões</strong>
+                            </div>
+
+                            <h3>Uso de Operadores</h3>
+                            <div class="chart-container">
+                                <div style="margin: 15px 0;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>AND</span>
+                                        <strong>6 usos</strong>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 75.0%"></div>
+                                    </div>
+                                </div><div style="margin: 15px 0;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>OR</span>
+                                        <strong>6 usos</strong>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 75.0%"></div>
+                                    </div>
+                                </div><div style="margin: 15px 0;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>NOT</span>
+                                        <strong>8 usos</strong>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 100.0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Erros -->
+                    <div id="errors" class="tab-content">
+                        <div class="section">
+                            <h2>⚠️ Análise de Padrões de Erros</h2>
+                            
+                            <div class="info-row">
+                                <span>Total de Erros:</span>
+                                <strong>0</strong>
+                            </div>
+
+                            <div class="chart-container">
+                                <h3>Taxa de Sessões com Erros</h3>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0.0%; background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);">
+                                        0.0%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3>Tipos de Erro Mais Comuns</h3>
+                            
+                        </div>
+                    </div>
+
+                    <!-- Engagement Section -->
+                    <div class="section">
+                        <h2>📊 Engajamento do Usuário</h2>
+                        
+                        <div class="info-row">
+                            <span>Duração Média da Sessão:</span>
+                            <strong>2.9 minutos</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Duração Mediana:</span>
+                            <strong>2.9 minutos</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Eventos por Sessão:</span>
+                            <strong>39.5</strong>
+                        </div>
+
+                        <h3>🎯 Funcionalidades Mais Usadas</h3>
+                        <div class="ranking-item">
+                            <span>Circuit Generation</span>
+                            <strong>3 usos</strong>
+                        </div><div class="ranking-item">
+                            <span>Interactive Mode</span>
+                            <strong>2 usos</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p>LoZ Gates - Sistema de Análise de Dados | © 2024 UFAL</p>
+                    <p style="margin-top: 10px;">
+                        <button onclick="printReport()" style="padding: 8px 16px; margin: 0 5px; cursor: pointer; background: white; color: #2c3e50; border: none; border-radius: 5px;">🖨️ Imprimir</button>
+                        <button onclick="exportToJSON()" style="padding: 8px 16px; margin: 0 5px; cursor: pointer; background: white; color: #2c3e50; border: none; border-radius: 5px;">💾 Exportar JSON</button>
+                    </p>
+                </div>
+            </div>
+            
+        <script>
+            // Tabs functionality
+            function openTab(evt, tabName) {
+                const tabContents = document.getElementsByClassName("tab-content");
+                for (let content of tabContents) {
+                    content.classList.remove("active");
+                }
+                
+                const tabs = document.getElementsByClassName("tab");
+                for (let tab of tabs) {
+                    tab.classList.remove("active");
+                }
+                
+                document.getElementById(tabName).classList.add("active");
+                evt.currentTarget.classList.add("active");
+            }
+
+            // Animate numbers on load
+            window.addEventListener('load', () => {
+                const statNumbers = document.querySelectorAll('.stat-number');
+                statNumbers.forEach(num => {
+                    const finalValue = parseFloat(num.textContent);
+                    let currentValue = 0;
+                    const increment = finalValue / 50;
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= finalValue) {
+                            num.textContent = num.dataset.suffix 
+                                ? finalValue.toFixed(1) + num.dataset.suffix 
+                                : Math.round(finalValue);
+                            clearInterval(timer);
+                        } else {
+                            num.textContent = num.dataset.suffix 
+                                ? currentValue.toFixed(1) + num.dataset.suffix 
+                                : Math.round(currentValue);
+                        }
+                    }, 20);
+                });
+
+                // Animate progress bars
+                const progressBars = document.querySelectorAll('.progress-fill');
+                progressBars.forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0%';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 100);
+                });
+            });
+
+            // Print functionality
+            function printReport() {
+                window.print();
+            }
+
+            // Export to JSON
+            function exportToJSON() {
+                const report = {};
+                const dataStr = JSON.stringify(report, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'loz_gates_report.json';
+                link.click();
+            }
+        </script>
+        
+        </body>
+        </html>
+        

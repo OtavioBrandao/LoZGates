@@ -1,82 +1,54 @@
-"""
-Exemplo de análise dos dados detalhados coletados pelo sistema de logging.
-Este script demonstra como extrair insights úteis dos dados para melhorar o LoZ Gates.
-"""
-
 import json
-import matplotlib.pyplot as plt
-import pandas as pd
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime
 import numpy as np
 
 class LoZGatesDataAnalyzer:
-    """Analisador de dados do LoZ Gates para extrair insights de uso."""
-    
     def __init__(self, data_file_path: str):
         self.data_file = data_file_path
         self.sessions_data = []
         self.load_data()
-    
+
     def load_data(self):
-        """Carrega os dados do arquivo JSON."""
         try:
             with open(self.data_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 self.sessions_data = data.get('sessions', [])
             print(f"📊 Carregados {len(self.sessions_data)} sessões para análise")
-        except Exception as e:
-            print(f"❌ Erro ao carregar dados: {e}")
+        except FileNotFoundError:
+            print(f"❌ Erro: Arquivo '{self.data_file}' não encontrado. Gere alguns logs primeiro.")
             self.sessions_data = []
-    
+        except json.JSONDecodeError:
+            print(f"❌ Erro: O arquivo '{self.data_file}' está corrompido ou em um formato JSON inválido.")
+            self.sessions_data = []
+        except Exception as e:
+            print(f"❌ Erro inesperado ao carregar dados: {e}")
+            self.sessions_data = []
+
     def analyze_simplification_patterns(self):
-        """Analisa padrões na simplificação interativa."""
+        if not self.sessions_data: return {}
         print("\n=== ANÁLISE: SIMPLIFICAÇÃO INTERATIVA ===")
-        
+
         all_laws = Counter()
         skip_rates = []
         completion_rates = []
         step_counts = []
-        
+
         for session in self.sessions_data:
             simpl_data = session.get('interactive_simplification', {})
-            
-            # Leis mais usadas
             laws = simpl_data.get('laws_applied', {})
             all_laws.update(laws)
-            
-            # Taxa de pulos
+
             sessions_started = simpl_data.get('sessions_started', 0)
-            skips = simpl_data.get('skips_used', 0)
             if sessions_started > 0:
+                skips = simpl_data.get('skips_used', 0)
                 skip_rates.append(skips / sessions_started)
-            
-            # Taxa de conclusão
-            completed = simpl_data.get('expressions_completed', 0)
-            if sessions_started > 0:
+                
+                completed = simpl_data.get('expressions_completed', 0)
                 completion_rates.append(completed / sessions_started)
-            
-            # Passos por sessão
-            total_steps = simpl_data.get('total_steps', 0)
-            if sessions_started > 0:
+                
+                total_steps = simpl_data.get('total_steps', 0)
                 step_counts.append(total_steps / sessions_started)
-        
-        # Resultados
-        print("🏆 Leis mais aplicadas:")
-        for law, count in all_laws.most_common(5):
-            print(f"   {law}: {count} aplicações")
-        
-        if skip_rates:
-            avg_skip_rate = np.mean(skip_rates)
-            print(f"⏭️ Taxa média de pulos: {avg_skip_rate:.2f} pulos/sessão")
-        
-        if completion_rates:
-            avg_completion = np.mean(completion_rates)
-            print(f"✅ Taxa média de conclusão: {avg_completion*100:.1f}%")
-        
-        if step_counts:
-            avg_steps = np.mean(step_counts)
-            print(f"🔢 Média de passos por sessão: {avg_steps:.1f}")
         
         return {
             'most_used_laws': dict(all_laws.most_common(10)),
@@ -84,66 +56,34 @@ class LoZGatesDataAnalyzer:
             'avg_completion_rate': np.mean(completion_rates) if completion_rates else 0,
             'avg_steps_per_session': np.mean(step_counts) if step_counts else 0
         }
-    
+
     def analyze_circuit_building_behavior(self):
-        """Analisa comportamento na construção de circuitos."""
+        if not self.sessions_data: return {}
         print("\n=== ANÁLISE: CIRCUITO INTERATIVO ===")
         
         component_usage = Counter()
-        test_attempts = []
-        success_rates = []
-        deletion_rates = []
-        undo_usage = []
-        
+        test_attempts, success_rates, deletion_rates, undo_usage = [], [], [], []
+
         for session in self.sessions_data:
             circuit_data = session.get('interactive_circuit', {})
-            
-            # Uso de componentes
             components = circuit_data.get('components_added', {})
             component_usage.update(components)
-            
-            # Tentativas de teste
-            tests = circuit_data.get('test_attempts', 0)
+
             sessions_started = circuit_data.get('sessions_started', 0)
-            if sessions_started > 0 and tests > 0:
-                test_attempts.append(tests / sessions_started)
-            
-            # Taxa de sucesso
-            successful = circuit_data.get('successful_circuits', 0)
-            if tests > 0:
-                success_rates.append(successful / tests)
-            
-            # Taxa de deleção
-            deletions = circuit_data.get('components_deleted', 0)
-            total_components = sum(components.values())
-            if total_components > 0:
-                deletion_rates.append(deletions / total_components)
-            
-            # Uso de undo
-            undos = circuit_data.get('undo_operations', 0)
             if sessions_started > 0:
+                tests = circuit_data.get('test_attempts', 0)
+                if tests > 0:
+                    test_attempts.append(tests / sessions_started)
+                    successful = circuit_data.get('successful_circuits', 0)
+                    success_rates.append(successful / tests)
+
+                total_components = sum(components.values())
+                if total_components > 0:
+                    deletions = circuit_data.get('components_deleted', 0)
+                    deletion_rates.append(deletions / total_components)
+
+                undos = circuit_data.get('undo_operations', 0)
                 undo_usage.append(undos / sessions_started)
-        
-        # Resultados
-        print("🔧 Componentes mais utilizados:")
-        for component, count in component_usage.most_common(5):
-            print(f"   {component}: {count} usos")
-        
-        if test_attempts:
-            avg_tests = np.mean(test_attempts)
-            print(f"🧪 Média de testes por sessão: {avg_tests:.1f}")
-        
-        if success_rates:
-            avg_success = np.mean(success_rates)
-            print(f"✅ Taxa média de sucesso: {avg_success*100:.1f}%")
-        
-        if deletion_rates:
-            avg_deletions = np.mean(deletion_rates)
-            print(f"🗑️ Taxa média de deleções: {avg_deletions*100:.1f}% dos componentes")
-        
-        if undo_usage:
-            avg_undos = np.mean(undo_usage)
-            print(f"↩️ Média de undos por sessão: {avg_undos:.1f}")
         
         return {
             'component_popularity': dict(component_usage.most_common()),
@@ -152,204 +92,69 @@ class LoZGatesDataAnalyzer:
             'avg_deletion_rate': np.mean(deletion_rates) if deletion_rates else 0,
             'avg_undo_usage': np.mean(undo_usage) if undo_usage else 0
         }
-    
     def analyze_equivalence_patterns(self):
-        """Analisa padrões nas verificações de equivalência."""
-        print("\n=== ANÁLISE: VERIFICAÇÃO DE EQUIVALÊNCIA ===")
-        
-        all_checks = []
-        complexity_patterns = []
-        
-        for session in self.sessions_data:
-            equiv_data = session.get('equivalence_analysis', {})
-            checks = equiv_data.get('expression_pairs', [])
-            all_checks.extend(checks)
-        
-        if not all_checks:
-            print("⚠️ Nenhuma verificação de equivalência encontrada")
+        if not self.sessions_data: 
             return {}
         
-        # Análise dos resultados
+        print("\n=== ANÁLISE: VERIFICAÇÃO DE EQUIVALÊNCIA ===")
+        all_checks = [check for s in self.sessions_data for check in s.get('equivalence_analysis', {}).get('expression_pairs', [])]
+        
+        if not all_checks: 
+            return {}
+        
         total_checks = len(all_checks)
-        equivalent_count = sum(1 for check in all_checks if check.get('result'))
-        non_equivalent_count = total_checks - equivalent_count
-        
-        # Análise de complexidade
-        for check in all_checks:
-            expr1_len = check.get('expr1_length', 0)
-            expr2_len = check.get('expr2_length', 0)
-            complexity_diff = abs(expr1_len - expr2_len)
-            complexity_patterns.append({
-                'diff': complexity_diff,
-                'result': check.get('result'),
-                'avg_length': (expr1_len + expr2_len) / 2
-            })
-        
-        # Sequência temporal de verificações
-        recent_pattern = []
-        for check in all_checks[-10:]:  # Últimas 10 verificações
-            recent_pattern.append("✓" if check.get('result') else "✗")
-        
-        print(f"📊 Total de verificações: {total_checks}")
-        print(f"✅ Equivalentes: {equivalent_count} ({equivalent_count/total_checks*100:.1f}%)")
-        print(f"❌ Não equivalentes: {non_equivalent_count} ({non_equivalent_count/total_checks*100:.1f}%)")
-        
-        if recent_pattern:
-            print(f"🔄 Padrão recente: {' '.join(recent_pattern)}")
-        
-        # Análise de complexidade
-        if complexity_patterns:
-            avg_complexity_diff = np.mean([p['diff'] for p in complexity_patterns])
-            print(f"📏 Diferença média de complexidade: {avg_complexity_diff:.1f} caracteres")
-        
-        return {
-            'total_checks': total_checks,
-            'equivalent_rate': equivalent_count / total_checks if total_checks > 0 else 0,
-            'avg_complexity_difference': np.mean([p['diff'] for p in complexity_patterns]) if complexity_patterns else 0,
-            'recent_pattern': recent_pattern
-        }
-    
+        equivalent_count = sum(1 for c in all_checks if c.get('result'))
+        return {'total_checks': total_checks, 'equivalent_rate': equivalent_count / total_checks}
+
     def analyze_expression_complexity_trends(self):
-        """Analisa tendências de complexidade das expressões."""
-        print("\n=== ANÁLISE: COMPLEXIDADE DAS EXPRESSÕES ===")
+        if not self.sessions_data: 
+            return {}
         
-        variable_counts = Counter()
-        expression_lengths = Counter()
-        operator_usage = {'AND': 0, 'OR': 0, 'NOT': 0}
+        print("\n=== ANÁLISE: COMPLEXIDADE DAS EXPRESSÕES ===")
+        variable_counts, expression_lengths, operator_usage = Counter(), Counter(), Counter()
         
         for session in self.sessions_data:
             patterns = session.get('expression_patterns', {})
             
-            # Contagem de variáveis
-            var_counts = patterns.get('variable_counts', {})
-            for count, freq in var_counts.items():
+            for count, freq in patterns.get('variable_counts', {}).items(): 
                 variable_counts[int(count)] += freq
-            
-            # Comprimentos de expressão
-            lengths = patterns.get('expression_lengths', {})
-            for length, freq in lengths.items():
+                
+            for length, freq in patterns.get('expression_lengths', {}).items(): 
                 expression_lengths[int(length)] += freq
-            
-            # Uso de operadores
-            ops = patterns.get('operator_usage', {})
-            for op in operator_usage:
-                operator_usage[op] += ops.get(op, 0)
-        
-        # Resultados
-        print("🔢 Distribuição de variáveis por expressão:")
-        for var_count in sorted(variable_counts.keys()):
-            freq = variable_counts[var_count]
-            print(f"   {var_count} variáveis: {freq} expressões")
-        
-        print("📏 Distribuição de tamanhos de expressão:")
-        for length in sorted(expression_lengths.keys())[:10]:  # Top 10
-            freq = expression_lengths[length]
-            print(f"   {length} caracteres: {freq} expressões")
-        
-        print("⚡ Preferência de operadores:")
-        total_ops = sum(operator_usage.values())
-        if total_ops > 0:
-            for op, count in operator_usage.items():
-                percentage = (count / total_ops) * 100
-                print(f"   {op}: {count} usos ({percentage:.1f}%)")
-        
-        return {
-            'variable_distribution': dict(variable_counts),
-            'length_distribution': dict(expression_lengths),
-            'operator_preferences': operator_usage
-        }
-    
+                
+            operator_usage.update(patterns.get('operator_usage', {}))
+        return {'variable_distribution': dict(variable_counts), 'length_distribution': dict(expression_lengths), 'operator_preferences': dict(operator_usage)}
+
     def analyze_error_patterns(self):
-        """Analisa padrões de erros encontrados pelos usuários."""
+        if not self.sessions_data:
+            return {}
+        
         print("\n=== ANÁLISE: PADRÕES DE ERROS ===")
+        total_errors = sum(s.get('session_stats', {}).get('errors_encountered', 0) for s in self.sessions_data)
+        sessions_with_errors = sum(1 for s in self.sessions_data if s.get('session_stats', {}).get('errors_encountered', 0) > 0)
+        error_types = Counter(e.get('data', {}).get('error_type', 'unknown') for s in self.sessions_data for e in s.get('events', []) if e.get('type') == 'error_occurred')
         
-        total_errors = 0
-        sessions_with_errors = 0
-        error_types = Counter()
-        
-        for session in self.sessions_data:
-            session_stats = session.get('session_stats', {})
-            errors_in_session = session_stats.get('errors_encountered', 0)
-            
-            total_errors += errors_in_session
-            if errors_in_session > 0:
-                sessions_with_errors += 1
-            
-            # Analisa eventos de erro
-            events = session.get('events', [])
-            for event in events:
-                if event.get('type') == 'error_occurred':
-                    error_type = event.get('data', {}).get('error_type', 'unknown')
-                    error_types[error_type] += 1
-        
-        total_sessions = len(self.sessions_data)
-        
-        print(f"⚠️ Total de erros: {total_errors}")
-        print(f"📊 Sessões com erros: {sessions_with_errors}/{total_sessions} ({sessions_with_errors/total_sessions*100:.1f}%)")
-        
-        if error_types:
-            print("🔍 Tipos de erros mais comuns:")
-            for error_type, count in error_types.most_common(5):
-                print(f"   {error_type}: {count} ocorrências")
-        
-        return {
-            'total_errors': total_errors,
-            'sessions_with_errors_rate': sessions_with_errors / total_sessions if total_sessions > 0 else 0,
-            'common_error_types': dict(error_types.most_common(10))
-        }
-    
+        return {'total_errors': total_errors, 'sessions_with_errors_rate': sessions_with_errors / len(self.sessions_data), 'common_error_types': dict(error_types.most_common(10))}
+
     def analyze_user_engagement(self):
-        """Analisa padrões de engajamento dos usuários."""
+        if not self.sessions_data:
+            return {}
+        
         print("\n=== ANÁLISE: ENGAJAMENTO DO USUÁRIO ===")
+        session_durations = [s.get('duration_seconds', 0) / 60 for s in self.sessions_data if s.get('duration_seconds', 0) > 0]
+        events_per_session = [s.get('events_count', 0) for s in self.sessions_data if s.get('events_count', 0) > 0]
+        feature_usage = Counter(e.get('data', {}).get('feature', 'unknown') for s in self.sessions_data for e in s.get('events', []) if e.get('type') == 'feature_used')
         
-        session_durations = []
-        events_per_session = []
-        feature_usage = Counter()
+        return {'avg_session_duration_minutes': np.mean(session_durations) if session_durations else 0, 'median_session_duration_minutes': np.median(session_durations) if session_durations else 0, 'avg_events_per_session': np.mean(events_per_session) if events_per_session else 0, 'most_used_features': dict(feature_usage.most_common(10))}
+
+    def generate_comprehensive_report(self):
+        if not self.sessions_data:
+            print("Nenhum dado de sessão para analisar.")
+            return None
         
-        for session in self.sessions_data:
-            duration = session.get('duration_seconds', 0)
-            if duration > 0:
-                session_durations.append(duration / 60)  # Converte para minutos
-            
-            events_count = session.get('events_count', 0)
-            if events_count > 0:
-                events_per_session.append(events_count)
-            
-            # Conta uso de features
-            events = session.get('events', [])
-            for event in events:
-                if event.get('type') == 'feature_used':
-                    feature = event.get('data', {}).get('feature', 'unknown')
-                    feature_usage[feature] += 1
-        
-        # Resultados
-        if session_durations:
-            avg_duration = np.mean(session_durations)
-            median_duration = np.median(session_durations)
-            print(f"⏱️ Duração média de sessão: {avg_duration:.1f} minutos")
-            print(f"⏱️ Duração mediana: {median_duration:.1f} minutos")
-        
-        if events_per_session:
-            avg_events = np.mean(events_per_session)
-            print(f"🎯 Média de eventos por sessão: {avg_events:.1f}")
-        
-        print("🏆 Features mais utilizadas:")
-        for feature, count in feature_usage.most_common(5):
-            print(f"   {feature}: {count} usos")
+        print("🚀 Gerando relatório completo de análise do LoZ Gates...")
         
         return {
-            'avg_session_duration_minutes': np.mean(session_durations) if session_durations else 0,
-            'median_session_duration_minutes': np.median(session_durations) if session_durations else 0,
-            'avg_events_per_session': np.mean(events_per_session) if events_per_session else 0,
-            'most_used_features': dict(feature_usage.most_common(10))
-        }
-    
-    def generate_comprehensive_report(self):
-        """Gera relatório completo de análise."""
-        print("🚀 Gerando relatório completo de análise do LoZ Gates...")
-        print("=" * 60)
-        
-        report = {
             'analysis_date': datetime.now().isoformat(),
             'total_sessions_analyzed': len(self.sessions_data),
             'simplification_analysis': self.analyze_simplification_patterns(),
@@ -359,33 +164,9 @@ class LoZGatesDataAnalyzer:
             'error_patterns': self.analyze_error_patterns(),
             'user_engagement': self.analyze_user_engagement()
         }
-        
-        print("\n" + "=" * 60)
-        print("📋 RESUMO EXECUTIVO:")
-        print(f"• Total de sessões analisadas: {report['total_sessions_analyzed']}")
-        
-        simpl = report['simplification_analysis']
-        if simpl:
-            print(f"• Taxa de conclusão na simplificação: {simpl.get('avg_completion_rate', 0)*100:.1f}%")
-            print(f"• Passos médios por simplificação: {simpl.get('avg_steps_per_session', 0):.1f}")
-        
-        circuit = report['circuit_analysis']
-        if circuit:
-            print(f"• Taxa de sucesso no circuito: {circuit.get('avg_success_rate', 0)*100:.1f}%")
-            print(f"• Testes médios por circuito: {circuit.get('avg_tests_per_session', 0):.1f}")
-        
-        engagement = report['user_engagement']
-        if engagement:
-            print(f"• Duração média de sessão: {engagement.get('avg_session_duration_minutes', 0):.1f} min")
-        
-        errors = report['error_patterns']
-        if errors:
-            print(f"• Taxa de sessões com erro: {errors.get('sessions_with_errors_rate', 0)*100:.1f}%")
-        
-        return report
-    
+
     def save_report_to_file(self, report, filename="loz_gates_analysis_report.json"):
-        """Salva o relatório em arquivo JSON."""
+        if not report: return
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(report, f, indent=2, ensure_ascii=False)
@@ -393,39 +174,608 @@ class LoZGatesDataAnalyzer:
         except Exception as e:
             print(f"❌ Erro ao salvar relatório: {e}")
 
-# Exemplo de uso
+    def generate_html_report(self, report, filename="analysis_report.html"):
+        if not report:
+            return
+
+        simpl = report.get('simplification_analysis', {})
+        circuit = report.get('circuit_analysis', {})
+        equiv = report.get('equivalence_analysis', {})
+        complexity = report.get('expression_complexity', {})
+        errors = report.get('error_patterns', {})
+        engagement = report.get('user_engagement', {})
+
+        # CSS moderno e responsivo
+        html_style = """
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                overflow: hidden;
+                animation: fadeIn 0.5s ease-in;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 40px 30px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 2.8em;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            }
+
+            .header .subtitle {
+                font-size: 1.2em;
+                opacity: 0.95;
+                margin-bottom: 15px;
+            }
+
+            .timestamp {
+                font-size: 0.95em;
+                opacity: 0.85;
+                font-style: italic;
+            }
+
+            .content {
+                padding: 30px;
+            }
+
+            /* Cards de Estatísticas */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 25px;
+                margin-bottom: 40px;
+            }
+
+            .stat-card {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                padding: 30px;
+                border-radius: 15px;
+                color: white;
+                text-align: center;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                cursor: pointer;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            }
+
+            .stat-card:nth-child(2) {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            }
+
+            .stat-card:nth-child(3) {
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            }
+
+            .stat-card:nth-child(4) {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            }
+
+            .stat-number {
+                font-size: 3em;
+                font-weight: bold;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .stat-label {
+                font-size: 1.15em;
+                opacity: 0.95;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            /* Seções */
+            .section {
+                margin: 40px 0;
+                padding: 30px;
+                background: #f8f9fa;
+                border-radius: 15px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+                transition: transform 0.3s ease;
+            }
+
+            .section:hover {
+                transform: translateX(5px);
+            }
+
+            .section h2 {
+                color: #2c3e50;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 15px;
+                margin-bottom: 25px;
+                font-size: 2em;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .section h3 {
+                color: #34495e;
+                margin: 25px 0 15px;
+                font-size: 1.4em;
+            }
+
+            /* Info Rows */
+            .info-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 12px 0;
+                padding: 15px 20px;
+                background: white;
+                border-radius: 10px;
+                border-left: 4px solid #3498db;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                transition: all 0.3s ease;
+            }
+
+            .info-row:hover {
+                transform: translateX(5px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+            .info-row strong {
+                color: #2c3e50;
+                font-size: 1.1em;
+            }
+
+            /* Ranking Items */
+            .ranking-item {
+                background: white;
+                margin: 12px 0;
+                padding: 18px 25px;
+                border-radius: 10px;
+                border-left: 5px solid #f39c12;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+                transition: all 0.3s ease;
+            }
+
+            .ranking-item:hover {
+                transform: translateX(8px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+                border-left-color: #e67e22;
+            }
+
+            .ranking-item:nth-child(1) { border-left-color: #e74c3c; }
+            .ranking-item:nth-child(2) { border-left-color: #e67e22; }
+            .ranking-item:nth-child(3) { border-left-color: #f39c12; }
+
+            .ranking-item strong {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 0.95em;
+            }
+
+            /* Charts Container */
+            .chart-container {
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+                margin: 20px 0;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            }
+
+            /* Progress Bars */
+            .progress-bar {
+                width: 100%;
+                height: 30px;
+                background: #ecf0f1;
+                border-radius: 15px;
+                overflow: hidden;
+                margin: 10px 0;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                padding-right: 15px;
+                color: white;
+                font-weight: bold;
+                transition: width 1s ease;
+            }
+
+            /* Tabs */
+            .tabs {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #ecf0f1;
+            }
+
+            .tab {
+                padding: 12px 25px;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                font-size: 1em;
+                color: #7f8c8d;
+                transition: all 0.3s ease;
+                border-bottom: 3px solid transparent;
+            }
+
+            .tab:hover {
+                color: #3498db;
+            }
+
+            .tab.active {
+                color: #3498db;
+                border-bottom-color: #3498db;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: block;
+                animation: fadeIn 0.3s ease;
+            }
+
+            /* Footer */
+            .footer {
+                background: #2c3e50;
+                color: white;
+                padding: 25px;
+                text-align: center;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .header h1 {
+                    font-size: 2em;
+                }
+                
+                .stat-number {
+                    font-size: 2.5em;
+                }
+            }
+
+            /* Print Styles */
+            @media print {
+                body {
+                    background: white;
+                }
+                
+                .container {
+                    box-shadow: none;
+                }
+                
+                .stat-card:hover, .section:hover {
+                    transform: none;
+                }
+            }
+        </style>
+        """
+
+        # JavaScript para interatividade
+        html_script = """
+        <script>
+            // Tabs functionality
+            function openTab(evt, tabName) {
+                const tabContents = document.getElementsByClassName("tab-content");
+                for (let content of tabContents) {
+                    content.classList.remove("active");
+                }
+                
+                const tabs = document.getElementsByClassName("tab");
+                for (let tab of tabs) {
+                    tab.classList.remove("active");
+                }
+                
+                document.getElementById(tabName).classList.add("active");
+                evt.currentTarget.classList.add("active");
+            }
+
+            // Animate numbers on load
+            window.addEventListener('load', () => {
+                const statNumbers = document.querySelectorAll('.stat-number');
+                statNumbers.forEach(num => {
+                    const finalValue = parseFloat(num.textContent);
+                    let currentValue = 0;
+                    const increment = finalValue / 50;
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= finalValue) {
+                            num.textContent = num.dataset.suffix 
+                                ? finalValue.toFixed(1) + num.dataset.suffix 
+                                : Math.round(finalValue);
+                            clearInterval(timer);
+                        } else {
+                            num.textContent = num.dataset.suffix 
+                                ? currentValue.toFixed(1) + num.dataset.suffix 
+                                : Math.round(currentValue);
+                        }
+                    }, 20);
+                });
+
+                // Animate progress bars
+                const progressBars = document.querySelectorAll('.progress-fill');
+                progressBars.forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0%';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 100);
+                });
+            });
+
+            // Print functionality
+            function printReport() {
+                window.print();
+            }
+
+            // Export to JSON
+            function exportToJSON() {
+                const report = {};
+                const dataStr = JSON.stringify(report, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'loz_gates_report.json';
+                link.click();
+            }
+        </script>
+        """
+
+        # Constrói o HTML
+        html_content = f"""
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Relatório de Análise - LoZ Gates</title>
+            {html_style}
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📊 Relatório de Análise LoZ Gates</h1>
+                    <p class="subtitle">Análise Detalhada da Atividade dos Usuários</p>
+                    <p class="timestamp">Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}</p>
+                </div>
+
+                <div class="content">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" data-suffix="">{report.get('total_sessions_analyzed', 0)}</div>
+                            <div class="stat-label">Sessões Analisadas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" data-suffix=" min">{engagement.get('avg_session_duration_minutes', 0)}</div>
+                            <div class="stat-label">Duração Média</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" data-suffix="%">{simpl.get('avg_completion_rate', 0)*100}</div>
+                            <div class="stat-label">Taxa de Conclusão</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" data-suffix="%">{circuit.get('avg_success_rate', 0)*100}</div>
+                            <div class="stat-label">Taxa de Sucesso</div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <button class="tab active" onclick="openTab(event, 'simplification')">🔍 Simplificação</button>
+                        <button class="tab" onclick="openTab(event, 'circuit')">🔧 Circuito</button>
+                        <button class="tab" onclick="openTab(event, 'complexity')">📈 Complexidade</button>
+                        <button class="tab" onclick="openTab(event, 'errors')">⚠️ Erros</button>
+                    </div>
+
+                    <!-- Tab: Simplificação -->
+                    <div id="simplification" class="tab-content active">
+                        <div class="section">
+                            <h2>🔍 Análise de Simplificação Interativa</h2>
+                            
+                            <div class="info-row">
+                                <span>Taxa Média de Conclusão:</span>
+                                <strong>{simpl.get('avg_completion_rate', 0)*100:.1f}%</strong>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <h3>Taxa de Conclusão</h3>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {simpl.get('avg_completion_rate', 0)*100}%">
+                                        {simpl.get('avg_completion_rate', 0)*100:.1f}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-row">
+                                <span>Média de Passos por Sessão:</span>
+                                <strong>{simpl.get('avg_steps_per_session', 0):.1f}</strong>
+                            </div>
+
+                            <h3>🏆 Leis Mais Utilizadas</h3>
+                            {''.join([f'''<div class="ranking-item">
+                                <span>{law.split("(")[0].strip()}</span>
+                                <strong>{count} aplicações</strong>
+                            </div>''' for law, count in list(simpl.get('most_used_laws', {}).items())[:10]])}
+                        </div>
+                    </div>
+
+                    <!-- Tab: Circuito -->
+                    <div id="circuit" class="tab-content">
+                        <div class="section">
+                            <h2>🔧 Análise de Construção de Circuitos</h2>
+                            
+                            <div class="chart-container">
+                                <h3>Taxa de Sucesso</h3>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {circuit.get('avg_success_rate', 0)*100}%">
+                                        {circuit.get('avg_success_rate', 0)*100:.1f}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-row">
+                                <span>Média de Testes por Sessão:</span>
+                                <strong>{circuit.get('avg_tests_per_session', 0):.1f}</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <span>Taxa de Deleções:</span>
+                                <strong>{circuit.get('avg_deletion_rate', 0)*100:.1f}%</strong>
+                            </div>
+
+                            <h3>🎯 Componentes Mais Populares</h3>
+                            {''.join([f'''<div class="ranking-item">
+                                <span>{comp.upper()}</span>
+                                <strong>{count} usos</strong>
+                            </div>''' for comp, count in list(circuit.get('component_popularity', {}).items())[:10]])}
+                        </div>
+                    </div>
+
+                    <!-- Tab: Complexidade -->
+                    <div id="complexity" class="tab-content">
+                        <div class="section">
+                            <h2>📈 Análise de Complexidade das Expressões</h2>
+                            
+                            <h3>Distribuição de Variáveis</h3>
+                            {''.join([f'''<div class="info-row">
+                                <span>{var} variáveis:</span>
+                                <strong>{count} expressões</strong>
+                            </div>''' for var, count in sorted(complexity.get('variable_distribution', {}).items())])}
+
+                            <h3>Uso de Operadores</h3>
+                            <div class="chart-container">
+                                {''.join([f'''<div style="margin: 15px 0;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>{op}</span>
+                                        <strong>{count} usos</strong>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: {count/max(complexity.get('operator_preferences', {}).values(), default=1)*100}%"></div>
+                                    </div>
+                                </div>''' for op, count in complexity.get('operator_preferences', {}).items()])}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Erros -->
+                    <div id="errors" class="tab-content">
+                        <div class="section">
+                            <h2>⚠️ Análise de Padrões de Erros</h2>
+                            
+                            <div class="info-row">
+                                <span>Total de Erros:</span>
+                                <strong>{errors.get('total_errors', 0)}</strong>
+                            </div>
+
+                            <div class="chart-container">
+                                <h3>Taxa de Sessões com Erros</h3>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {errors.get('sessions_with_errors_rate', 0)*100}%; background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);">
+                                        {errors.get('sessions_with_errors_rate', 0)*100:.1f}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3>Tipos de Erro Mais Comuns</h3>
+                            {''.join([f'''<div class="ranking-item">
+                                <span>{err}</span>
+                                <strong>{count} ocorrências</strong>
+                            </div>''' for err, count in list(errors.get('common_error_types', {}).items())[:10]])}
+                        </div>
+                    </div>
+
+                    <!-- Engagement Section -->
+                    <div class="section">
+                        <h2>📊 Engajamento do Usuário</h2>
+                        
+                        <div class="info-row">
+                            <span>Duração Média da Sessão:</span>
+                            <strong>{engagement.get('avg_session_duration_minutes', 0):.1f} minutos</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Duração Mediana:</span>
+                            <strong>{engagement.get('median_session_duration_minutes', 0):.1f} minutos</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Eventos por Sessão:</span>
+                            <strong>{engagement.get('avg_events_per_session', 0):.1f}</strong>
+                        </div>
+
+                        <h3>🎯 Funcionalidades Mais Usadas</h3>
+                        {''.join([f'''<div class="ranking-item">
+                            <span>{feature.replace('_', ' ').title()}</span>
+                            <strong>{count} usos</strong>
+                        </div>''' for feature, count in list(engagement.get('most_used_features', {}).items())[:10]])}
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p>LoZ Gates - Sistema de Análise de Dados | © 2024 UFAL</p>
+                    <p style="margin-top: 10px;">
+                        <button onclick="printReport()" style="padding: 8px 16px; margin: 0 5px; cursor: pointer; background: white; color: #2c3e50; border: none; border-radius: 5px;">🖨️ Imprimir</button>
+                        <button onclick="exportToJSON()" style="padding: 8px 16px; margin: 0 5px; cursor: pointer; background: white; color: #2c3e50; border: none; border-radius: 5px;">💾 Exportar JSON</button>
+                    </p>
+                </div>
+            </div>
+            {html_script}
+        </body>
+        </html>
+        """
+
+        try:
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            print(f"📄 Relatório HTML aprimorado salvo em: {filename}")
+        except Exception as e:
+            print(f"❌ Erro ao salvar relatório HTML: {e}")
+            
 if __name__ == "__main__":
-    # Inicializa o analisador
     analyzer = LoZGatesDataAnalyzer("user_activity_detailed.json")
-    
-    # Gera análise completa
     report = analyzer.generate_comprehensive_report()
-    
-    # Salva relatório
     analyzer.save_report_to_file(report)
-    
-    # Exemplos de insights específicos que você pode extrair:
-    print("\n🎯 INSIGHTS ESPECÍFICOS PARA MELHORIA:")
-    
-    # 1. Leis mais difíceis
-    simpl = report.get('simplification_analysis', {})
-    laws = simpl.get('most_used_laws', {})
-    if laws:
-        least_used = sorted(laws.items(), key=lambda x: x[1])[:3]
-        print(f"📚 Leis menos utilizadas (podem precisar de mais explicação):")
-        for law, count in least_used:
-            print(f"   • {law}: apenas {count} usos")
-    
-    # 2. Componentes problemáticos no circuito
-    circuit = report.get('circuit_analysis', {})
-    deletion_rate = circuit.get('avg_deletion_rate', 0)
-    if deletion_rate > 0.3:  # Se mais de 30% dos componentes são deletados
-        print(f"⚠️ Alta taxa de deleção ({deletion_rate*100:.1f}%) sugere interface confusa")
-    
-    # 3. Padrões de erro
-    errors = report.get('error_patterns', {})
-    common_errors = errors.get('common_error_types', {})
-    if common_errors:
-        print("🔧 Erros mais comuns que precisam ser corrigidos:")
-        for error_type, count in list(common_errors.items())[:3]:
-            print(f"   • {error_type}: {count} ocorrências")
+    analyzer.generate_html_report(report)

@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 import threading
 from BackEnd.ai_assistant import AIAssistant
+from config import make_window_visible_robust
 
 class AIChatPopup:
     def __init__(self, parent, expression="", step_context=""):
@@ -13,6 +14,7 @@ class AIChatPopup:
         
         # Criar popup
         self.popup = ctk.CTkToplevel(parent)
+        make_window_visible_robust(self.popup, parent=parent)
         self.popup.title("Sugestão de IA - Simplificador Lógico")
         self.popup.geometry("500x600")
         self.popup.resizable(True, True)

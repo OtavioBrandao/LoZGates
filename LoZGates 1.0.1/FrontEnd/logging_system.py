@@ -11,6 +11,7 @@ from typing import Dict, List, Any
 import customtkinter as ctk
 
 from BackEnd import converter
+from config import make_window_visible_robust
 
 class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados granulares de uso.
     
@@ -639,6 +640,7 @@ class DetailedDataSharingDialog:
     
     def show_dialog(self) -> bool: #Mostra dialog com preview detalhado dos dados.
         root = ctk.CTkToplevel()
+        make_window_visible_robust(root, modal=True)
         root.title("Compartilhamento de Dados Detalhados - LoZ Gates Beta")
         root.geometry("800x700")
         root.resizable(True, True)
