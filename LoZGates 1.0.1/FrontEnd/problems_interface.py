@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from BackEnd.problems_bank import Problems_bank, ProblemsToFrame
 from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
+from .buttons import Button
 
 class IntegratedProblemsInterface:
     def __init__(self, parent_window):
@@ -323,102 +324,30 @@ class IntegratedProblemsInterface:
                 self.back_to_problems_list(parent_container, voltar_para, principal)
                 voltar_para(principal)
                 self.fill_main_expression_and_navigate(user_answer, "table")
-
-        verify_button = ctk.CTkButton(
-            buttons_frame,
-            text="🔍 Verificar Resposta",
-            command=verify_answer,
-            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
-            fg_color=Colors.INFO,
-            hover_color="#1976D2",
-            text_color=Colors.BUTTON_TEXT,
-            corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-            height=Dimensions.BUTTON_HEIGHT_SMALL,
-            width=Dimensions.BUTTON_WIDTH_STANDARD,
-            border_width=Dimensions.BORDER_WIDTH_STANDARD,
-            border_color=Colors.BORDER_DEFAULT
-        )
+        
+        verify_button = Button.botao_padrao("🔍 Verificar Resposta", buttons_frame)
+        verify_button.configure(command=verify_answer)
         verify_button.pack(side="left", padx=Spacing.SM)
         
-        analyze_circuit_btn = ctk.CTkButton(
-            buttons_frame,
-            text="🔌 Analisar no Circuito",
-            command=analyze_in_circuit,
-            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
-            fg_color=Colors.ACCENT_CYAN,
-            hover_color="#0D7C8C",
-            corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-            height=Dimensions.BUTTON_HEIGHT_SMALL,
-            width=Dimensions.BUTTON_WIDTH_STANDARD,
-            border_width=Dimensions.BORDER_WIDTH_STANDARD,
-            border_color=Colors.BORDER_DEFAULT,
-            state="disabled"
-        )
+        analyze_circuit_btn = Button.botao_padrao("🔌 Analisar no Circuito", buttons_frame)
+        analyze_circuit_btn.configure(command=analyze_in_circuit, state="disabled")
         analyze_circuit_btn.pack(side="left", padx=Spacing.SM)
         
-        analyze_simplify_btn = ctk.CTkButton(
-            buttons_frame,
-            text="🔎 Simplificar",
-            command=analyze_in_simplifier,
-            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
-            fg_color=Colors.ACCENT_GOLD,
-            hover_color="#D4940E",
-            corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-            height=Dimensions.BUTTON_HEIGHT_SMALL,
-            width=Dimensions.BUTTON_WIDTH_STANDARD,
-            border_width=Dimensions.BORDER_WIDTH_STANDARD,
-            border_color=Colors.BORDER_DEFAULT,
-            state="disabled"
-        )
+        analyze_simplify_btn = Button.botao_padrao("🔎 Simplificar", buttons_frame)
+        analyze_simplify_btn.configure(command=analyze_in_simplifier, state="disabled")
         analyze_simplify_btn.pack(side="left", padx=Spacing.SM)
         
-        analyze_table_btn = ctk.CTkButton(
-            buttons_frame,
-            text="📊 Tabela Verdade",
-            command=analyze_in_table,
-            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
-            fg_color=Colors.INFO,
-            hover_color="#1976D2",
-            corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-            height=Dimensions.BUTTON_HEIGHT_SMALL,
-            width=120,
-            border_width=Dimensions.BORDER_WIDTH_STANDARD,
-            border_color=Colors.BORDER_DEFAULT,
-            state="disabled"
-        )
+        analyze_table_btn = Button.botao_padrao("📊 Tabela Verdade", buttons_frame)
+        analyze_table_btn.configure(command=analyze_in_table, state="disabled")
         analyze_table_btn.pack(side="left", padx=Spacing.SM)
         
-        show_answer_button = ctk.CTkButton(
-            buttons_frame,
-            text="👁️ Mostrar Resposta",
-            command=lambda: self.toggle_answer(answer_frame, show_answer_button),
-            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
-            fg_color=Colors.BUTTON_PRIMARY,
-            hover_color=Colors.BUTTON_PRIMARY_HOVER,
-            text_color=Colors.BUTTON_TEXT,
-            corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-            height=Dimensions.BUTTON_HEIGHT_SMALL,
-            width=Dimensions.BUTTON_WIDTH_STANDARD,
-            border_width=Dimensions.BORDER_WIDTH_STANDARD,
-            border_color=Colors.BORDER_DEFAULT,
-            state="disabled"
-        )
+        show_answer_button = Button.botao_padrao("👁️ Mostrar Resposta", buttons_frame)
+        show_answer_button.configure(command=lambda: self.toggle_answer(answer_frame, show_answer_button), state="disabled")
         show_answer_button.pack(side="left", padx=Spacing.SM)
-
-        back_to_list_button = ctk.CTkButton(
-            buttons_frame,
-            text="📋 Voltar à Lista",
-            command=lambda: self.back_to_problems_list(parent_container, voltar_para, principal),
-            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
-            fg_color=Colors.ACCENT_GOLD,
-            hover_color=Colors.ACCENT_GOLD_HOVER,
-            corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-            height=Dimensions.BUTTON_HEIGHT_SMALL,
-            width=Dimensions.BUTTON_WIDTH_STANDARD,
-            border_width=Dimensions.BORDER_WIDTH_STANDARD,
-            border_color=Colors.BORDER_DEFAULT
-        )
-        back_to_list_button.pack(side="right", padx=Spacing.LG)
+        
+        back_to_list_button = Button.botao_voltar("📋 Voltar à Lista", buttons_frame)
+        back_to_list_button.configure(command=lambda: self.back_to_problems_list(parent_container, voltar_para, principal))
+        back_to_list_button.pack(side="right", padx=Spacing.SM)
         
         self.answer_frame = answer_frame
         self.show_answer_button = show_answer_button

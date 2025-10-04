@@ -157,7 +157,8 @@ class CircuitModeManager:
                 parent_frame, 
                 expression, 
                 gate_restrictions=restrictions,
-                logger=logger
+                logger=logger,
+                mode_key = self.current_mode
             )
             self.circuit_frame = parent_frame
             print("Circuito criado com sucesso!")
