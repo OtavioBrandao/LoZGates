@@ -37,7 +37,7 @@ class IntegratedProblemsInterface:
             border_width=Dimensions.BORDER_WIDTH_STANDARD,
             border_color=Colors.BORDER_ACCENT
         )
-        main_container.pack(pady=Spacing.LG, padx=Spacing.XXL, fill="both", expand=True)
+        main_container.pack(pady=Spacing.LG, padx=Spacing.LG, fill="both", expand=True)
         
         problems_frame = ctk.CTkScrollableFrame(
             main_container, 
@@ -46,7 +46,7 @@ class IntegratedProblemsInterface:
             height=400,
             width=850
         )
-        problems_frame.pack(padx=Spacing.MD, pady=Spacing.MD, fill="both", expand=True)
+        problems_frame.pack(padx=Spacing.SM, pady=Spacing.SM, fill="both", expand=True)
   
         for i in range(4):
             problems_frame.grid_columnconfigure(i, weight=1)
@@ -262,7 +262,11 @@ class IntegratedProblemsInterface:
         answer_text.pack(pady=(0, Spacing.MD), padx=Spacing.LG)
         
         buttons_frame = ctk.CTkFrame(detail_container, fg_color="transparent")
-        buttons_frame.pack(pady=Spacing.LG, fill="x")
+        buttons_frame.pack(pady=Spacing.LG, padx=Spacing.LG, fill="x")
+        
+        # Configura grid para distribuição uniforme dos botões
+        for i in range(6):
+            buttons_frame.grid_columnconfigure(i, weight=1, uniform="button")
 
         def verify_answer():
             user_answer = answer_entry.get().strip()
@@ -327,27 +331,27 @@ class IntegratedProblemsInterface:
         
         verify_button = Button.botao_padrao("🔍 Verificar Resposta", buttons_frame)
         verify_button.configure(command=verify_answer)
-        verify_button.pack(side="left", padx=Spacing.SM)
+        verify_button.grid(row=0, column=0, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
         
         analyze_circuit_btn = Button.botao_padrao("🔌 Analisar no Circuito", buttons_frame)
         analyze_circuit_btn.configure(command=analyze_in_circuit, state="disabled")
-        analyze_circuit_btn.pack(side="left", padx=Spacing.SM)
+        analyze_circuit_btn.grid(row=0, column=1, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
         
         analyze_simplify_btn = Button.botao_padrao("🔎 Simplificar", buttons_frame)
         analyze_simplify_btn.configure(command=analyze_in_simplifier, state="disabled")
-        analyze_simplify_btn.pack(side="left", padx=Spacing.SM)
+        analyze_simplify_btn.grid(row=0, column=2, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
         
         analyze_table_btn = Button.botao_padrao("📊 Tabela Verdade", buttons_frame)
         analyze_table_btn.configure(command=analyze_in_table, state="disabled")
-        analyze_table_btn.pack(side="left", padx=Spacing.SM)
+        analyze_table_btn.grid(row=0, column=3, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
         
         show_answer_button = Button.botao_padrao("👁️ Mostrar Resposta", buttons_frame)
         show_answer_button.configure(command=lambda: self.toggle_answer(answer_frame, show_answer_button), state="disabled")
-        show_answer_button.pack(side="left", padx=Spacing.SM)
+        show_answer_button.grid(row=0, column=4, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
         
         back_to_list_button = Button.botao_voltar("📋 Voltar à Lista", buttons_frame)
         back_to_list_button.configure(command=lambda: self.back_to_problems_list(parent_container, voltar_para, principal))
-        back_to_list_button.pack(side="right", padx=Spacing.SM)
+        back_to_list_button.grid(row=0, column=5, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
         
         self.answer_frame = answer_frame
         self.show_answer_button = show_answer_button
