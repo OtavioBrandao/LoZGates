@@ -27,12 +27,15 @@
     - Consertar o scroll, o de dentro so vai quando o de fora chega no limite (container_problemas)
 
 # Circuito Lógico Interativo
-    - Se a dica estiver aberta e clicar outra vez, fecha (ou apertando o botão parar). -Otavio
-    - Mesma coisa para o controle. -Otavio
-    - Tirar a possibilidade de ter como escrever na caixa de dicas e controle -Otavio
-    - Desafio minimo deveria mostrar a mensagem de parabêns mesmo que nem todas as variaveis sejam conectadas, basta uma. (resolver de uma forma que respeite poo)
+    - Se a dica estiver aberta e clicar outra vez, fecha (ou apertando o botão parar). -Otavio✅
+    - Mesma coisa para o controle. -Otavio✅
+    - Tirar a possibilidade de ter como escrever na caixa de dicas e controle -Otavio✅
+    - Desafio minimo deveria mostrar a mensagem de parabêns mesmo que nem todas as variaveis sejam conectadas, basta uma. (resolver de uma forma que respeite poo) ✅
 
 # Banco de questões
-    - Levar a resposta para ser analisada no circuito e na simplificação.
+    - Levar a resposta para ser analisada no circuito e na simplificação. ✅
     - Depois que resolver essa primeira parte, colocar para expressões iguais, mas com variaveis diferentes, sejam equivalentes APENAS para essa parte.
     por exemplo: A>B == P>Q. Porque aí não precisa definir variáveis, e não daria essa dica.
+
+# Integração com IA
+    - Ver como colocar a API pra fase de testes sem ter problema com terceiros

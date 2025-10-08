@@ -32,6 +32,7 @@ from FrontEnd.interactive_help import show_interactive_help
 from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
 from FrontEnd.circuit_mode_interface import CircuitModeSelector
 from FrontEnd.ai_chat_popup import AIChatPopup
+from FrontEnd.problems_interface import IntegratedProblemsInterface
 
 from FrontEnd.logging_system import DetailedUserLogger, DetailedDataSharingDialog, ImprovedGoogleFormsSubmitter
 user_logger = DetailedUserLogger("1.0-beta")
@@ -640,7 +641,7 @@ def inicializar_interface():
     botao_confirmar_expressao.configure(command=confirmar_expressao, hover_color="#16723D")
     botao_confirmar_expressao.place(relx=0.5, y=280, anchor="center")
     
-    botao_problemas_reais = Button.botao_padrao("🔬Problemas Reais", principal)
+    botao_problemas_reais = Button.botao_padrao("🔬 Banco de problemas", principal)
     botao_problemas_reais.configure(command=lambda: show_frame(frame_problemas_reais))
     botao_problemas_reais.place(relx=0.5, y=360, anchor="center")
 
@@ -649,9 +650,55 @@ def inicializar_interface():
     botao_go_back_to_inicio.place(relx=0.5, y=440, anchor="center")
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
+    def handle_problem_answer(expression, destination):
+        """
+        Callback chamado quando o usuário acerta um problema e quer analisar
+        
+        Parâmetros:
+        - expression: A expressão do problema
+        - destination: "circuit", "simplifier" ou "table"
+        """
+        # Preenche o campo de entrada principal
+        entrada.delete(0, tk.END)
+        entrada.insert(0, expression)
+        
+        # Log da ação
+        user_logger.log_feature_used("problem_answer_analysis", 0)
+        
+        # Navega baseado no destino
+        if destination == "circuit":
+            # Confirma expressão e vai para circuito
+            confirmar_expressao()
+            janela.after(500, lambda: trocar_para_abas())
+        
+        elif destination == "simplifier":
+            # Confirma expressão e vai para simplificador
+            confirmar_expressao()
+            janela.after(500, lambda: [
+                trocar_para_abas(),
+                janela.after(300, lambda: [
+                    abas.set("      Expressão      "),
+                    janela.after(200, executar_conversao)
+                ])
+            ])
+        
+        elif destination == "table":
+            # Abre diretamente a tabela verdade
+            exibir_tabela_verdade(expression)
 
-    setup_problems_interface(scroll_problemas_reais, go_back_to, principal, Button)
-    
+    def setup_problems_interface_with_callback(scroll_container, voltar_callback, principal_frame, button_class):
+        """Configuração da interface de problemas com callback integrado"""
+        interface = IntegratedProblemsInterface(scroll_container)
+        
+        # Configura o callback ANTES de criar a interface
+        interface.main_entry_callback = handle_problem_answer
+        
+        # Cria a tela principal
+        interface.create_problems_main_screen(scroll_container, voltar_callback, principal_frame)
+
+    # Use esta função no lugar da original
+    setup_problems_interface_with_callback(scroll_problemas_reais, go_back_to, principal, Button)
+        
     #---------------- FRAME DE ABAS ----------------
 
     abas = ctk.CTkTabview(

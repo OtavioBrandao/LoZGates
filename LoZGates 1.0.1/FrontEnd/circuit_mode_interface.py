@@ -67,11 +67,11 @@ class CircuitModeSelector:
         #Frame de controles
         self.create_control_panel()
         
+        #Panel de informações (criado mas não mostrado)
+        self.create_info_panel()
+        
         #Frame para o circuito (inicialmente oculto)
         self.create_circuit_area()
-        
-        #Panel de informações
-        self.create_info_panel()
     
     def create_mode_buttons(self, parent): #Cria os botões de seleção de modo.
         button_frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -167,8 +167,8 @@ class CircuitModeSelector:
             width=Dimensions.BUTTON_WIDTH_SMALL,
             height=Dimensions.BUTTON_HEIGHT_STANDARD,
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
-            fg_color=Colors.INFO,
-            hover_color="#1976D2",
+            fg_color="#070BDB",
+            hover_color="#0A0D97",
             corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
             border_width=Dimensions.BORDER_WIDTH_STANDARD,
             border_color=Colors.BORDER_DEFAULT,
@@ -185,10 +185,11 @@ class CircuitModeSelector:
             height=Dimensions.BUTTON_HEIGHT_STANDARD,
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
             fg_color=Colors.WARNING,
-            hover_color="#F57C00",
+            hover_color="#723B05",
             corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
             border_width=Dimensions.BORDER_WIDTH_STANDARD,
             border_color=Colors.BORDER_DEFAULT,
+            state = "disabled",
             command=self.show_controls
         )
         self.controls_btn.pack(side="left", padx=Spacing.SM)
@@ -246,7 +247,7 @@ class CircuitModeSelector:
         
         self.info_text = ctk.CTkTextbox(
             self.info_container,
-            height=200,
+            height=400,
             font=get_font(Typography.SIZE_CAPTION),
             fg_color=Colors.SURFACE_DARK,
             text_color=Colors.TEXT_SECONDARY
@@ -361,6 +362,7 @@ class CircuitModeSelector:
             self.start_btn.configure(state="disabled")
             self.tips_btn.configure(state="normal")
             self.stop_btn.configure(state="normal")
+            self.controls_btn.configure(state="normal")
             
             #Atualiza estado dos botões de modo
             self.update_mode_buttons_state()
@@ -393,6 +395,11 @@ class CircuitModeSelector:
             
             #Esconde área do circuito
             self.circuit_container.pack_forget()
+
+            #Esconde painel de informações
+            self.info_container.pack_forget()
+            self.info_text.configure(state="normal")
+            self.info_text.delete("1.0", "end")
             
             #Atualiza estados
             self.is_circuit_active = False
@@ -401,6 +408,7 @@ class CircuitModeSelector:
             self.start_btn.configure(state="normal")
             self.stop_btn.configure(state="disabled")
             self.tips_btn.configure(state="disabled")
+            self.controls_btn.configure(state="disabled")
             
             #Reabilita todos os botões de modo
             self.update_mode_buttons_state()
@@ -419,13 +427,14 @@ class CircuitModeSelector:
                 "mode": self.current_mode,
                 "circuit_active": self.is_circuit_active
             })
+        
+        #Mostra painel se não estiver visível
+        if not self.info_container.winfo_ismapped():
+            self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD, before=self.circuit_container)
+        
         if self.current_mode is None:
             tips_text = "Primeiro selecione um modo de desafio para ver dicas específicas."
         else:
-            #Mostra painel se não estiver visível
-            if not self.info_container.winfo_ismapped():
-                self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
-            
             mode_info = self.circuit_manager.get_mode_info(self.current_mode)
             tips = self.circuit_manager.get_mode_tips(self.current_mode)
             
@@ -433,17 +442,16 @@ class CircuitModeSelector:
             
             for i, tip in enumerate(tips, 1):
                 tips_text += f"  {i}. {tip}\n\n"
-            
+        
+        self.info_text.configure(state="normal")
         self.info_text.delete("1.0", "end")
         self.info_text.insert("1.0", tips_text)
-        
-        if not self.info_container.winfo_ismapped():
-            self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
+        self.info_text.configure(state="disabled")
     
     def show_controls(self): #Mostra informações de controle do jogo.
         #Mostra painel se não estiver visível
         if not self.info_container.winfo_ismapped():
-            self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
+            self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD, before=self.circuit_container)
         
         controls_text = "🎮 CONTROLES BÁSICOS:\n\n"
         controls_text += "  • TAB: Mostrar/esconder painel de componentes\n"
@@ -466,8 +474,10 @@ class CircuitModeSelector:
         controls_text += "  6. Pressione ESPAÇO para testar!\n"
         controls_text += "  7. Implemente a expressão corretamente!"
         
+        self.info_text.configure(state="normal")
         self.info_text.delete("1.0", "end")
         self.info_text.insert("1.0", controls_text)
+        self.info_text.configure(state="disabled")
     
     def cleanup(self): #Limpa recursos.
         if self.is_circuit_active:

@@ -104,15 +104,15 @@ class InteractiveHelpSystem:
             "• Larissa Ferreira Dias de Souza - Sistemas interativos & Backend - lfds@ic.ufal.br",
             "• Otávio Joshua Costa Brandão Menezes - UI & UX - ojcbm@ic.ufal.br", 
             "• Zilderlan Naty dos Santos - IA - zns@ic.ufal.br",
-            "• David Kelve Oliveira Barbosa - Simplificação & Problemas reais - dkob@ic.ufal.br"
+            "• David Kelve Oliveira Barbosa - Simplificação & Banco de problemas - dkob@ic.ufal.br",
+            "👨‍🏫 Orientador: Prof. Dr. Evandro de Barros Costa"
         ]
         self.add_bullet_list(scroll_frame, team_info)
         
         self.add_section_title(scroll_frame, "🏛️ Instituição")
         self.add_paragraph(scroll_frame,
             "Universidade Federal de Alagoas (UFAL)\n"
-            "Instituto de Computação (IC)\n"
-            "👨‍🏫 Orientador: Prof. Dr. Evandro de Barros Costa")
+            "Instituto de Computação (IC)\n")
         
         #Botão de ação
         self.add_action_button(scroll_frame, "🌐 Site da UFAL", 
@@ -451,12 +451,10 @@ class InteractiveHelpSystem:
             "Projeto educacional desenvolvido na Universidade Federal de Alagoas (UFAL)\n"
             "Instituto de Computação - 2024")
         
-        self.add_section_title(scroll_frame, "🙏 Agradecimentos")
+        '''self.add_section_title(scroll_frame, "🙏 Agradecimentos")
         thanks = [
-            "• Prof. Dr. Evandro de Barros Costa (Orientação)",
-            "• Instituto de Computação - UFAL"
         ]
-        self.add_bullet_list(scroll_frame, thanks)
+        self.add_bullet_list(scroll_frame, thanks)'''
         
         self.add_section_title(scroll_frame, "💡 Tecnologias Utilizadas")
         tech = [

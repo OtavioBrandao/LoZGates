@@ -15,10 +15,11 @@ from ..logic.parser import criar_ast_de_expressao, _coletar_variaveis
 from ..utils.history import CircuitHistory
 
 class CircuitoInterativoManual:    
-    def __init__(self, parent_frame, expressao, gate_restrictions=None, logger=None):
+    def __init__(self, parent_frame, expressao, gate_restrictions=None, logger=None, mode_key=None):
         self.parent_frame = parent_frame
         self.expressao = expressao
         self.gate_restrictions = gate_restrictions  #Lista de portas permitidas ou None
+        self.mode_key = mode_key
         self.running = False
         self.interactive_mode = True
 
@@ -791,15 +792,32 @@ class CircuitoInterativoManual:
                 print("❌ Componente de saída não encontrado ou não conectado")
                 return False
             
-            #VALIDAÇÃO CRÍTICA: Verifica se TODAS as variáveis da expressão estão sendo usadas
-            if not self.all_variables_connected(variables, output_component):
-                print("❌ Nem todas as variáveis da expressão estão conectadas ao circuito")
-                return False
+            is_minimal_mode = False
+            if hasattr(self, 'mode_key'):
+                is_minimal_mode = (self.mode_key == 'minimal')
             
-            #Verifica se o circuito tem pelo menos uma porta lógica
-            if not self.has_logic_gates_connected():
-                print("❌ Circuito não possui portas lógicas conectadas")
-                return False
+            #VALIDAÇÃO CRÍTICA: Verifica se TODAS as variáveis da expressão estão sendo usadas
+            if not is_minimal_mode:
+                if not self.all_variables_connected(variables, output_component):
+                    print("❌ Nem todas as variáveis da expressão estão conectadas ao circuito")
+                    return False
+                
+                #Verifica se o circuito tem pelo menos uma porta lógica
+                if not self.has_logic_gates_connected():
+                    print("❌ Circuito não possui portas lógicas conectadas")
+                    return False
+                
+            else: #MODO MINIMAL
+                connected_variables = set()
+                visited = set()
+                self._collect_connected_variables(output_component, visited, connected_variables)
+                
+                if len(connected_variables) == 0:
+                    print("❌ Nenhuma variável está conectada ao circuito")
+                    return 
+                
+                print(f"✅ Modo Minimal: {len(connected_variables)} variável(is) conectada(s) de {len(variables)} necessárias")
+                print(f"📊 Variáveis conectadas: {connected_variables}")
             
             #Simula todas as combinações possíveis
             return self.validate_truth_table(variables, output_component)
