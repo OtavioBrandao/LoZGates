@@ -3086,6 +3086,900 @@
       "end_time": "2025-10-06T19:07:46.564384",
       "duration_seconds": 133.21,
       "events_count": 2
+    },
+    {
+      "session_id": "a113d787d3d9",
+      "start_time": "2025-10-08T14:02:41.417983",
+      "user_id": "e979894ed8b50f1d",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26100-SP0",
+      "events": [],
+      "session_stats": {
+        "expressions_entered": 0,
+        "expressions_valid": 0,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 0,
+        "interactive_sessions": 0,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 0
+      },
+      "interactive_simplification": {
+        "sessions_started": 0,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 0,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 0,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {},
+        "operator_usage": {
+          "AND": 0,
+          "OR": 0,
+          "NOT": 0
+        },
+        "expression_lengths": {},
+        "common_expressions": {}
+      },
+      "end_time": "2025-10-08T14:03:00.299493",
+      "duration_seconds": 18.88,
+      "events_count": 0
+    },
+    {
+      "session_id": "ec28e8f06a8d",
+      "start_time": "2025-10-08T14:03:54.648342",
+      "user_id": "e979894ed8b50f1d",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-10-08T14:04:19.750751",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "054a7f8e"
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:20.651327",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "054a7f8e"
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:21.204768",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.55
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:23.060008",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 28.411677837371826
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:23.060195",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:24.275728",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 29.62739849090576
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:41.932448",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "377279d3",
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:42.265182",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.33
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:44.541968",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:47.259349",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 2
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:04:50.247536",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 3
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 2,
+        "expressions_valid": 2,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 1,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 2,
+        "avg_feature_time": 0.44,
+        "overall_success_rate": 0.0
+      },
+      "interactive_simplification": {
+        "sessions_started": 1,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 3,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 1,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 2
+        },
+        "operator_usage": {
+          "AND": 6,
+          "OR": 4,
+          "NOT": 6
+        },
+        "expression_lengths": {
+          "13": 2
+        },
+        "common_expressions": {
+          "054a7f8e": 2
+        }
+      },
+      "end_time": "2025-10-08T14:08:58.333054",
+      "duration_seconds": 303.68,
+      "events_count": 11
+    },
+    {
+      "session_id": "b1d5ca6e0cab",
+      "start_time": "2025-10-08T14:09:58.634736",
+      "user_id": "e979894ed8b50f1d",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-10-08T14:11:02.597493",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "054a7f8e"
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:11:03.812122",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "054a7f8e"
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:11:04.348461",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.54
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:11:16.149370",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 77.51464509963989
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:11:22.479391",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "377279d3",
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:11:22.807223",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.33
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:11:30.953652",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:11:33.322109",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 2
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:11:35.584230",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 3
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 2,
+        "expressions_valid": 2,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 1,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 1,
+        "avg_feature_time": 0.44,
+        "overall_success_rate": 0.0
+      },
+      "interactive_simplification": {
+        "sessions_started": 1,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 3,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 0,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 2
+        },
+        "operator_usage": {
+          "AND": 6,
+          "OR": 4,
+          "NOT": 6
+        },
+        "expression_lengths": {
+          "13": 2
+        },
+        "common_expressions": {
+          "054a7f8e": 2
+        }
+      },
+      "end_time": "2025-10-08T14:14:04.561877",
+      "duration_seconds": 245.93,
+      "events_count": 9
+    },
+    {
+      "session_id": "b19bbc6153e1",
+      "start_time": "2025-10-08T14:18:09.298407",
+      "user_id": "e979894ed8b50f1d",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26100-SP0",
+      "events": [
+        {
+          "timestamp": "2025-10-08T14:18:31.529395",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "829e33da"
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:32.632152",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 13,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "829e33da"
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:33.169481",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.54
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:36.601862",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 27.303468227386475
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:36.602092",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:38.802092",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "      Expressão      ",
+            "session_time": 29.503697872161865
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:41.435350",
+          "type": "interactive_simplification_start",
+          "data": {
+            "expression_hash": "90ebf2f9",
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:41.771038",
+          "type": "feature_used",
+          "data": {
+            "feature": "interactive_mode",
+            "duration": 0.34
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:45.656300",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:47.074866",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 2
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:18:47.814657",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 0,
+            "total_skips_session": 3
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:23:02.808987",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 1,
+            "timestamp_detail": 1759944182.808983
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:23:08.192383",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 1,
+            "total_skips_session": 4
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:23:11.827830",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 1,
+            "total_skips_session": 5
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:24:32.746515",
+          "type": "law_application",
+          "data": {
+            "law_name": "Distributiva ((A+B)*(A+C) = A+(B*C))",
+            "success": true,
+            "step_number": 2,
+            "timestamp_detail": 1759944272.7465124
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:24:47.601274",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 2,
+            "total_skips_session": 6
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:24:53.798029",
+          "type": "simplification_undo",
+          "data": {
+            "total_undos_session": 1
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:24:57.734835",
+          "type": "simplification_undo",
+          "data": {
+            "total_undos_session": 2
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:01.724546",
+          "type": "simplification_undo",
+          "data": {
+            "total_undos_session": 3
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:04.351149",
+          "type": "simplification_undo",
+          "data": {
+            "total_undos_session": 4
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:07.010935",
+          "type": "simplification_undo",
+          "data": {
+            "total_undos_session": 5
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:10.510491",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 3,
+            "timestamp_detail": 1759944310.5104883
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:14.617579",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 7
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:15.568707",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 8
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:16.809281",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 9
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:17.613374",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 10
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:22.562012",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 11
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:23.574166",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 12
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:24.347659",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 13
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:27.038343",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": false,
+            "step_number": 4,
+            "timestamp_detail": 1759944327.0383406
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:27.038368",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "step_number": 4,
+            "reason": "Lei não aplicável à subexpressão '((~P*P)*((~P+Q)*(~Q+P)))' no contexto de '((~P*P)*((~P+Q)*(~Q+P)))'",
+            "expression_state": "((~P*P)*((~P+Q)*(~Q+P)))",
+            "timestamp_detail": 1759944327.0383675
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:30.034420",
+          "type": "law_application",
+          "data": {
+            "law_name": "Nula (A * 0 = 0)",
+            "success": false,
+            "step_number": 4,
+            "timestamp_detail": 1759944330.0344172
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:30.034444",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Nula (A * 0 = 0)",
+            "step_number": 4,
+            "reason": "Lei não aplicável à subexpressão '((~P*P)*((~P+Q)*(~Q+P)))' no contexto de '((~P*P)*((~P+Q)*(~Q+P)))'",
+            "expression_state": "((~P*P)*((~P+Q)*(~Q+P)))",
+            "timestamp_detail": 1759944330.0344434
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:32.379792",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 14
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:39.768055",
+          "type": "simplification_undo",
+          "data": {
+            "total_undos_session": 6
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:25:58.955532",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 15
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:02.649189",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 16
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:07.120243",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 17
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:09.689329",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 3,
+            "total_skips_session": 18
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:13.104561",
+          "type": "law_application",
+          "data": {
+            "law_name": "Inversa (A * ~A = 0)",
+            "success": true,
+            "step_number": 4,
+            "timestamp_detail": 1759944373.104558
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:26.042394",
+          "type": "law_application",
+          "data": {
+            "law_name": "Nula (A * 0 = 0)",
+            "success": false,
+            "step_number": 5,
+            "timestamp_detail": 1759944386.0423918
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:26.042415",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Nula (A * 0 = 0)",
+            "step_number": 5,
+            "reason": "Lei não aplicável à subexpressão '(~P+Q)' no contexto de '(0*((~P+Q)*(~Q+P)))'",
+            "expression_state": "(0*((~P+Q)*(~Q+P)))",
+            "timestamp_detail": 1759944386.0424144
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:28.314605",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 4,
+            "total_skips_session": 19
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:32.569654",
+          "type": "simplification_skip",
+          "data": {
+            "step_number": 4,
+            "total_skips_session": 20
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:36.879035",
+          "type": "law_application",
+          "data": {
+            "law_name": "Absorção (A * (A+B) = A)",
+            "success": false,
+            "step_number": 5,
+            "timestamp_detail": 1759944396.8790329
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:36.879058",
+          "type": "law_application_failed",
+          "data": {
+            "law_name": "Absorção (A * (A+B) = A)",
+            "step_number": 5,
+            "reason": "Lei não aplicável à subexpressão '((~P+Q)*(~Q+P))' no contexto de '(0*((~P+Q)*(~Q+P)))'",
+            "expression_state": "(0*((~P+Q)*(~Q+P)))",
+            "timestamp_detail": 1759944396.8790574
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:39.507621",
+          "type": "law_application",
+          "data": {
+            "law_name": "Distributiva ((A+B)*(A+C) = A+(B*C))",
+            "success": true,
+            "step_number": 5,
+            "timestamp_detail": 1759944399.507618
+          }
+        },
+        {
+          "timestamp": "2025-10-08T14:26:40.324480",
+          "type": "law_application",
+          "data": {
+            "law_name": "Nula (A * 0 = 0)",
+            "success": true,
+            "step_number": 6,
+            "timestamp_detail": 1759944400.3244774
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 2,
+        "expressions_valid": 2,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 1,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 2,
+        "avg_feature_time": 0.44,
+        "overall_success_rate": 0.0
+      },
+      "interactive_simplification": {
+        "sessions_started": 1,
+        "total_steps": 6,
+        "laws_applied": {
+          "Inversa (A * ~A = 0)": 3,
+          "Distributiva ((A+B)*(A+C) = A+(B*C))": 2,
+          "Nula (A * 0 = 0)": 1
+        },
+        "skips_used": 20,
+        "undo_operations": 6,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0,
+        "failed_attempts": {
+          "Inversa (A * ~A = 0)": [
+            {
+              "step": 4,
+              "reason": "Lei não aplicável à subexpressão '((~P*P)*((~P+Q)*(~Q+P)))' no contexto de '((~P*P)*((~P+Q)*(~Q+P)))'",
+              "expression": "((~P*P)*((~P+Q)*(~Q+P)))",
+              "timestamp": 1759944327.0383656
+            }
+          ],
+          "Nula (A * 0 = 0)": [
+            {
+              "step": 4,
+              "reason": "Lei não aplicável à subexpressão '((~P*P)*((~P+Q)*(~Q+P)))' no contexto de '((~P*P)*((~P+Q)*(~Q+P)))'",
+              "expression": "((~P*P)*((~P+Q)*(~Q+P)))",
+              "timestamp": 1759944330.0344417
+            },
+            {
+              "step": 5,
+              "reason": "Lei não aplicável à subexpressão '(~P+Q)' no contexto de '(0*((~P+Q)*(~Q+P)))'",
+              "expression": "(0*((~P+Q)*(~Q+P)))",
+              "timestamp": 1759944386.0424132
+            }
+          ],
+          "Absorção (A * (A+B) = A)": [
+            {
+              "step": 5,
+              "reason": "Lei não aplicável à subexpressão '((~P+Q)*(~Q+P))' no contexto de '(0*((~P+Q)*(~Q+P)))'",
+              "expression": "(0*((~P+Q)*(~Q+P)))",
+              "timestamp": 1759944396.8790565
+            }
+          ]
+        }
+      },
+      "interactive_circuit": {
+        "sessions_started": 1,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 2
+        },
+        "operator_usage": {
+          "AND": 6,
+          "OR": 4,
+          "NOT": 6
+        },
+        "expression_lengths": {
+          "13": 2
+        },
+        "common_expressions": {
+          "829e33da": 2
+        }
+      },
+      "end_time": "2025-10-08T14:27:08.773124",
+      "duration_seconds": 539.47,
+      "events_count": 48
     }
   ]
 }
