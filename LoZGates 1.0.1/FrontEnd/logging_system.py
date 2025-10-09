@@ -524,37 +524,37 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             return {}
     
     def _aggregate_detailed_stats(self, sessions: List[Dict], summary: Dict):
-        # Agrega dados de simplificação interativa
+        #Agrega dados de simplificação interativa
         all_laws = {}
-        total_completed = 0  # Contador correto
+        total_completed = 0  #Contador correto
         
         for session in sessions:
             simpl_data = session.get("interactive_simplification", {})
             
-            # Pega as leis aplicadas nesta sessão
+            #Pega as leis aplicadas nesta sessão
             laws = simpl_data.get("laws_applied", {})
             for law, count in laws.items():
                 all_laws[law] = all_laws.get(law, 0) + count
             
-            # CORREÇÃO CRÍTICA: expressions_completed é o contador de conclusões desta sessão
-            # Não é um acumulador, então podemos somar diretamente
+            #CORREÇÃO CRÍTICA: expressions_completed é o contador de conclusões desta sessão
+            #Não é um acumulador, então podemos somar diretamente
             total_completed += simpl_data.get("expressions_completed", 0)
         
         summary["interactive_simplification"]["most_used_laws"] = dict(
             sorted(all_laws.items(), key=lambda x: x[1], reverse=True)[:10]
         )
         
-        # CORREÇÃO: Calcula taxa de conclusão corretamente
+        #CORREÇÃO: Calcula taxa de conclusão corretamente
         total_simpl_sessions = summary["interactive_simplification"]["total_sessions"]
         if total_simpl_sessions > 0:
             summary["interactive_simplification"]["completion_rate"] = round(
                 total_completed / total_simpl_sessions, 3
             )
         
-        # Adiciona contador de sessões concluídas ao summary
+        #Adiciona contador de sessões concluídas ao summary
         summary["interactive_simplification"]["expressions_completed"] = total_completed
         
-        # Agrega dados de circuito interativo
+        #Agrega dados de circuito interativo
         all_components = {}
         for session in sessions:
             components = session.get("interactive_circuit", {}).get("components_added", {})
@@ -565,7 +565,7 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             sorted(all_components.items(), key=lambda x: x[1], reverse=True)
         )
         
-        # Taxa de sucesso do circuito
+        #Taxa de sucesso do circuito
         total_circuit_tests = summary["interactive_circuit"]["total_tests"]
         total_successful = sum(
             s.get("interactive_circuit", {}).get("successful_circuits", 0) 
@@ -576,29 +576,29 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
                 total_successful / total_circuit_tests, 3
             )
         
-        # Coleta verificações de equivalência recentes (últimas 20)
+        #Coleta verificações de equivalência recentes (últimas 20)
         all_equiv_checks = []
         for session in sessions:
             checks = session.get("equivalence_analysis", {}).get("expression_pairs", [])
             all_equiv_checks.extend(checks)
         
-        # Ordena por timestamp e pega as mais recentes
+        #Ordena por timestamp e pega as mais recentes
         all_equiv_checks.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         summary["equivalence_checks"]["recent_checks"] = all_equiv_checks[:20]
         
-        # Agrega padrões de expressão
+        #Agrega padrões de expressão
         all_var_counts = {}
         all_operators = {"AND": 0, "OR": 0, "NOT": 0}
         
         for session in sessions:
             patterns = session.get("expression_patterns", {})
             
-            # Contagem de variáveis
+            #Contagem de variáveis
             var_counts = patterns.get("variable_counts", {})
             for count, freq in var_counts.items():
                 all_var_counts[count] = all_var_counts.get(count, 0) + freq
             
-            # Uso de operadores
+            #Uso de operadores
             ops = patterns.get("operator_usage", {})
             for op in all_operators:
                 all_operators[op] += ops.get(op, 0)
@@ -608,7 +608,7 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
         )
         summary["expression_patterns"]["operator_preferences"] = all_operators
         
-        # NOVO: Agrega tentativas falhadas
+        #Agrega tentativas falhadas
         all_failed_attempts = {}
         for session in sessions:
             failed = session.get("interactive_simplification", {}).get("failed_attempts", {})
@@ -677,7 +677,7 @@ class DetailedDataSharingDialog:
     def show_dialog(self) -> bool: #Mostra dialog com preview detalhado dos dados.
         root = ctk.CTkToplevel()
         make_window_visible_robust(root, modal=True)
-        root.title("Compartilhamento de Dados Detalhados - LoZ Gates Beta")
+        root.title("Compartilhamento de dados detalhados - LoZ Gates Beta")
         root.geometry("800x700")
         root.resizable(True, True)
         
@@ -691,7 +691,7 @@ class DetailedDataSharingDialog:
         
         title = ctk.CTkLabel(
             main_frame, 
-            text="📊 Dados Detalhados de Uso - LoZ Gates Beta",
+            text="📊 Dados detalhados de uso - LoZ Gates Beta",
             font=ctk.CTkFont(size=20, weight="bold")
         )
         title.pack(pady=(0, 20))
@@ -700,8 +700,8 @@ class DetailedDataSharingDialog:
         explanation.pack(fill="x", pady=(0, 20))
         
         explanation_text = """Seus dados de uso detalhados nos ajudam a entender melhor como melhorar o LoZ Gates. 
-                            Todos os dados são ANÔNIMOS e incluem estatísticas sobre uso de funcionalidades, padrões de interação e tipos de problemas resolvidos.
-                            Abaixo você pode ver exatamente o que será enviado:"""
+        Todos os dados são ANÔNIMOS e incluem estatísticas sobre uso de funcionalidades, padrões de interação e tipos de problemas resolvidos.
+        Abaixo você pode ver exatamente o que será enviado:"""
         
         explanation.insert("1.0", explanation_text)
         explanation.configure(state="disabled")
@@ -784,7 +784,7 @@ class DetailedDataSharingDialog:
     def _create_data_preview(self, summary: Dict[str, Any]) -> str:
         lines = []
         
-        # Overview geral
+        #Overview geral
         overview = summary.get("overview", {})
         lines.append("=" * 60)
         lines.append("📊 RESUMO GERAL")
@@ -795,7 +795,7 @@ class DetailedDataSharingDialog:
         lines.append(f"• Total de eventos registrados: {overview.get('total_events', 0)}")
         lines.append("")
         
-        # Simplificação interativa com DADOS CORRIGIDOS
+        #Simplificação interativa com DADOS CORRIGIDOS
         simpl = summary.get("interactive_simplification", {})
         lines.append("=" * 60)
         lines.append("🔍 SIMPLIFICAÇÃO INTERATIVA")
@@ -809,19 +809,19 @@ class DetailedDataSharingDialog:
         lines.append(f"• Sessões concluídas: {completed}")
         lines.append(f"• Sessões abandonadas: {abandoned}")
         
-        # Taxa de conclusão CORRIGIDA
+        #Taxa de conclusão CORRIGIDA
         completion_rate = simpl.get('completion_rate', 0) * 100
         lines.append(f"• Taxa de conclusão: {completion_rate:.1f}%")
         
         lines.append(f"• Total de passos realizados: {simpl.get('total_steps', 0)}")
         
-        # Média de passos por sessão
+        #Média de passos por sessão
         avg_steps = 0
         if total_sessions > 0:
             avg_steps = simpl.get('total_steps', 0) / total_sessions
         lines.append(f"• Média de passos/sessão: {avg_steps:.1f}")
         
-        # Média de passos por sessão CONCLUÍDA
+        #Média de passos por sessão CONCLUÍDA
         avg_steps_completed = 0
         if completed > 0:
             avg_steps_completed = simpl.get('total_steps', 0) / completed
@@ -830,7 +830,7 @@ class DetailedDataSharingDialog:
         lines.append(f"• Vezes que pulou: {simpl.get('total_skips', 0)}")
         lines.append(f"• Operações de desfazer: {simpl.get('total_undos', 0)}")
         
-        # Leis mais usadas
+        #Leis mais usadas
         most_used = simpl.get('most_used_laws', {})
         if most_used:
             lines.append("\n📚 Leis mais aplicadas:")
@@ -838,7 +838,7 @@ class DetailedDataSharingDialog:
                 law_name = law.split('(')[0].strip()
                 lines.append(f"  → {law_name}: {count}x")
         
-        # Tentativas falhadas
+        #Tentativas falhadas
         failed = simpl.get('failed_law_attempts', {})
         if failed:
             lines.append("\n⚠️ Leis com mais tentativas falhadas:")
@@ -848,7 +848,7 @@ class DetailedDataSharingDialog:
         
         lines.append("")
         
-        # Circuito interativo
+        #Circuito interativo
         circuit = summary.get("interactive_circuit", {})
         lines.append("=" * 60)
         lines.append("🔧 CIRCUITO INTERATIVO")
@@ -868,7 +868,7 @@ class DetailedDataSharingDialog:
                 lines.append(f"  → {comp}: {count}x")
         lines.append("")
         
-        # Equivalência
+        #Equivalência
         equiv = summary.get("equivalence_checks", {})
         lines.append("=" * 60)
         lines.append("🔄 VERIFICAÇÃO DE EQUIVALÊNCIA")
@@ -882,7 +882,7 @@ class DetailedDataSharingDialog:
             equiv_rate = (equiv.get('equivalent_found', 0) / equiv.get('total_checks', 1)) * 100
             lines.append(f"• Taxa de equivalência: {equiv_rate:.1f}%")
             
-            # Últimas verificações
+            #Últimas verificações
             recent_checks = equiv.get('recent_checks', [])[:5]
             if recent_checks:
                 lines.append("\n📋 Últimas verificações:")
@@ -954,13 +954,13 @@ class ImprovedDataFormatter:
     def format_for_forms(detailed_summary: Dict[str, Any]) -> str:
         lines = []
         
-        # Cabeçalho
+        #Cabeçalho
         lines.append("=" * 60)
         lines.append("           RELATÓRIO DE USO - LOZ GATES BETA")
         lines.append("=" * 60)
         lines.append("")
         
-        # Seção: Resumo Geral
+        #Seção: Resumo Geral
         overview = detailed_summary.get("overview", {})
         lines.append("📊 RESUMO GERAL:")
         lines.append(f"   • Sessões totais: {overview.get('total_sessions', 0)}")
@@ -969,7 +969,7 @@ class ImprovedDataFormatter:
         lines.append(f"   • Total de eventos: {overview.get('total_events', 0)}")
         lines.append("")
         
-        # Seção: Simplificação Interativa COM DADOS CORRETOS
+        #Seção: Simplificação Interativa
         simpl = detailed_summary.get("interactive_simplification", {})
         lines.append("🔍 SIMPLIFICAÇÃO INTERATIVA:")
         
@@ -981,13 +981,13 @@ class ImprovedDataFormatter:
         lines.append(f"   • Sessões concluídas: {completed}")
         lines.append(f"   • Sessões abandonadas: {abandoned}")
         
-        # Taxa de conclusão CORRIGIDA
+        #Taxa de conclusão
         completion_rate = simpl.get('completion_rate', 0) * 100
         lines.append(f"   • Taxa de conclusão: {completion_rate:.1f}%")
         
         lines.append(f"   • Passos realizados: {simpl.get('total_steps', 0)}")
         
-        # Médias
+        #Médias
         avg_steps = 0
         if total_sessions > 0:
             avg_steps = simpl.get('total_steps', 0) / total_sessions
@@ -1008,7 +1008,7 @@ class ImprovedDataFormatter:
                 law_name = law.split('(')[0].strip()
                 lines.append(f"     - {law_name}: {count}x")
         
-        # Tentativas falhadas
+        #Tentativas falhadas
         failed = simpl.get('failed_law_attempts', {})
         if failed:
             lines.append("   • Leis com mais falhas:")
@@ -1018,7 +1018,6 @@ class ImprovedDataFormatter:
         
         lines.append("")
         
-        # Resto do código (circuito, equivalência, etc.) permanece igual
         circuit = detailed_summary.get("interactive_circuit", {})
         lines.append("🔧 CIRCUITO INTERATIVO:")
         lines.append(f"   • Sessões iniciadas: {circuit.get('total_sessions', 0)}")
