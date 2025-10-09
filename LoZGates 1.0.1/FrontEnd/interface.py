@@ -1287,16 +1287,22 @@ def inicializar_interface():
                 text_color=Colors.SUCCESS
             )
             
-            if historico_interativo: # Garante que a sessão foi iniciada
+            if historico_interativo:  # Garante que a sessão foi iniciada
                 total_steps = contador_passos
-                laws_used = [line for line in historico_interativo if "✓ Lei" in line]
-                user_logger.log_simplification_completed(total_steps, laws_used)
                 
-                # Reseta o histórico para não logar a mesma sessão duas vezes
-                historico_interativo = [] 
-            
-            # Finaliza a sessão quando não há mais possibilidades
-            finalizar_sessao_expressao(str(expressao_global), resolvida=True)
+                # Extrai nomes das leis do histórico
+                laws_used = []
+                for line in historico_interativo:
+                    if "✓ Lei" in line and "aplicada com sucesso" in line:
+                        # Extrai o nome da lei da linha do histórico
+                        import re
+                        lei_match = re.search(r"Lei '(.+?)' aplicada", line)
+                        if lei_match:
+                            laws_used.append(lei_match.group(1))
+                
+                # CHAMA A FUNÇÃO DE LOG DE CONCLUSÃO
+                user_logger.log_simplification_completed(total_steps, laws_used)
+                print(f"📝 Simplificação concluída: {total_steps} passos, {len(laws_used)} leis aplicadas")
             
             # Desabilita botões
             if botoes_leis:

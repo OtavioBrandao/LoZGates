@@ -523,67 +523,104 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             print(f"Erro ao gerar resumo detalhado: {e}")
             return {}
     
-    def _aggregate_detailed_stats(self, sessions: List[Dict], summary: Dict): #Agrega estatísticas detalhadas de todas as sessões.
-        
-        #Agrega dados de simplificação interativa
+    def _aggregate_detailed_stats(self, sessions: List[Dict], summary: Dict):
+        # Agrega dados de simplificação interativa
         all_laws = {}
+        total_completed = 0  # Contador correto
+        
         for session in sessions:
-            laws = session.get("interactive_simplification", {}).get("laws_applied", {})
+            simpl_data = session.get("interactive_simplification", {})
+            
+            # Pega as leis aplicadas nesta sessão
+            laws = simpl_data.get("laws_applied", {})
             for law, count in laws.items():
                 all_laws[law] = all_laws.get(law, 0) + count
+            
+            # CORREÇÃO CRÍTICA: expressions_completed é o contador de conclusões desta sessão
+            # Não é um acumulador, então podemos somar diretamente
+            total_completed += simpl_data.get("expressions_completed", 0)
         
-        summary["interactive_simplification"]["most_used_laws"] = dict(sorted(all_laws.items(), key=lambda x: x[1], reverse=True)[:10])
+        summary["interactive_simplification"]["most_used_laws"] = dict(
+            sorted(all_laws.items(), key=lambda x: x[1], reverse=True)[:10]
+        )
         
-        #Calcula taxa de conclusão da simplificação
+        # CORREÇÃO: Calcula taxa de conclusão corretamente
         total_simpl_sessions = summary["interactive_simplification"]["total_sessions"]
-        total_completed = sum(s.get("interactive_simplification", {}).get("expressions_completed", 0) for s in sessions)
         if total_simpl_sessions > 0:
-            summary["interactive_simplification"]["completion_rate"] = round(total_completed / total_simpl_sessions, 3)
+            summary["interactive_simplification"]["completion_rate"] = round(
+                total_completed / total_simpl_sessions, 3
+            )
         
-        #Agrega dados de circuito interativo
+        # Adiciona contador de sessões concluídas ao summary
+        summary["interactive_simplification"]["expressions_completed"] = total_completed
+        
+        # Agrega dados de circuito interativo
         all_components = {}
         for session in sessions:
             components = session.get("interactive_circuit", {}).get("components_added", {})
             for comp, count in components.items():
                 all_components[comp] = all_components.get(comp, 0) + count
         
-        summary["interactive_circuit"]["components_usage"] = dict(sorted(all_components.items(), key=lambda x: x[1], reverse=True))
+        summary["interactive_circuit"]["components_usage"] = dict(
+            sorted(all_components.items(), key=lambda x: x[1], reverse=True)
+        )
         
-        #Taxa de sucesso do circuito
+        # Taxa de sucesso do circuito
         total_circuit_tests = summary["interactive_circuit"]["total_tests"]
-        total_successful = sum(s.get("interactive_circuit", {}).get("successful_circuits", 0) for s in sessions)
+        total_successful = sum(
+            s.get("interactive_circuit", {}).get("successful_circuits", 0) 
+            for s in sessions
+        )
         if total_circuit_tests > 0:
-            summary["interactive_circuit"]["success_rate"] = round(total_successful / total_circuit_tests, 3)
+            summary["interactive_circuit"]["success_rate"] = round(
+                total_successful / total_circuit_tests, 3
+            )
         
-        #Coleta verificações de equivalência recentes (últimas 20)
+        # Coleta verificações de equivalência recentes (últimas 20)
         all_equiv_checks = []
         for session in sessions:
             checks = session.get("equivalence_analysis", {}).get("expression_pairs", [])
             all_equiv_checks.extend(checks)
         
-        #Ordena por timestamp e pega as mais recentes
+        # Ordena por timestamp e pega as mais recentes
         all_equiv_checks.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         summary["equivalence_checks"]["recent_checks"] = all_equiv_checks[:20]
         
-        #Agrega padrões de expressão
+        # Agrega padrões de expressão
         all_var_counts = {}
         all_operators = {"AND": 0, "OR": 0, "NOT": 0}
         
         for session in sessions:
             patterns = session.get("expression_patterns", {})
             
-            #Contagem de variáveis
+            # Contagem de variáveis
             var_counts = patterns.get("variable_counts", {})
             for count, freq in var_counts.items():
                 all_var_counts[count] = all_var_counts.get(count, 0) + freq
             
-            #Uso de operadores
+            # Uso de operadores
             ops = patterns.get("operator_usage", {})
             for op in all_operators:
                 all_operators[op] += ops.get(op, 0)
         
-        summary["expression_patterns"]["common_variable_counts"] = dict(sorted(all_var_counts.items(), key=lambda x: int(x[0])))
+        summary["expression_patterns"]["common_variable_counts"] = dict(
+            sorted(all_var_counts.items(), key=lambda x: int(x[0]))
+        )
         summary["expression_patterns"]["operator_preferences"] = all_operators
+        
+        # NOVO: Agrega tentativas falhadas
+        all_failed_attempts = {}
+        for session in sessions:
+            failed = session.get("interactive_simplification", {}).get("failed_attempts", {})
+            for law, failures_list in failed.items():
+                if law not in all_failed_attempts:
+                    all_failed_attempts[law] = 0
+                all_failed_attempts[law] += len(failures_list)
+        
+        summary["interactive_simplification"]["failed_law_attempts"] = dict(
+            sorted(all_failed_attempts.items(), key=lambda x: x[1], reverse=True)[:5]
+        )
+
     
     def should_prompt_data_sharing(self) -> bool: #Verifica se deve mostrar prompt para compartilhar dados.
         return True  #Para testes, sempre mostra
@@ -744,94 +781,130 @@ class DetailedDataSharingDialog:
         root.wait_window(root)
         return self.result
     
-    def _create_data_preview(self, summary: Dict[str, Any]) -> str: #Cria uma visualização estruturada dos dados para o usuário.
+    def _create_data_preview(self, summary: Dict[str, Any]) -> str:
         lines = []
         
-        #Overview geral
+        # Overview geral
         overview = summary.get("overview", {})
-        lines.append("=== RESUMO GERAL ===")
+        lines.append("=" * 60)
+        lines.append("📊 RESUMO GERAL")
+        lines.append("=" * 60)
         lines.append(f"• Total de sessões: {overview.get('total_sessions', 0)}")
-        lines.append(f"• Tempo total de uso: {overview.get('total_time_minutes', 0)} minutos")
-        lines.append(f"• Duração média por sessão: {overview.get('avg_session_duration', 0)} minutos")
+        lines.append(f"• Tempo total de uso: {overview.get('total_time_minutes', 0):.1f} minutos")
+        lines.append(f"• Duração média por sessão: {overview.get('avg_session_duration', 0):.1f} minutos")
         lines.append(f"• Total de eventos registrados: {overview.get('total_events', 0)}")
         lines.append("")
         
-        #Simplificação interativa
+        # Simplificação interativa com DADOS CORRIGIDOS
         simpl = summary.get("interactive_simplification", {})
-        lines.append("=== SIMPLIFICAÇÃO INTERATIVA ===")
-        lines.append(f"• Sessões iniciadas: {simpl.get('total_sessions', 0)}")
+        lines.append("=" * 60)
+        lines.append("🔍 SIMPLIFICAÇÃO INTERATIVA")
+        lines.append("=" * 60)
+        
+        total_sessions = simpl.get('total_sessions', 0)
+        completed = simpl.get('expressions_completed', 0)
+        abandoned = total_sessions - completed
+        
+        lines.append(f"• Sessões iniciadas: {total_sessions}")
+        lines.append(f"• Sessões concluídas: {completed}")
+        lines.append(f"• Sessões abandonadas: {abandoned}")
+        
+        # Taxa de conclusão CORRIGIDA
+        completion_rate = simpl.get('completion_rate', 0) * 100
+        lines.append(f"• Taxa de conclusão: {completion_rate:.1f}%")
+        
         lines.append(f"• Total de passos realizados: {simpl.get('total_steps', 0)}")
+        
+        # Média de passos por sessão
+        avg_steps = 0
+        if total_sessions > 0:
+            avg_steps = simpl.get('total_steps', 0) / total_sessions
+        lines.append(f"• Média de passos/sessão: {avg_steps:.1f}")
+        
+        # Média de passos por sessão CONCLUÍDA
+        avg_steps_completed = 0
+        if completed > 0:
+            avg_steps_completed = simpl.get('total_steps', 0) / completed
+        lines.append(f"• Média de passos/conclusão: {avg_steps_completed:.1f}")
+        
         lines.append(f"• Vezes que pulou: {simpl.get('total_skips', 0)}")
         lines.append(f"• Operações de desfazer: {simpl.get('total_undos', 0)}")
-        lines.append(f"• Taxa de conclusão: {simpl.get('completion_rate', 0)*100:.1f}%")
         
+        # Leis mais usadas
         most_used = simpl.get('most_used_laws', {})
         if most_used:
-            lines.append("• Leis mais utilizadas:")
+            lines.append("\n📚 Leis mais aplicadas:")
             for law, count in list(most_used.items())[:5]:
-                lines.append(f"  - {law}: {count} vezes")
+                law_name = law.split('(')[0].strip()
+                lines.append(f"  → {law_name}: {count}x")
+        
+        # Tentativas falhadas
+        failed = simpl.get('failed_law_attempts', {})
+        if failed:
+            lines.append("\n⚠️ Leis com mais tentativas falhadas:")
+            for law, count in list(failed.items())[:3]:
+                law_name = law.split('(')[0].strip()
+                lines.append(f"  → {law_name}: {count}x")
+        
         lines.append("")
         
-        #Circuito interativo
+        # Circuito interativo
         circuit = summary.get("interactive_circuit", {})
-        lines.append("=== CIRCUITO INTERATIVO ===")
+        lines.append("=" * 60)
+        lines.append("🔧 CIRCUITO INTERATIVO")
+        lines.append("=" * 60)
         lines.append(f"• Sessões iniciadas: {circuit.get('total_sessions', 0)}")
         lines.append(f"• Componentes deletados: {circuit.get('total_deletions', 0)}")
         lines.append(f"• Tentativas de teste: {circuit.get('total_tests', 0)}")
-        lines.append(f"• Taxa de sucesso: {circuit.get('success_rate', 0)*100:.1f}%")
+        
+        success_rate = circuit.get('success_rate', 0) * 100
+        lines.append(f"• Taxa de sucesso: {success_rate:.1f}%")
         lines.append(f"• Operações de desfazer: {circuit.get('total_undos', 0)}")
         
         comp_usage = circuit.get('components_usage', {})
         if comp_usage:
-            lines.append("• Componentes mais utilizados:")
+            lines.append("\n🔌 Componentes mais utilizados:")
             for comp, count in list(comp_usage.items())[:5]:
-                lines.append(f"  - {comp}: {count} vezes")
+                lines.append(f"  → {comp}: {count}x")
         lines.append("")
         
-        #Equivalência
+        # Equivalência
         equiv = summary.get("equivalence_checks", {})
-        lines.append("🔄 VERIFICAÇÃO DE EQUIVALÊNCIA:")
-        lines.append(f"   • Total de verificações: {equiv.get('total_checks', 0)}")
-        if equiv.get('total_checks', 0) > 0:
-            lines.append(f"   • Pares equivalentes: {equiv.get('equivalent_found', 0)}")
-            lines.append(f"   • Pares não equivalentes: {equiv.get('non_equivalent_found', 0)}")
-            
-            #Últimas verificações com EXPRESSÕES
-            recent_checks = equiv.get('recent_checks', [])[:10]
-            if recent_checks:
-                lines.append("   • Últimas verificações:")
-                count = 0
-                for check in recent_checks:
-                    if count >= 5:
-                        break
-                    
-                    result_symbol = "✓ Equivalente" if check.get('result') else "✗ Diferentes"
-                    timestamp = check.get('timestamp', '')[:19]
-                    
-                    #MOSTRA EXPRESSÕES COMPLETAS OU PARCIAIS
-                    if 'expr1_full' in check and 'expr2_full' in check:
-                        expr1_show = check['expr1_full'][:40] + "..." if len(check['expr1_full']) > 40 else check['expr1_full']
-                        expr2_show = check['expr2_full'][:40] + "..." if len(check['expr2_full']) > 40 else check['expr2_full']
-                    elif 'expr1' in check and 'expr2' in check:
-                        expr1_show = check['expr1']
-                        expr2_show = check['expr2']
-                    else:
-                        expr1_show = f"Hash: {check.get('expr1_hash', 'N/A')}"
-                        expr2_show = f"Hash: {check.get('expr2_hash', 'N/A')}"
-                    
-                    lines.append(f"     {count+1}. {result_symbol} | '{expr1_show}' vs '{expr2_show}'")
-                    count += 1
-        else:
-            lines.append("   • Nenhuma verificação realizada ainda")
-        lines.append("")
+        lines.append("=" * 60)
+        lines.append("🔄 VERIFICAÇÃO DE EQUIVALÊNCIA")
+        lines.append("=" * 60)
+        lines.append(f"• Total de verificações: {equiv.get('total_checks', 0)}")
         
-        #Análise de erros
-        errors = summary.get("error_analysis", {})
-        lines.append("=== ANÁLISE DE ERROS ===")
-        lines.append(f"• Total de erros encontrados: {errors.get('total_errors', 0)}")
-        lines.append(f"• Sessões com erros: {errors.get('sessions_with_errors', 0)}")
+        if equiv.get('total_checks', 0) > 0:
+            lines.append(f"• Pares equivalentes: {equiv.get('equivalent_found', 0)}")
+            lines.append(f"• Pares não equivalentes: {equiv.get('non_equivalent_found', 0)}")
+            
+            equiv_rate = (equiv.get('equivalent_found', 0) / equiv.get('total_checks', 1)) * 100
+            lines.append(f"• Taxa de equivalência: {equiv_rate:.1f}%")
+            
+            # Últimas verificações
+            recent_checks = equiv.get('recent_checks', [])[:5]
+            if recent_checks:
+                lines.append("\n📋 Últimas verificações:")
+                for i, check in enumerate(recent_checks, 1):
+                    result_symbol = "✓ Equivalentes" if check.get('result') else "✗ Diferentes"
+                    
+                    if 'expr1_full' in check and 'expr2_full' in check:
+                        expr1 = check['expr1_full'][:40] + "..." if len(check['expr1_full']) > 40 else check['expr1_full']
+                        expr2 = check['expr2_full'][:40] + "..." if len(check['expr2_full']) > 40 else check['expr2_full']
+                    else:
+                        expr1 = check.get('expr1', 'N/A')
+                        expr2 = check.get('expr2', 'N/A')
+                    
+                    lines.append(f"  {i}. {result_symbol}")
+                    lines.append(f"     '{expr1}' vs '{expr2}'")
+        else:
+            lines.append("• Nenhuma verificação realizada ainda")
+        
         lines.append("")
-        lines.append("NOTA: Expressões específicas não são enviadas, apenas seus hashes e estatísticas.")
+        lines.append("=" * 60)
+        lines.append(f"📅 Relatório gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M')}")
+        lines.append("=" * 60)
         
         return "\n".join(lines)
 
@@ -881,42 +954,71 @@ class ImprovedDataFormatter:
     def format_for_forms(detailed_summary: Dict[str, Any]) -> str:
         lines = []
         
-        #Cabeçalho
+        # Cabeçalho
         lines.append("=" * 60)
         lines.append("           RELATÓRIO DE USO - LOZ GATES BETA")
         lines.append("=" * 60)
         lines.append("")
         
-        #Seção: Resumo Geral
+        # Seção: Resumo Geral
         overview = detailed_summary.get("overview", {})
         lines.append("📊 RESUMO GERAL:")
         lines.append(f"   • Sessões totais: {overview.get('total_sessions', 0)}")
-        lines.append(f"   • Tempo total de uso: {overview.get('total_time_minutes', 0)} minutos")
-        lines.append(f"   • Duração média por sessão: {overview.get('avg_session_duration', 0)} minutos")
+        lines.append(f"   • Tempo total de uso: {overview.get('total_time_minutes', 0):.1f} minutos")
+        lines.append(f"   • Duração média por sessão: {overview.get('avg_session_duration', 0):.1f} minutos")
         lines.append(f"   • Total de eventos: {overview.get('total_events', 0)}")
         lines.append("")
         
-        #Seção: Simplificação Interativa
+        # Seção: Simplificação Interativa COM DADOS CORRETOS
         simpl = detailed_summary.get("interactive_simplification", {})
         lines.append("🔍 SIMPLIFICAÇÃO INTERATIVA:")
-        lines.append(f"   • Sessões iniciadas: {simpl.get('total_sessions', 0)}")
+        
+        total_sessions = simpl.get('total_sessions', 0)
+        completed = simpl.get('expressions_completed', 0)
+        abandoned = total_sessions - completed
+        
+        lines.append(f"   • Sessões iniciadas: {total_sessions}")
+        lines.append(f"   • Sessões concluídas: {completed}")
+        lines.append(f"   • Sessões abandonadas: {abandoned}")
+        
+        # Taxa de conclusão CORRIGIDA
+        completion_rate = simpl.get('completion_rate', 0) * 100
+        lines.append(f"   • Taxa de conclusão: {completion_rate:.1f}%")
+        
         lines.append(f"   • Passos realizados: {simpl.get('total_steps', 0)}")
+        
+        # Médias
+        avg_steps = 0
+        if total_sessions > 0:
+            avg_steps = simpl.get('total_steps', 0) / total_sessions
+        lines.append(f"   • Média passos/sessão: {avg_steps:.1f}")
+        
+        avg_steps_completed = 0
+        if completed > 0:
+            avg_steps_completed = simpl.get('total_steps', 0) / completed
+        lines.append(f"   • Média passos/conclusão: {avg_steps_completed:.1f}")
+        
         lines.append(f"   • Vezes que pulou: {simpl.get('total_skips', 0)}")
         lines.append(f"   • Operações de desfazer: {simpl.get('total_undos', 0)}")
-        lines.append(f"   • Taxa de conclusão: {simpl.get('completion_rate', 0)*100:.1f}%")
         
         most_used_laws = simpl.get('most_used_laws', {})
         if most_used_laws:
             lines.append("   • Leis mais aplicadas:")
             for law, count in list(most_used_laws.items())[:5]:
-                #Extrai só o nome da lei (antes do primeiro parêntese)
                 law_name = law.split('(')[0].strip()
                 lines.append(f"     - {law_name}: {count}x")
-        else:
-            lines.append("   • Nenhuma lei foi aplicada ainda")
+        
+        # Tentativas falhadas
+        failed = simpl.get('failed_law_attempts', {})
+        if failed:
+            lines.append("   • Leis com mais falhas:")
+            for law, count in list(failed.items())[:3]:
+                law_name = law.split('(')[0].strip()
+                lines.append(f"     - {law_name}: {count}x")
+        
         lines.append("")
         
-        #Seção: Circuito Interativo
+        # Resto do código (circuito, equivalência, etc.) permanece igual
         circuit = detailed_summary.get("interactive_circuit", {})
         lines.append("🔧 CIRCUITO INTERATIVO:")
         lines.append(f"   • Sessões iniciadas: {circuit.get('total_sessions', 0)}")
@@ -930,11 +1032,8 @@ class ImprovedDataFormatter:
             lines.append("   • Componentes mais usados:")
             for comp, count in list(comp_usage.items())[:5]:
                 lines.append(f"     - {comp.upper()}: {count}x")
-        else:
-            lines.append("   • Nenhum componente foi adicionado ainda")
         lines.append("")
         
-        #Seção: Verificação de Equivalência
         equiv = detailed_summary.get("equivalence_checks", {})
         lines.append("🔄 VERIFICAÇÃO DE EQUIVALÊNCIA:")
         lines.append(f"   • Total de verificações: {equiv.get('total_checks', 0)}")
@@ -942,28 +1041,18 @@ class ImprovedDataFormatter:
             lines.append(f"   • Pares equivalentes: {equiv.get('equivalent_found', 0)}")
             lines.append(f"   • Pares não equivalentes: {equiv.get('non_equivalent_found', 0)}")
             
-            #Análise dos últimos 5 checks
             recent_checks = equiv.get('recent_checks', [])[:5]
             if recent_checks:
                 lines.append("   • Últimas verificações:")
                 for i, check in enumerate(recent_checks, 1):
                     result_symbol = "✓ Equivalente" if check.get('result') else "✗ Diferentes"
-                    timestamp = check.get('timestamp', '')[:19]  #Remove milissegundos
-                    #Pega as expressões completas que já estão no JSON
                     expr1 = check.get('expr1_full', 'N/A')
                     expr2 = check.get('expr2_full', 'N/A')
-
-                    #Cria uma prévia (preview) para não exibir expressões excessivamente longas
                     preview1 = expr1[:40] + '...' if len(expr1) > 40 else expr1
                     preview2 = expr2[:40] + '...' if len(expr2) > 40 else expr2
-
-                    #Monta a nova linha do relatório com as prévias das expressões
                     lines.append(f"     {i}. {result_symbol} | '{preview1}' vs '{preview2}'")
-        else:
-            lines.append("   • Nenhuma verificação realizada ainda")
         lines.append("")
         
-        #Seção: Padrões de Expressão
         patterns = detailed_summary.get("expression_patterns", {})
         lines.append("📝 PADRÕES DE EXPRESSÃO:")
         
@@ -980,26 +1069,14 @@ class ImprovedDataFormatter:
             for op, count in operators.items():
                 percentage = (count / total_operators) * 100
                 lines.append(f"     - {op}: {count}x ({percentage:.1f}%)")
-        else:
-            lines.append("   • Nenhum operador lógico usado ainda")
         lines.append("")
         
-        #Seção: Análise de Erros
         errors = detailed_summary.get("error_analysis", {})
         lines.append("⚠️  ANÁLISE DE ERROS:")
         lines.append(f"   • Total de erros: {errors.get('total_errors', 0)}")
         lines.append(f"   • Sessões com erros: {errors.get('sessions_with_errors', 0)}")
-        
-        error_types = errors.get('error_types', {})
-        if error_types:
-            lines.append("   • Tipos de erro mais comuns:")
-            for error_type, count in sorted(error_types.items(), key=lambda x: x[1], reverse=True)[:3]:
-                lines.append(f"     - {error_type}: {count}x")
-        else:
-            lines.append("   • Nenhum erro específico registrado")
         lines.append("")
         
-        #Insights automáticos
         lines.append("💡 INSIGHTS AUTOMÁTICOS:")
         insights = ImprovedDataFormatter._generate_insights(detailed_summary)
         for insight in insights:
@@ -1014,7 +1091,7 @@ class ImprovedDataFormatter:
         lines.append("=" * 60)
         
         return "\n".join(lines)
-    
+        
     @staticmethod
     def _generate_insights(summary: Dict[str, Any]) -> list:
         insights = []
