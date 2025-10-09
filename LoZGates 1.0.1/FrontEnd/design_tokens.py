@@ -100,15 +100,12 @@ class TabConfig:
 
 # UTILITÁRIOS
 def get_font(size=Typography.SIZE_BODY, weight=Typography.WEIGHT_NORMAL):
-    """Retorna tupla de fonte padronizada"""
     return (Typography.FONT_FAMILY, size, weight)
 
 def get_title_font(size=Typography.SIZE_TITLE_MEDIUM):
-    """Retorna fonte para títulos"""
     return get_font(size, Typography.WEIGHT_BOLD)
 
 def get_button_style():
-    """Retorna estilo padrão para botões customizados"""
     return {
         "font": get_font(Typography.SIZE_BODY),
         "corner_radius": Dimensions.CORNER_RADIUS_MEDIUM,

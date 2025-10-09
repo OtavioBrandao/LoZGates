@@ -1,14 +1,9 @@
-"""
-    Módulo responsável pela renderização visual dos circuitos lógicos,
-    incluindo desenho de componentes, fios e as portas lógicas.
-"""
+#Módulo responsável pela renderização visual dos circuitos lógicos, incluindo desenho de componentes, fios e as portas lógicas.
 
 import pygame
 import math
 
 class CircuitDrawer:
-    """Responsável por desenhar elementos escaláveis do circuito lógico."""
-    
     def __init__(self, screen, camera):
         self.screen = screen
         self.camera = camera
@@ -36,27 +31,23 @@ class CircuitDrawer:
         self.NODE_H_SPACING = 180
     
     def draw_line(self, start_world, end_world, color, width=2):
-        """Desenha uma linha em coordenadas do mundo."""
         start_screen = self.camera.world_to_screen(start_world)
         end_screen = self.camera.world_to_screen(end_world)
         scaled_width = max(1, int(width * self.camera.zoom))
         pygame.draw.line(self.screen, color, start_screen, end_screen, scaled_width)
     
     def draw_circle(self, center_world, radius, color, width=0):
-        """Desenha um círculo em coordenadas do mundo."""
         center_screen = self.camera.world_to_screen(center_world)
         scaled_radius = max(1, int(radius * self.camera.zoom))
         scaled_width = max(1, int(width * self.camera.zoom)) if width > 0 else 0
         pygame.draw.circle(self.screen, color, center_screen, scaled_radius, scaled_width)
     
     def draw_polygon(self, points_world, color, width=0):
-        """Desenha um polígono em coordenadas do mundo."""
         points_screen = [self.camera.world_to_screen(p) for p in points_world]
         scaled_width = max(1, int(width * self.camera.zoom)) if width > 0 else 0
         pygame.draw.polygon(self.screen, color, points_screen, scaled_width)
     
     def draw_rect(self, rect_world, color, width=0):
-        """Desenha um retângulo em coordenadas do mundo."""
         x, y, w, h = rect_world
         corners = [(x, y), (x+w, y), (x+w, y+h), (x, y+h)]
         corners_screen = [self.camera.world_to_screen(corner) for corner in corners]
@@ -64,7 +55,6 @@ class CircuitDrawer:
         pygame.draw.polygon(self.screen, color, corners_screen, scaled_width)
     
     def draw_text(self, text, pos_world, font_size=36, color=None):
-        """Desenha texto em coordenadas do mundo."""
         if color is None: 
             color = self.LABEL_COLOR
         scaled_font_size = max(8, int(font_size * self.camera.zoom))
@@ -78,7 +68,6 @@ class CircuitDrawer:
             pass
 
     def draw_gate_shape(self, name, world_x, world_y):
-        """Desenha as formas das portas lógicas."""
         w, h = self.GATE_WIDTH - 20, self.GATE_HEIGHT
         
         if name == 'AND':
@@ -147,7 +136,6 @@ class CircuitDrawer:
             return (world_x + w + 16, world_y + h/2)
     
     def _draw_and_shape(self, world_x, world_y, w, h, color):
-        """Desenha forma AND com cor específica."""
         self.draw_line((world_x, world_y), (world_x, world_y + h), color, 3)
         self.draw_line((world_x, world_y), (world_x + w/2, world_y), color, 3)
         self.draw_line((world_x, world_y + h), (world_x + w/2, world_y + h), color, 3)
@@ -160,7 +148,6 @@ class CircuitDrawer:
             self.draw_line(p1, p2, color, 3)
     
     def _draw_or_shape(self, world_x, world_y, w, h, color):
-        """Desenha forma OR com cor específica."""
         back_center = (world_x - 7.5, world_y + h/2)
         front_center = (world_x + w/2, world_y + h/2)
         for i in range(16):
@@ -176,7 +163,6 @@ class CircuitDrawer:
         self.draw_line((back_center[0], back_center[1] + h/2), (front_center[0], front_center[1] + h/2), color, 3)
     
     def _draw_xor_shape(self, world_x, world_y, w, h, color):
-        """Desenha forma XOR com cor específica."""
         #Linha extra 
         extra_back_center = (world_x - 15, world_y + h/2)
         for i in range(16):
@@ -190,7 +176,6 @@ class CircuitDrawer:
         self._draw_or_shape(world_x, world_y, w, h, color)
     
     def draw_smart_wire(self, start_world, end_world):
-        """Desenha um fio com curvas inteligentes."""
         x1, y1 = start_world
         x2, y2 = end_world
         mid_x = x1 + (x2 - x1) * 0.5
@@ -199,13 +184,11 @@ class CircuitDrawer:
         self.draw_line((mid_x, y2), (x2, y2), self.WIRE_COLOR, 2)
     
     def draw_connection_dot(self, pos_world, color=None, radius=5):
-        """Desenha um ponto de conexão."""
         if color is None: 
             color = self.WIRE_COLOR
         self.draw_circle(pos_world, radius, color)
     
     def draw_component(self, component):
-        """Desenha componente interativo usando o estilo das portas."""
         color = self.SELECTED_COLOR if component.selected else self.WHITE
         
         if component.type == 'variable':
@@ -260,7 +243,6 @@ class CircuitDrawer:
             self.draw_circle(output_pos, 4, color)
             
     def draw_wire(self, wire):
-        """Desenha um fio conectando dois componentes."""
         start_pos = wire.get_start_pos()
         end_pos = wire.get_end_pos()
         
@@ -273,7 +255,6 @@ class CircuitDrawer:
         self.draw_line((mid_x, end_pos[1]), end_pos, color, 3)
     
     def draw_grid(self, screen_width, screen_height):
-        """Desenha uma grade de fundo para facilitar o posicionamento."""
         grid_size = 50
         color = (30, 30, 30)
         

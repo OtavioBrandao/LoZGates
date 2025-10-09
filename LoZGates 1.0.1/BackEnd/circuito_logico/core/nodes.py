@@ -1,15 +1,9 @@
-"""
-Módulo contendo as classes de nós da AST (Abstract Syntax Tree)
-para representação de expressões lógicas booleanas.
-"""
+#Módulo contendo as classes de nós da AST (Abstract Syntax Tree) para representação de expressões lógicas booleanas.
 
 class Node:
-    """Classe base para todos os nós da AST."""
     pass
 
 class VariableNode(Node):
-    """Nó representando uma variável lógica."""
-    
     def __init__(self, name):
         self.name = name
     
@@ -17,8 +11,6 @@ class VariableNode(Node):
         return self.name
 
 class OperatorNode(Node):
-    """Nó representando um operador lógico."""
-    
     def __init__(self, op, children):
         self.op = op
         self.children = children

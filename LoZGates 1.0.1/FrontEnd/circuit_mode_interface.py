@@ -204,7 +204,6 @@ class CircuitModeSelector:
         self.status_label.pack(pady=(0, Spacing.MD))
     
     def create_circuit_area(self):
-        """Cria área para o circuito."""
         self.circuit_container = ctk.CTkFrame(
             self.main_container, 
             fg_color=Colors.SURFACE_DARK,

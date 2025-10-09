@@ -2,10 +2,6 @@ import time
 passar_pro_front = []
 
 class Node:
-    """
-    Representa um nó na árvore de expressão.
-    O valor pode ser um operador, uma variável ou uma constante.
-    """
     def __init__(self, valor, esquerda=None, direita=None):
         self.valor = valor
         self.esquerda = esquerda
@@ -248,8 +244,6 @@ _indice_no_atual = 0
 #------------------ Funções para Controle da GUI -------------------
 
 def _coletar_todos_os_nos(node, parent=None, branch=None, collected_nodes=None):
-    """Função auxiliar para coletar todos os nós da árvore com informações de pai,
-    ignorando nós que são apenas átomos (variáveis ou constantes)."""
     if collected_nodes is None:
         collected_nodes = []
     if node:
@@ -266,11 +260,6 @@ def _coletar_todos_os_nos(node, parent=None, branch=None, collected_nodes=None):
     return collected_nodes
 
 def encontrar_proximo_passo(arvore_raiz, nos_a_ignorar=None):
-    """
-    Prepara e retorna o próximo nó na ordem de complexidade (menor para maior),
-    ignorando átomos sozinhos.
-    Gerencia um índice para percorrer a lista de nós pré-ordenada e filtrada.
-    """
     global _todos_os_nos_ordenados, _indice_no_atual
 
     if nos_a_ignorar is None:

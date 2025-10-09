@@ -1,5 +1,5 @@
-# StepView - Componente para visualização passo a passo da simplificação
-# Substitui o log de terminal por uma interface visual limpa
+#StepView - Componente para visualização passo a passo da simplificação
+#Substitui o log de terminal por uma interface visual limpa
 
 import customtkinter as ctk
 import re
@@ -9,12 +9,12 @@ class StepView(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master, fg_color=Colors.PRIMARY_BG)
         
-        # Configurar grid para expansão
-        self.grid_rowconfigure(0, weight=0)  # header
-        self.grid_rowconfigure(1, weight=1)  # scroll deve expandir
+        #Configurar grid para expansão
+        self.grid_rowconfigure(0, weight=0)  #header
+        self.grid_rowconfigure(1, weight=1)  #scroll deve expandir
         self.grid_columnconfigure(0, weight=1)
         
-        # Header
+        #Header
         self.header = ctk.CTkLabel(
             self,
             text="Progresso da Simplificação",
@@ -23,7 +23,7 @@ class StepView(ctk.CTkFrame):
         )
         self.header.grid(row=0, column=0, pady=(Spacing.MD, Spacing.SM))
         
-        # Área scrollável para os passos
+        #Área scrollável para os passos
         self.scroll_area = ctk.CTkScrollableFrame(
             self,
             fg_color=Colors.SURFACE_DARK,
@@ -32,22 +32,21 @@ class StepView(ctk.CTkFrame):
         self.scroll_area.grid(row=1, column=0, sticky="nsew", padx=Spacing.MD, pady=(0, Spacing.SM))
         self.scroll_area.configure(height=500)
         
-        # Rodapé (inicialmente oculto)
+        #Rodapé (inicialmente oculto)
         self.footer = ctk.CTkFrame(self, fg_color=Colors.SURFACE_MEDIUM, corner_radius=Dimensions.CORNER_RADIUS_MEDIUM)
         
         self._steps = []
         self.current_iteration = 0
         
     def reset(self, original_expression: str) -> None:
-        """Reinicia a visualização com uma nova expressão"""
-        # Limpa passos anteriores
+        #Limpa passos anteriores
         for widget in self.scroll_area.winfo_children():
             widget.destroy()
         
-        # Esconde rodapé
+        #Esconde rodapé
         self.footer.pack_forget()
         
-        # Mostra expressão inicial
+        #Mostra expressão inicial
         initial_frame = ctk.CTkFrame(self.scroll_area, fg_color=Colors.SURFACE_LIGHT, corner_radius=Dimensions.CORNER_RADIUS_SMALL)
         initial_frame.pack(fill="x", padx=Spacing.SM, pady=Spacing.XS)
         
@@ -71,8 +70,7 @@ class StepView(ctk.CTkFrame):
         self.current_iteration = 0
         
     def append_step(self, step: dict) -> None:
-        """Adiciona um novo passo à visualização"""
-        # Numeração automática
+        #Numeração automática
         n = len(self._steps) + 1
         step = {**step, "iteration": n}
         self._steps.append(step)
@@ -80,7 +78,7 @@ class StepView(ctk.CTkFrame):
         step_frame = ctk.CTkFrame(self.scroll_area, fg_color=Colors.SURFACE_LIGHT, corner_radius=Dimensions.CORNER_RADIUS_SMALL)
         step_frame.pack(fill="x", padx=Spacing.SM, pady=Spacing.XS)
         
-        # Título com iteração e lei
+        #Título com iteração e lei
         title_text = f"Iteração {n} — {step['law']}"
         title_label = ctk.CTkLabel(
             step_frame,
@@ -90,7 +88,7 @@ class StepView(ctk.CTkFrame):
         )
         title_label.pack(pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM, anchor="w")
         
-        # Subexpressão alvo
+        #Subexpressão alvo
         if step.get('subexpression'):
             sub_label = ctk.CTkLabel(
                 step_frame,
@@ -100,7 +98,7 @@ class StepView(ctk.CTkFrame):
             )
             sub_label.pack(pady=(0, Spacing.XS), padx=Spacing.SM, anchor="w")
         
-        # Antes → Depois
+        #Antes → Depois
         transform_frame = ctk.CTkFrame(step_frame, fg_color=Colors.SURFACE_DARK, corner_radius=Dimensions.CORNER_RADIUS_SMALL)
         transform_frame.pack(fill="x", padx=Spacing.SM, pady=Spacing.XS)
         
@@ -114,11 +112,11 @@ class StepView(ctk.CTkFrame):
         )
         transform_label.pack(pady=Spacing.SM, padx=Spacing.SM)
         
-        # Status e expressão resultante
+        #Status e expressão resultante
         status_frame = ctk.CTkFrame(step_frame, fg_color="transparent")
         status_frame.pack(fill="x", pady=(Spacing.XS, Spacing.SM), padx=Spacing.SM)
         
-        # Ícone de status e expressão resultante
+        #Ícone de status e expressão resultante
         status_icon = "✔" if step['success'] else "✖"
         status_color = Colors.SUCCESS if step['success'] else Colors.ERROR
         result_expression = step.get('result_expression', '')
@@ -132,7 +130,7 @@ class StepView(ctk.CTkFrame):
         )
         status_label.pack(side="left", padx=(0, Spacing.XS))
         
-        # Nota (se existir)
+        #Nota (se existir)
         if step.get('note'):
             note_label = ctk.CTkLabel(
                 status_frame,
@@ -144,16 +142,15 @@ class StepView(ctk.CTkFrame):
 
         
     def finalize(self, final_expression: str, success: bool, stats: dict = None) -> None:
-        """Finaliza a visualização com resultado e estatísticas"""
-        # Rodapé com resultado
+        #Rodapé com resultado
         self.footer.grid(row=2, column=0, sticky="ew", padx=Spacing.MD, pady=(Spacing.SM, Spacing.MD))
         self.grid_rowconfigure(2, weight=0)
         
-        # Limpa rodapé anterior
+        #Limpa rodapé anterior
         for widget in self.footer.winfo_children():
             widget.destroy()
         
-        # Título do resultado
+        #Título do resultado
         result_title = ctk.CTkLabel(
             self.footer,
             text="Expressão Resultante",
@@ -162,7 +159,7 @@ class StepView(ctk.CTkFrame):
         )
         result_title.pack(pady=(Spacing.SM, Spacing.XS))
         
-        # Expressão final
+        #Expressão final
         final_label = ctk.CTkLabel(
             self.footer,
             text=final_expression,
@@ -172,7 +169,7 @@ class StepView(ctk.CTkFrame):
         )
         final_label.pack(pady=(0, Spacing.SM), padx=Spacing.SM)
         
-        # Mensagem de status
+        #Mensagem de status
         if not success or len(self._steps) == 0:
             status_msg = ctk.CTkLabel(
                 self.footer,
@@ -182,7 +179,7 @@ class StepView(ctk.CTkFrame):
             )
             status_msg.pack(pady=(0, Spacing.SM))
         
-        # Estatísticas simplificadas - apenas iterações
+        #Estatísticas simplificadas - apenas iterações
         if len(self._steps) > 0:
             iter_label = ctk.CTkLabel(
                 self.footer,
@@ -194,8 +191,6 @@ class StepView(ctk.CTkFrame):
 
 
 class StepParser:
-    """Parser para converter logs de texto em eventos de passo"""
-    
     def __init__(self, step_view: StepView):
         self.step_view = step_view
         self.current_iteration = 0
@@ -207,27 +202,26 @@ class StepParser:
         self.final_expr = ""
         
     def parse_log_line(self, line: str) -> None:
-        """Processa uma linha do log e extrai informações de passo"""
         line = line.strip()
         if not line:
             return
             
-        # Detecta início de iteração
+        #Detecta início de iteração
         iteration_match = re.search(r'Iteração (\d+):\s*tentando simplificar\s*(.+)', line)
         if iteration_match:
             self.current_iteration = int(iteration_match.group(1))
             self.previous_expr = iteration_match.group(2).strip()
-            self.current_expr = self.previous_expr  # Inicializa com a expressão da iteração
+            self.current_expr = self.previous_expr  #Inicializa com a expressão da iteração
             return
             
-        # Detecta aplicação de lei (formato: "Aplicando Lei em 'antes' -> 'depois'")
+        #Detecta aplicação de lei (formato: "Aplicando Lei em 'antes' -> 'depois'")
         law_match = re.search(r'Aplicando\s+(.+?)\s+em\s+\'(.+?)\'\s*->\s*\'(.+?)\'', line)
         if law_match:
             law_name = law_match.group(1).strip()
             before_expr = law_match.group(2).strip()
             after_expr = law_match.group(3).strip()
             
-            # Atualiza a expressão atual substituindo a subexpressão
+            #Atualiza a expressão atual substituindo a subexpressão
             if self.current_expr:
                 self.current_expr = self.current_expr.replace(before_expr, after_expr)
             else:
@@ -246,25 +240,25 @@ class StepParser:
             self.laws_applied += 1
             return
             
-        # Detecta árvore intermediária (resultado da iteração)
+        #Detecta árvore intermediária (resultado da iteração)
         tree_match = re.search(r'Árvore intermediária:\s*(.+)', line)
         if tree_match:
             result_expr = tree_match.group(1).strip()
             return
             
-        # Detecta fim da simplificação
+        #Detecta fim da simplificação
         if "Nenhuma outra simplificação foi possível" in line:
             return
             
-        # Detecta expressão original
+        #Detecta expressão original
         if "Expressão Original:" in line:
             expr_match = re.search(r'Expressão Original\s*:\s*(.+)', line)
             if expr_match:
                 self.original_expr = expr_match.group(1).strip()
-                self.current_expr = self.original_expr  # Inicializa com a expressão original
+                self.current_expr = self.original_expr  #Inicializa com a expressão original
             return
             
-        # Detecta expressão simplificada final
+        #Detecta expressão simplificada final
         if "Expressão Simplificada:" in line:
             expr_match = re.search(r'Expressão Simplificada:\s*(.+)', line)
             if expr_match:
@@ -272,10 +266,9 @@ class StepParser:
             return
             
     def finalize_parsing(self, fallback_expression: str, success: bool = True) -> None:
-        """Finaliza o parsing e chama finalize no step_view"""
         final_expression = self.final_expr if self.final_expr else fallback_expression
         
-        # Se não houve leis aplicadas, indica que não houve simplificação
+        #Se não houve leis aplicadas, indica que não houve simplificação
         actual_success = success and self.laws_applied > 0
         
         stats = {}

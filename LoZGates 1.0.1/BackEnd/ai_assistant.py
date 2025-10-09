@@ -13,7 +13,6 @@ class AIAssistant:
         }
         
     def get_ai_suggestion(self, expression: str, step_context: str = "", callback: Optional[Callable] = None):
-        """Obtém sugestão do Llama 3 via Groq"""
         
         prompt = f"""Analise esta expressão de lógica proposicional e forneça uma sugestão estruturada:
 
@@ -79,7 +78,6 @@ Responda em português, de forma clara e estruturada."""
         thread.start()
     
     def ask_question(self, question: str, expression: str, callback: Optional[Callable] = None):
-        """Faz pergunta específica ao Llama 3"""
         
         prompt = f"""Responda esta pergunta sobre lógica proposicional de forma estruturada:
 
@@ -137,7 +135,6 @@ Responda em português."""
         thread.start()
     
     def _format_response(self, response: str) -> str:
-        """Formata a resposta da IA para melhor apresentação"""
         if not response:
             return "Resposta não disponível."
         
@@ -169,7 +166,6 @@ Responda em português."""
         return response
     
     def _fix_math_formatting(self, text: str) -> str:
-        """Corrige formatação de expressões matemáticas quebradas"""
         # Remove quebras de linha dentro de expressões matemáticas
         text = re.sub(r'\(\s*([^)]+?)\s*\)', lambda m: f"({m.group(1).replace(chr(10), '').replace(' ', '')})", text)
         
@@ -186,7 +182,6 @@ Responda em português."""
         return text
     
     def _handle_error(self, response, callback):
-        """Trata erros de forma mais amigável"""
         error_msg = "Erro na comunicação com a IA."
         
         if response.status_code == 429:
@@ -200,7 +195,6 @@ Responda em português."""
             callback(error_msg, response.status_code)
     
     def format_mathematical_text(self, text: str) -> str:
-        """Função pública para formatar texto matemático"""
         # Converte símbolos básicos para Unicode
         text = text.replace('~', '¬').replace('*', '∧').replace('+', '∨')
         

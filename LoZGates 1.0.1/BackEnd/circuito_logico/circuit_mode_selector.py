@@ -1,6 +1,5 @@
-"""
-    Módulo para gerenciar diferentes modos de circuito interativo.
-"""
+#Módulo para gerenciar diferentes modos de circuito interativo.
+
 import tkinter as tk
 from typing import List, Optional, Dict, Any
 from .interactive.interactive_circuit import CircuitoInterativoManual

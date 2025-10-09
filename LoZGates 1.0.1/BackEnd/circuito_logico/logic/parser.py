@@ -1,12 +1,8 @@
-"""
-Módulo responsável pelo parsing e análise de expressões lógicas booleanas,
-incluindo criação da AST e cálculo de layouts.
-"""
+#Módulo responsável pelo parsing e análise de expressões lógicas booleanas, incluindo criação da AST e cálculo de layouts.
 
 from ..core.nodes import Node, VariableNode, OperatorNode
 
 def criar_ast_de_expressao(expressao):
-    """Cria uma AST (Árvore de Sintaxe Abstrata) a partir de uma expressão booleana."""
     tokens = list(expressao.replace(" ", ""))
     pos = 0
     
@@ -57,7 +53,6 @@ def criar_ast_de_expressao(expressao):
 
 
 def calcular_layout_dinamico(node, y_base=0):
-    """Calcula layout dinâmico para visualização do circuito."""
     if isinstance(node, VariableNode):
         return {
             'type': 'variable', 
@@ -101,7 +96,6 @@ def calcular_layout_dinamico(node, y_base=0):
 
 
 def _coletar_variaveis(node):
-    """Coleta todas as variáveis presentes na AST."""
     if isinstance(node, VariableNode):
         return {node.name}
     if isinstance(node, OperatorNode):
@@ -110,7 +104,6 @@ def _coletar_variaveis(node):
 
 
 def _coletar_operadores(node, operators=None):
-    """Coleta todos os operadores da AST com suas contagens."""
     if operators is None:
         operators = {'*': 0, '+': 0, '~': 0}
     

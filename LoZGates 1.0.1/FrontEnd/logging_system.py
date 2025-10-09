@@ -1,6 +1,5 @@
-"""
-    Sistema de logging aprimorado para coletar dados detalhados de uso do LoZ Gates.
-"""
+#Sistema de logging aprimorado para coletar dados detalhados de uso do LoZ Gates.
+
 import json
 import os
 import time
@@ -604,7 +603,7 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             print(f"Erro ao criar dados compartilháveis formatados: {e}")
             return {}
 
-    def log_simplification_step_failed(self, law_name: str, step_number: int, reason: str = "", expression_state: str = ""): # MODIFIED
+    def log_simplification_step_failed(self, law_name: str, step_number: int, reason: str = "", expression_state: str = ""): #MODIFIED
         if not self.logging_enabled:
             return
 
@@ -614,9 +613,9 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             interactive_data["failed_attempts"] = {}
 
         if law_name not in interactive_data["failed_attempts"]:
-            interactive_data["failed_attempts"][law_name] = [] # MODIFIED to store more details
+            interactive_data["failed_attempts"][law_name] = [] #MODIFIED to store more details
 
-        # Armazena detalhes da falha
+        #Armazena detalhes da falha
         failure_details = {
             "step": step_number,
             "reason": reason,
@@ -629,7 +628,7 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             "law_name": law_name,
             "step_number": step_number,
             "reason": reason,
-            "expression_state": expression_state, # ADDED
+            "expression_state": expression_state, #ADDED
             "timestamp_detail": time.time()
         })
 
@@ -1018,7 +1017,6 @@ class ImprovedDataFormatter:
     
     @staticmethod
     def _generate_insights(summary: Dict[str, Any]) -> list:
-        """Gera insights automáticos baseados nos dados."""
         insights = []
         
         #Insight sobre simplificação

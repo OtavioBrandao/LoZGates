@@ -232,7 +232,6 @@ def inicializar_interface():
             print(f"Erro ao detectar mudança de aba: {e}")
            
     def if_necessary_create_a_circuit():
-        """Cria o circuito interativo apenas se ele não existir ou estiver vazio"""
         global circuito_interativo_instance, does_it_have_interaction
         
         # Verifica se o frame está vazio ou se a instância não existe
@@ -252,7 +251,6 @@ def inicializar_interface():
             print("Interface já existe - mantendo")
 
     def create_interactive_circuit(expressao):
-        """Cria o circuito interativo com seleção de modos."""
         global circuito_interativo_instance, does_it_have_interaction
         
         # LOG INÍCIO DO CIRCUITO INTERATIVO
@@ -651,13 +649,6 @@ def inicializar_interface():
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
     def handle_problem_answer(expression, destination):
-        """
-        Callback chamado quando o usuário acerta um problema e quer analisar
-        
-        Parâmetros:
-        - expression: A expressão do problema
-        - destination: "circuit", "simplifier" ou "table"
-        """
         # Preenche o campo de entrada principal
         entrada.delete(0, tk.END)
         entrada.insert(0, expression)
@@ -687,7 +678,6 @@ def inicializar_interface():
             exibir_tabela_verdade(expression)
 
     def setup_problems_interface_with_callback(scroll_container, voltar_callback, principal_frame, button_class):
-        """Configuração da interface de problemas com callback integrado"""
         interface = IntegratedProblemsInterface(scroll_container)
         
         # Configura o callback ANTES de criar a interface
@@ -1008,7 +998,6 @@ def inicializar_interface():
 
 #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES MODIFICADAS ----------------------
     def salvar_estado_atual():
-        """Salva o estado atual (árvore, histórico, ignorados) na pilha de histórico."""
         global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info
         
         estado = {
@@ -1046,7 +1035,6 @@ def inicializar_interface():
         atualizar_ui_interativa()
   
     def inicializar_area_passos():
-        """Inicializa a área de passos com a expressão inicial"""
         global scroll_passos, contador_passos
         contador_passos = 0
         
@@ -1058,7 +1046,6 @@ def inicializar_interface():
         adicionar_passo_inicial(str(arvore_interativa))
     
     def adicionar_passo_inicial(expressao_inicial):
-        """Adiciona o passo inicial à área de passos"""
         passo_frame = ctk.CTkFrame(
             scroll_passos,
             fg_color=Colors.SURFACE_LIGHT,
@@ -1084,7 +1071,6 @@ def inicializar_interface():
         expressao_label.pack(pady=(0, Spacing.SM), padx=Spacing.SM, anchor="w")
     
     def adicionar_passo_sucesso(lei_nome, subexpressao, antes, depois, resultado):
-        """Adiciona um passo de sucesso à área de passos"""
         global contador_passos
         contador_passos += 1
         
@@ -1148,7 +1134,6 @@ def inicializar_interface():
         scroll_passos.after(100, lambda: scroll_passos._parent_canvas.yview_moveto(1.0))
     
     def adicionar_passo_pular(subexpressao):
-        """Adiciona um passo de pular à área de passos"""
         passo_frame = ctk.CTkFrame(
             scroll_passos,
             fg_color=Colors.SURFACE_MEDIUM,
@@ -1176,12 +1161,10 @@ def inicializar_interface():
         scroll_passos.after(100, lambda: scroll_passos._parent_canvas.yview_moveto(1.0))
     
     def atualizar_area_passos():
-        """Atualiza a área de passos (chamada quando necessário)"""
         # Esta função pode ser expandida se necessário para atualizações dinâmicas
         pass
     
     def reconstruir_area_passos():
-        """Reconstrói a área de passos baseada no histórico atual"""
         global scroll_passos
         
         # Limpa área atual
@@ -1367,7 +1350,6 @@ def inicializar_interface():
             widget.destroy()
     
     def abrir_chat_ia():
-        """Abre o popup de chat com IA para o simplificador interativo"""
         try:
             expressao_atual = str(arvore_interativa) if arvore_interativa else expressao_global
             contexto_passo = ""

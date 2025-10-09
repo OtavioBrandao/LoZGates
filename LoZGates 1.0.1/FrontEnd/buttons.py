@@ -12,7 +12,6 @@ class Button:
     
     @staticmethod
     def botao_duvida(frame, size="normal"):
-        """Botão de ajuda/dúvida com ícone"""
         width = 50 if size == "normal" else 40
         height = 50 if size == "normal" else 40
         font_size = Typography.SIZE_BODY if size == "normal" else Typography.SIZE_BODY_SMALL
@@ -34,7 +33,6 @@ class Button:
 
     @staticmethod
     def botao_voltar(nome, frame, size="normal"):
-        """Botão de voltar com cor dourada distintiva"""
         width = Dimensions.BUTTON_WIDTH_STANDARD if size == "normal" else Dimensions.BUTTON_WIDTH_SMALL
         height = Dimensions.BUTTON_HEIGHT_STANDARD if size == "normal" else Dimensions.BUTTON_HEIGHT_SMALL
         
@@ -55,7 +53,6 @@ class Button:
     
     @staticmethod
     def botao_padrao(nome, frame, size="normal", style="primary"):
-        """Botão padrão com variações de tamanho e estilo"""
         width = Dimensions.BUTTON_WIDTH_STANDARD if size == "normal" else Dimensions.BUTTON_WIDTH_SMALL
         height = Dimensions.BUTTON_HEIGHT_STANDARD if size == "normal" else Dimensions.BUTTON_HEIGHT_SMALL
         
@@ -94,7 +91,6 @@ class Button:
     
     @staticmethod
     def botao_especial(nome, frame, fg_color, hover_color=None, text_color=None, width=None, height=None):
-        """Botão customizado para casos especiais"""
         if hover_color is None:
             hover_color = Colors.BUTTON_PRIMARY_HOVER
         if text_color is None:

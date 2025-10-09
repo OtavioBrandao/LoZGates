@@ -1,13 +1,8 @@
-"""
-Módulo para gerenciamento da câmera/viewport do circuito lógico,
-incluindo zoom, pan e conversões de coordenadas.
-"""
+#Módulo para gerenciamento da câmera/viewport do circuito lógico, incluindo zoom, pan e conversões de coordenadas.
 
 import pygame
 
 class Camera:
-    """Gerencia a visualização e navegação do circuito lógico."""
-    
     def __init__(self, screen_width, screen_height):
         self.x = 0
         self.y = 0
@@ -22,26 +17,22 @@ class Camera:
         self.last_mouse_pos = (0, 0)
     
     def world_to_screen(self, world_pos):
-        """Converte coordenadas do mundo para coordenadas da tela."""
         world_x, world_y = world_pos
         screen_x = (world_x - self.x) * self.zoom + self.screen_width / 2
         screen_y = (world_y - self.y) * self.zoom + self.screen_height / 2
         return (int(screen_x), int(screen_y))
     
     def screen_to_world(self, screen_pos):
-        """Converte coordenadas da tela para coordenadas do mundo."""
         screen_x, screen_y = screen_pos
         world_x = (screen_x - self.screen_width / 2) / self.zoom + self.x
         world_y = (screen_y - self.screen_height / 2) / self.zoom + self.y
         return (world_x, world_y)
     
     def move(self, dx, dy):
-        """Move a câmera por delta x e delta y."""
         self.x += dx / self.zoom
         self.y += dy / self.zoom
     
     def zoom_at(self, screen_pos, zoom_delta):
-        """Aplica zoom focado em uma posição específica da tela."""
         world_pos = self.screen_to_world(screen_pos)
         old_zoom = self.zoom
         self.zoom = max(self.min_zoom, min(self.max_zoom, self.zoom + zoom_delta))
@@ -50,16 +41,11 @@ class Camera:
         self.y = world_pos[1] - (world_pos[1] - self.y) * zoom_ratio
     
     def reset_view(self):
-        """Reseta a câmera para a posição inicial."""
         self.x = 0
         self.y = 0
         self.zoom = 1.0
     
     def handle_event(self, event, interactive_mode=False):
-        """
-        Processa eventos da câmera.
-        Retorna True se o evento foi consumido pela câmera.
-        """
         if interactive_mode:
             # No modo interativo, só permite zoom
             if event.type == pygame.MOUSEBUTTONDOWN:

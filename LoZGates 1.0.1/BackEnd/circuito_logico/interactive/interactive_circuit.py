@@ -1,6 +1,5 @@
-"""
-    Módulo para o circuito interativo manual atualizado com painel de seleção de componentes.
-"""
+#Módulo para o circuito interativo manual atualizado com painel de seleção de componentes.
+
 import pygame
 import tkinter as tk
 import os
