@@ -15,6 +15,9 @@ class Camera:
         self.zoom_speed = 0.1
         self.dragging = False
         self.last_mouse_pos = (0, 0)
+        self.mouse_inside = False
+        self.on_mouse_enter = None
+        self.on_mouse_leave = None
     
     def world_to_screen(self, world_pos):
         world_x, world_y = world_pos
@@ -46,6 +49,24 @@ class Camera:
         self.zoom = 1.0
     
     def handle_event(self, event, interactive_mode=False):
+        # Verifica se o mouse está dentro da área do pygame
+        if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            is_inside = (0 <= mouse_x <= self.screen_width and 0 <= mouse_y <= self.screen_height)
+            
+            # Detecta mudança de estado e chama callbacks
+            if is_inside and not self.mouse_inside:
+                self.mouse_inside = True
+                if self.on_mouse_enter:
+                    self.on_mouse_enter()
+            elif not is_inside and self.mouse_inside:
+                self.mouse_inside = False
+                if self.on_mouse_leave:
+                    self.on_mouse_leave()
+            
+            if not is_inside:
+                return False
+        
         if interactive_mode:
             # No modo interativo, só permite zoom
             if event.type == pygame.MOUSEBUTTONDOWN:

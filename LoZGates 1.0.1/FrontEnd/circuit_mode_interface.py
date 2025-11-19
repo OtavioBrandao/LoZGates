@@ -353,6 +353,7 @@ class CircuitModeSelector:
             self.circuit_container.pack(fill="both", expand=True, pady=Spacing.MD, padx=Spacing.LG)
             
             circuit = self.circuit_manager.create_circuit(self.circuit_frame, expression, logger=self.logger)
+            circuit.scroll_control_callback = self._control_main_scroll
 
             #Atualiza estados
             self.is_circuit_active = True
@@ -477,6 +478,13 @@ class CircuitModeSelector:
         self.info_text.delete("1.0", "end")
         self.info_text.insert("1.0", controls_text)
         self.info_text.configure(state="disabled")
+    
+    # Vai realizar o controle do scroll principal de acordo com a posição do cursor
+    def _control_main_scroll(self, enable):
+        if not enable:
+            self.circuit_frame.bind("<MouseWheel>", lambda e: "break")
+        else:
+            self.circuit_frame.unbind("<MouseWheel>")
     
     def cleanup(self): #Limpa recursos.
         if self.is_circuit_active:

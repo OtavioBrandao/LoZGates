@@ -1,0 +1,381 @@
+{
+  "app_info": {
+    "name": "LoZ Gates",
+    "version": "1.0-beta",
+    "created": "2025-11-19T16:49:34.198592"
+  },
+  "sessions": [
+    {
+      "session_id": "ad2d5302e463",
+      "start_time": "2025-11-19T16:49:34.198422",
+      "user_id": "4f0773a86be99129",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "events": [
+        {
+          "timestamp": "2025-11-19T16:49:46.627058",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:49:47.621110",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:49:47.900395",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.28
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:49:49.219498",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 15.021093368530273
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:49:49.219606",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:49:53.363582",
+          "type": "circuit_mode_selected",
+          "data": {
+            "mode": "livre",
+            "expression": "(~P+Q)",
+            "restrictions": null
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 2,
+        "expressions_valid": 2,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 0,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 1,
+        "avg_feature_time": 0.28
+      },
+      "interactive_simplification": {
+        "sessions_started": 0,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 0,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 1,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 2
+        },
+        "operator_usage": {
+          "AND": 0,
+          "OR": 2,
+          "NOT": 2
+        },
+        "expression_lengths": {
+          "3": 2
+        },
+        "common_expressions": {
+          "af1ada8b": 2
+        }
+      },
+      "end_time": "2025-11-19T16:50:05.404387",
+      "duration_seconds": 31.21,
+      "events_count": 6
+    },
+    {
+      "session_id": "f571cee2728a",
+      "start_time": "2025-11-19T16:53:56.284897",
+      "user_id": "4f0773a86be99129",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "events": [
+        {
+          "timestamp": "2025-11-19T16:54:01.677498",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:54:02.109013",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:54:02.318343",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.21
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:54:03.337171",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 7.052283525466919
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:54:03.337303",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:54:04.884474",
+          "type": "circuit_mode_selected",
+          "data": {
+            "mode": "livre",
+            "expression": "(~P+Q)",
+            "restrictions": null
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 2,
+        "expressions_valid": 2,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 0,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 1,
+        "avg_feature_time": 0.21
+      },
+      "interactive_simplification": {
+        "sessions_started": 0,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 0,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 1,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 2
+        },
+        "operator_usage": {
+          "AND": 0,
+          "OR": 2,
+          "NOT": 2
+        },
+        "expression_lengths": {
+          "3": 2
+        },
+        "common_expressions": {
+          "af1ada8b": 2
+        }
+      },
+      "end_time": "2025-11-19T16:54:21.940610",
+      "duration_seconds": 25.66,
+      "events_count": 6
+    },
+    {
+      "session_id": "58fe6ff28140",
+      "start_time": "2025-11-19T16:56:01.989513",
+      "user_id": "4f0773a86be99129",
+      "app_version": "1.0-beta",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "events": [
+        {
+          "timestamp": "2025-11-19T16:56:06.799155",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:56:07.258603",
+          "type": "expression_entered",
+          "data": {
+            "expression_length": 3,
+            "variable_count": 2,
+            "has_and": false,
+            "has_or": false,
+            "has_not": false,
+            "is_valid": true,
+            "expression_hash": "af1ada8b"
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:56:07.455368",
+          "type": "feature_used",
+          "data": {
+            "feature": "circuit_generation",
+            "duration": 0.2
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:56:08.311710",
+          "type": "navigation",
+          "data": {
+            "from": "tab_navigation",
+            "to": "  Circuito Interativo  ",
+            "session_time": 6.322207927703857
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:56:08.311857",
+          "type": "interactive_circuit_start",
+          "data": {
+            "session_number": 1
+          }
+        },
+        {
+          "timestamp": "2025-11-19T16:56:13.067406",
+          "type": "circuit_mode_selected",
+          "data": {
+            "mode": "livre",
+            "expression": "(~P+Q)",
+            "restrictions": null
+          }
+        }
+      ],
+      "session_stats": {
+        "expressions_entered": 2,
+        "expressions_valid": 2,
+        "expressions_invalid": 0,
+        "equivalence_checks": 0,
+        "circuit_generations": 1,
+        "interactive_sessions": 0,
+        "problems_solved": 0,
+        "errors_encountered": 0,
+        "tab_changes": 1,
+        "avg_feature_time": 0.2
+      },
+      "interactive_simplification": {
+        "sessions_started": 0,
+        "total_steps": 0,
+        "laws_applied": {},
+        "skips_used": 0,
+        "undo_operations": 0,
+        "expressions_completed": 0,
+        "average_steps_per_session": 0
+      },
+      "interactive_circuit": {
+        "sessions_started": 1,
+        "components_added": {},
+        "components_deleted": 0,
+        "connections_made": 0,
+        "test_attempts": 0,
+        "successful_circuits": 0,
+        "failed_circuits": 0,
+        "undo_operations": 0
+      },
+      "equivalence_analysis": {
+        "total_checks": 0,
+        "equivalent_pairs": 0,
+        "non_equivalent_pairs": 0,
+        "expression_pairs": []
+      },
+      "expression_patterns": {
+        "variable_counts": {
+          "2": 2
+        },
+        "operator_usage": {
+          "AND": 0,
+          "OR": 2,
+          "NOT": 2
+        },
+        "expression_lengths": {
+          "3": 2
+        },
+        "common_expressions": {
+          "af1ada8b": 2
+        }
+      },
+      "end_time": "2025-11-19T16:56:22.861597",
+      "duration_seconds": 20.87,
+      "events_count": 6
+    }
+  ]
+}
