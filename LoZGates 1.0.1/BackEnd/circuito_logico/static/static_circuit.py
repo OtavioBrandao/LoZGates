@@ -1,7 +1,4 @@
-"""
-Módulo para o circuito estático (visualização automática) onde o circuito
-é gerado automaticamente baseado na expressão lógica fornecida.
-"""
+#Módulo para o circuito estático (visualização automática) onde o circuito é gerado automaticamente baseado na expressão lógica fornecida.
 
 import pygame
 import tkinter as tk
@@ -12,8 +9,6 @@ from ..rendering.drawer import CircuitDrawer
 from ..rendering.circuit_renderer import desenhar_circuito_logico_base, draw_ui_info
 
 class CircuitoInterativo:
-    """Classe para visualização automática de circuitos lógicos."""
-    
     def __init__(self, parent_frame, expressao):
         self.parent_frame = parent_frame
         self.expressao = expressao
@@ -29,7 +24,6 @@ class CircuitoInterativo:
         self.parent_frame.after(100, self.init_pygame)
     
     def init_pygame(self):
-        """Inicializa o Pygame e configura a interface."""
         try:
             os.environ['SDL_WINDOWID'] = str(self.parent_frame.winfo_id())
             os.environ['SDL_VIDEODRIVER'] = 'windows'
@@ -69,7 +63,6 @@ class CircuitoInterativo:
             tk.Label(self.parent_frame, text=f"Erro Pygame: {e}", fg="red", bg="black").pack()
 
     def _on_key_press(self, e):
-        """Processa teclas pressionadas."""
         k = (e.keysym or "").lower()
         if k in ('w', 'up'):    self._move['up'] = True
         if k in ('s', 'down'):  self._move['down'] = True
@@ -78,7 +71,6 @@ class CircuitoInterativo:
         if k == 'r':            self.camera.reset_view()
 
     def _on_key_release(self, e):
-        """Processa teclas liberadas."""
         k = (e.keysym or "").lower()
         if k in ('w', 'up'):    self._move['up'] = False
         if k in ('s', 'down'):  self._move['down'] = False
@@ -86,7 +78,6 @@ class CircuitoInterativo:
         if k in ('d', 'right'): self._move['right'] = False
 
     def _tick(self):
-        """Loop principal de renderização."""
         if not self.running:
             try:
                 pygame.quit()
@@ -121,5 +112,4 @@ class CircuitoInterativo:
         self.parent_frame.after(16, self._tick)
 
     def stop(self):
-        """Para a execução do circuito."""
         self.running = False

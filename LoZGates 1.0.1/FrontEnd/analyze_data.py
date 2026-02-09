@@ -92,6 +92,7 @@ class LoZGatesDataAnalyzer:
             'avg_deletion_rate': np.mean(deletion_rates) if deletion_rates else 0,
             'avg_undo_usage': np.mean(undo_usage) if undo_usage else 0
         }
+        
     def analyze_equivalence_patterns(self):
         if not self.sessions_data: 
             return {}

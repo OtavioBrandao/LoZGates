@@ -196,10 +196,6 @@ def distributiva(node):
  
 # ------------------ Processo de Simplificação -------------------
 def aplicar_leis_recursivo(node):
-    """
-    Percorre a árvore (pós-ordem) e tenta aplicar as leis em cada nó
-    Retorna o nó e substitui o original
-    """
     if node is None:
         return None
 

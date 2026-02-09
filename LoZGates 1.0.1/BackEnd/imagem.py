@@ -427,7 +427,7 @@ def converte_matrix_para_tkinter_imagem_icon(bytes_per_row):
 
     # Cria a imagem PIL
     image = Image.fromarray(matriz_binaria.astype(np.uint8), mode="L")
-# Caminho absoluto da pasta do script
+    # Caminho absoluto da pasta do script
     pasta_base = os.path.dirname(os.path.abspath(__file__))
     pasta_assets = os.path.join(pasta_base, "assets")
     

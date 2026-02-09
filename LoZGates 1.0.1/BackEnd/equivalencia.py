@@ -16,7 +16,7 @@ class UniversalLogicAnalyzer:
         all_vars = set()
         
         for expr in expressions:
-            #Remove espaços e encontra todas as (variáveis)
+            #Remove espaços e encontra todas as variáveis
             clean_expr = expr.replace(' ', '')
             variables = re.findall(r'[A-Z]', clean_expr)
             all_vars.update(variables)

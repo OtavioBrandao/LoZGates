@@ -1,6 +1,5 @@
-"""
-    Módulo para o circuito interativo manual atualizado com painel de seleção de componentes.
-"""
+#Módulo para o circuito interativo manual atualizado com painel de seleção de componentes.
+
 import pygame
 import tkinter as tk
 import os
@@ -61,6 +60,9 @@ class CircuitoInterativoManual:
 
         #referencia logger
         self.logger = logger
+        
+        #Callback para controle de scroll externo
+        self.scroll_control_callback = None
     
     def init_pygame(self): #Inicializa o Pygame e configura a interface.
         try:
@@ -90,6 +92,8 @@ class CircuitoInterativoManual:
                 self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), flags)
 
             self.camera = Camera(self.screen_width, self.screen_height)
+            self.camera.on_mouse_enter = self._on_pygame_mouse_enter
+            self.camera.on_mouse_leave = self._on_pygame_mouse_leave
             self.drawer = CircuitDrawer(self.screen, self.camera)
 
             #Inicializa painel de componentes
@@ -333,9 +337,6 @@ class CircuitoInterativoManual:
         if k == 'delete':       
             self.delete_selected()
             self.save_state("Delete component")
-        if k == 'tab':          #Toggle painel de componentes
-            if self.component_palette:
-                self.component_palette.toggle_visibility()
         if k == 'space':        #Testar circuito
             self.test_circuit_manual()
             
@@ -743,6 +744,14 @@ class CircuitoInterativoManual:
                         (screen_center[0] + size, screen_center[1] - size), 
                         (screen_center[0] - size, screen_center[1] + size), 3)
             
+    def _on_pygame_mouse_enter(self):
+        if self.scroll_control_callback:
+            self.scroll_control_callback(False)  # Desabilita scroll externo
+    
+    def _on_pygame_mouse_leave(self):
+        if self.scroll_control_callback:
+            self.scroll_control_callback(True)  # Habilita scroll externo
+    
     def stop(self):
         self.running = False
         print("🛑 Circuito interativo parado")

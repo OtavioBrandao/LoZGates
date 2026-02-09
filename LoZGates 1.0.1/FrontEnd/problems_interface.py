@@ -264,7 +264,7 @@ class IntegratedProblemsInterface:
         buttons_frame = ctk.CTkFrame(detail_container, fg_color="transparent")
         buttons_frame.pack(pady=Spacing.LG, padx=Spacing.LG, fill="x")
         
-        # Configura grid para distribuição uniforme dos botões
+        #Configura grid para distribuição uniforme dos botões
         for i in range(6):
             buttons_frame.grid_columnconfigure(i, weight=1, uniform="button")
 
@@ -278,20 +278,17 @@ class IntegratedProblemsInterface:
                 )
                 return
             
-            # ✅ HABILITA botão "Mostrar Resposta" após PRIMEIRA tentativa
+            #✅ HABILITA botão "Mostrar Resposta" após PRIMEIRA tentativa
             show_answer_button.configure(state="normal")
             
-            is_correct, message = self.validate_answer_with_equivalence(
-                user_answer, 
-                current_problem.answer
-            )
+            is_correct, message = self.validate_answer_with_equivalence(user_answer, current_problem.answer)
             
             if is_correct:
                 feedback_label.configure(
                     text=message,
                     text_color=Colors.SUCCESS
                 )
-                # ✅ HABILITA botões de análise APENAS se resposta correta
+                #✅ HABILITA botões de análise APENAS se resposta correta
                 analyze_circuit_btn.configure(state="normal")
                 analyze_simplify_btn.configure(state="normal")
                 analyze_table_btn.configure(state="normal")
@@ -303,7 +300,7 @@ class IntegratedProblemsInterface:
                     text=message,
                     text_color=Colors.ERROR
                 )
-                # ❌ MANTÉM botões de análise desabilitados se resposta incorreta
+                #❌ MANTÉM botões de análise desabilitados se resposta incorreta
                 analyze_circuit_btn.configure(state="disabled")
                 analyze_simplify_btn.configure(state="disabled")
                 analyze_table_btn.configure(state="disabled")
@@ -365,6 +362,7 @@ class IntegratedProblemsInterface:
             
     def validate_answer_with_equivalence(self, user_answer, correct_answer):
         from BackEnd.equivalencia import check_universal_equivalence
+        from BackEnd.normalizer import normalize_for_comparison, expressions_are_structurally_equivalent
         
         try:
             user_answer_clean = user_answer.strip().upper().replace(" ", "")
@@ -376,18 +374,39 @@ class IntegratedProblemsInterface:
             print(f"📝 Resposta do usuário: {user_answer_clean}")
             print(f"✅ Resposta correta: {correct_answer_clean}")
             
-            print(f"\n🧮 Verificando equivalência lógica...")
-            is_equivalent = check_universal_equivalence(user_answer_clean, correct_answer_clean, debug=True)
+            #PRIMEIRA VERIFICAÇÃO: Equivalência lógica direta
+            print(f"\n🧮 Verificando equivalência lógica direta...")
+            is_logically_equivalent = check_universal_equivalence(user_answer_clean, correct_answer_clean, debug=True)
             
-            print(f"{'='*60}")
-            if is_equivalent:
+            if is_logically_equivalent:
                 print(f"✅ RESULTADO: Expressões são logicamente equivalentes!")
                 print(f"{'='*60}\n")
                 return True, "✅ Resposta correta! Parabéns!"
-            else:
-                print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
-                print(f"{'='*60}\n")
-                return False, "❌ Resposta incorreta. Sua expressão não é logicamente equivalente à resposta esperada."
+            
+            #SEGUNDA VERIFICAÇÃO: Equivalência estrutural (variáveis diferentes)
+            print(f"\n🔄 Verificando equivalência estrutural (ignorando nomes de variáveis)...")
+            
+            user_normalized = normalize_for_comparison(user_answer_clean)
+            correct_normalized = normalize_for_comparison(correct_answer_clean)
+            
+            print(f"   Usuário normalizado: {user_normalized}")
+            print(f"   Correto normalizado: {correct_normalized}")
+            
+            is_structurally_equivalent = expressions_are_structurally_equivalent(user_answer_clean, correct_answer_clean)
+            
+            if is_structurally_equivalent:
+                #Verifica se são logicamente equivalentes após normalização
+                is_equiv_normalized = check_universal_equivalence(user_normalized, correct_normalized, debug=False)
+                
+                if is_equiv_normalized:
+                    print(f"✅ RESULTADO: Expressões são estruturalmente equivalentes!")
+                    print(f"{'='*60}\n")
+                    return True, "✅ Resposta correta! Sua expressão tem a mesma estrutura lógica (apenas os nomes das variáveis diferem)."
+            
+            #NÃO É EQUIVALENTE
+            print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
+            print(f"{'='*60}\n")
+            return False, "❌ Resposta incorreta. Sua expressão não é logicamente equivalente à resposta esperada."
         
         except Exception as e:
             print(f"❌ Erro geral na validação: {e}")

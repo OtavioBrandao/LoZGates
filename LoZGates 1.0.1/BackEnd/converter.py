@@ -1,6 +1,5 @@
 class Conversorlogical:
     def __init__(self):
-        """Inicializa o conversor com mapeamentos de operadores"""
         self.logical_operators = {
             '&': '*',    #AND
             '|': '+',    #OR  
@@ -11,11 +10,9 @@ class Conversorlogical:
         self.history = []
     
     def erase_expression(self, expression): 
-        """Remove espaços e normaliza a expressão"""
         return expression.replace(" ", "").strip()
     
     def find_left_operand(self, expr, pos):
-        """Encontra o operando à esquerda de uma posição"""
         j = pos - 1
         
         #Se termina com ')', encontra a expressão completa entre parênteses
@@ -38,7 +35,6 @@ class Conversorlogical:
             return expr[start:pos], start
     
     def find_right_operand(self, expr, pos):
-        """Encontra o operando à direita de uma posição"""
         k = pos
         
         #Se começa com '(', encontra a expressão completa entre parênteses
@@ -63,10 +59,6 @@ class Conversorlogical:
             return expr[start:k], k
     
     def replace_bi_implications(self, expr):
-        """
-            Converte bi-implicações (A <-> B) para ((~A + B) * (~B + A))
-            Suporta tanto '<->' quanto '<>'
-        """
         original_expr = expr
         i = 0
         
@@ -96,10 +88,6 @@ class Conversorlogical:
         return expr
     
     def replace_implications(self, expr):
-        """
-            Converte implicações (A -> B) para (~A + B)
-            Suporta tanto '->' quanto '>'
-        """
         i = 0
         
         while i < len(expr):
@@ -128,7 +116,6 @@ class Conversorlogical:
         return expr
     
     def replace_basic_operators(self, expr):
-        """Substitui operadores lógicos básicos por símbolos algébricos"""
         original_expr = expr
         
         for logical, algebraic in self.logical_operators.items():
@@ -141,12 +128,10 @@ class Conversorlogical:
         return expr
     
     def optimize_parentheses(self, expr):
-        """Remove parênteses desnecessários (opcional)"""
         #Implementação simples - pode ser expandida
         return expr
     
     def convert_to_boolean_algebra(self, expression, show_steps=False):
-        """Converte uma expressão de lógica proposicional para álgebra booleana"""
         self.history = []  #Reset do histórico
         
         #Limpa a expressão
@@ -173,14 +158,12 @@ class Conversorlogical:
         return expr
     
     def show_history(self):
-        """Mostra o histórico de conversões"""
         print("=== Passos da Conversão ===")
         for i, step in enumerate(self.history, 1):
             print(f"{i}. {step}")
         print("=" * 28)
     
     def validate_expression(self, expression):
-        """Valida se a expressão tem parênteses balanceados"""
         count = 0
         for i, char in enumerate(expression):
             if char == '(':
@@ -196,7 +179,6 @@ class Conversorlogical:
         return True, ""
     
     def convert_batch(self, expressions):
-        """Converte múltiplas expressões de uma vez"""
         results = {}
         
         for expr in expressions:
@@ -210,6 +192,5 @@ class Conversorlogical:
 
 #Função para compatibilidade, para nao mudar chamadas externas
 def converter_para_algebra_booleana(expression):
-    """Função de compatibilidade"""
     conversor = Conversorlogical()
     return conversor.convert_to_boolean_algebra(expression)

@@ -204,7 +204,6 @@ class CircuitModeSelector:
         self.status_label.pack(pady=(0, Spacing.MD))
     
     def create_circuit_area(self):
-        """Cria área para o circuito."""
         self.circuit_container = ctk.CTkFrame(
             self.main_container, 
             fg_color=Colors.SURFACE_DARK,
@@ -296,10 +295,10 @@ class CircuitModeSelector:
         desc_text = f"🎯 {mode_info['name']} - {mode_info['difficulty']}\n"
         desc_text += f"📝 {mode_info['description']}\n"
         
-        if mode_info['restrictions']:
-            desc_text += f"🔒 Portas permitidas: {', '.join(mode_info['restrictions']).upper()}"
-        else:
-            desc_text += f"🔓 Use qualquer porta lógica"
+        # if mode_info['restrictions']:
+        #     desc_text += f"🔒 Portas permitidas: {', '.join(mode_info['restrictions']).upper()}"
+        # else:
+        #     desc_text += f"🔓 Use qualquer porta lógica"
         
         self.mode_description.configure(text=desc_text)
         
@@ -354,6 +353,7 @@ class CircuitModeSelector:
             self.circuit_container.pack(fill="both", expand=True, pady=Spacing.MD, padx=Spacing.LG)
             
             circuit = self.circuit_manager.create_circuit(self.circuit_frame, expression, logger=self.logger)
+            circuit.scroll_control_callback = self._control_main_scroll
 
             #Atualiza estados
             self.is_circuit_active = True
@@ -454,7 +454,6 @@ class CircuitModeSelector:
             self.info_container.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD, before=self.circuit_container)
         
         controls_text = "🎮 CONTROLES BÁSICOS:\n\n"
-        controls_text += "  • TAB: Mostrar/esconder painel de componentes\n"
         controls_text += "  • Espaço: Testar circuito\n"
         controls_text += "  • Clique: Selecionar componente\n" 
         controls_text += "  • Arrastar: Mover componente\n"
@@ -465,19 +464,27 @@ class CircuitModeSelector:
         controls_text += "  • Ctrl+Z/Y: Desfazer/Refazer\n"
         controls_text += "  • Esc: Cancela conexão\n"
         controls_text += "  • R: Reset vista\n\n"
-        controls_text += "📋 COMO JOGAR:\n\n"
-        controls_text += "  1. Selecione um modo de desafio\n"
-        controls_text += "  2. Clique em 'Iniciar Desafio'\n"
-        controls_text += "  3. Use TAB para abrir o painel\n"
-        controls_text += "  4. Adicione componentes clicando no painel\n"
-        controls_text += "  5. Conecte os pontos verdes\n"
-        controls_text += "  6. Pressione ESPAÇO para testar!\n"
-        controls_text += "  7. Implemente a expressão corretamente!"
+        
+        #COLOCAR ISSO EM OUTRO LUGAR COMO JOGAR HOW TO PLAY INFO JOGO
+        # how_text += "📋 COMO JOGAR:\n\n"
+        # how_text += "  1. Selecione um modo de desafio\n"
+        # how_text += "  2. Clique em 'Iniciar Desafio'\n"
+        # how_text += "  3. Adicione componentes clicando no painel\n"
+        # how_text += "  4. Conecte os pontos verdes\n"
+        # how_text += "  5. Pressione ESPAÇO para testar!\n"
+        # how_text += "  6. Implemente a expressão corretamente!"
         
         self.info_text.configure(state="normal")
         self.info_text.delete("1.0", "end")
         self.info_text.insert("1.0", controls_text)
         self.info_text.configure(state="disabled")
+    
+    # Vai realizar o controle do scroll principal de acordo com a posição do cursor
+    def _control_main_scroll(self, enable):
+        if not enable:
+            self.circuit_frame.bind("<MouseWheel>", lambda e: "break")
+        else:
+            self.circuit_frame.unbind("<MouseWheel>")
     
     def cleanup(self): #Limpa recursos.
         if self.is_circuit_active:

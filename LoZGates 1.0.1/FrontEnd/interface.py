@@ -19,6 +19,7 @@ from BackEnd.imagem import converte_matrix_para_tkinter_imagem_icon
 from BackEnd.tabela import gerar_tabela_verdade, verificar_conclusao
 from BackEnd.converter import converter_para_algebra_booleana
 from BackEnd.equivalencia import tabela
+from BackEnd.normalizer import normalize_for_comparison, expressions_are_structurally_equivalent
 from BackEnd.identificar_lei import principal_simplificar
 import BackEnd.simplificador_interativo as simpli
 import BackEnd.principal as circuito_integrado
@@ -232,7 +233,6 @@ def inicializar_interface():
             print(f"Erro ao detectar mudança de aba: {e}")
            
     def if_necessary_create_a_circuit():
-        """Cria o circuito interativo apenas se ele não existir ou estiver vazio"""
         global circuito_interativo_instance, does_it_have_interaction
         
         # Verifica se o frame está vazio ou se a instância não existe
@@ -252,7 +252,6 @@ def inicializar_interface():
             print("Interface já existe - mantendo")
 
     def create_interactive_circuit(expressao):
-        """Cria o circuito interativo com seleção de modos."""
         global circuito_interativo_instance, does_it_have_interaction
         
         # LOG INÍCIO DO CIRCUITO INTERATIVO
@@ -455,8 +454,31 @@ def inicializar_interface():
                 popup_erro("As expressões não podem estar vazias.")
                 return
             
-            valor = tabela(expressao2, expressao3)
-            resultado = valor == 1
+            valor_direto = tabela(expressao2, expressao3)
+            if valor_direto == 1:
+                print(f"✅ RESULTADO: Expressões são logicamente equivalentes!")
+                print(f"{'='*60}\n")
+                resultado = True
+            else: #Equivalência estrutural (so muda as variaveis tipo a&b = p&q)
+                expressions_are_structurally_equivalent(expressao2, expressao3)
+                
+                #Normaliza e testa novamente
+                norm1 = normalize_for_comparison(expressao2)
+                norm2 = normalize_for_comparison(expressao3)
+                
+                print(f"   Expressão 1 normalizada: {norm1}")
+                print(f"   Expressão 2 normalizada: {norm2}")
+                
+                valor_normalizado = tabela(norm1, norm2)
+                
+                if valor_normalizado == 1:
+                    print(f"✅ RESULTADO: Expressões são estruturalmente equivalentes!")
+                    print(f"{'='*60}\n")
+                    resultado = True
+                else:
+                    print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
+                    print(f"{'='*60}\n")
+                    resultado = False
 
             # LOG DETALHADO COM EXPRESSÕES REAIS
             user_logger.log_equivalence_check_with_expressions(
@@ -651,13 +673,6 @@ def inicializar_interface():
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
     def handle_problem_answer(expression, destination):
-        """
-        Callback chamado quando o usuário acerta um problema e quer analisar
-        
-        Parâmetros:
-        - expression: A expressão do problema
-        - destination: "circuit", "simplifier" ou "table"
-        """
         # Preenche o campo de entrada principal
         entrada.delete(0, tk.END)
         entrada.insert(0, expression)
@@ -687,7 +702,6 @@ def inicializar_interface():
             exibir_tabela_verdade(expression)
 
     def setup_problems_interface_with_callback(scroll_container, voltar_callback, principal_frame, button_class):
-        """Configuração da interface de problemas com callback integrado"""
         interface = IntegratedProblemsInterface(scroll_container)
         
         # Configura o callback ANTES de criar a interface
@@ -1008,7 +1022,6 @@ def inicializar_interface():
 
 #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES MODIFICADAS ----------------------
     def salvar_estado_atual():
-        """Salva o estado atual (árvore, histórico, ignorados) na pilha de histórico."""
         global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info
         
         estado = {
@@ -1046,7 +1059,6 @@ def inicializar_interface():
         atualizar_ui_interativa()
   
     def inicializar_area_passos():
-        """Inicializa a área de passos com a expressão inicial"""
         global scroll_passos, contador_passos
         contador_passos = 0
         
@@ -1058,7 +1070,6 @@ def inicializar_interface():
         adicionar_passo_inicial(str(arvore_interativa))
     
     def adicionar_passo_inicial(expressao_inicial):
-        """Adiciona o passo inicial à área de passos"""
         passo_frame = ctk.CTkFrame(
             scroll_passos,
             fg_color=Colors.SURFACE_LIGHT,
@@ -1084,7 +1095,6 @@ def inicializar_interface():
         expressao_label.pack(pady=(0, Spacing.SM), padx=Spacing.SM, anchor="w")
     
     def adicionar_passo_sucesso(lei_nome, subexpressao, antes, depois, resultado):
-        """Adiciona um passo de sucesso à área de passos"""
         global contador_passos
         contador_passos += 1
         
@@ -1148,7 +1158,6 @@ def inicializar_interface():
         scroll_passos.after(100, lambda: scroll_passos._parent_canvas.yview_moveto(1.0))
     
     def adicionar_passo_pular(subexpressao):
-        """Adiciona um passo de pular à área de passos"""
         passo_frame = ctk.CTkFrame(
             scroll_passos,
             fg_color=Colors.SURFACE_MEDIUM,
@@ -1176,12 +1185,10 @@ def inicializar_interface():
         scroll_passos.after(100, lambda: scroll_passos._parent_canvas.yview_moveto(1.0))
     
     def atualizar_area_passos():
-        """Atualiza a área de passos (chamada quando necessário)"""
         # Esta função pode ser expandida se necessário para atualizações dinâmicas
         pass
     
     def reconstruir_area_passos():
-        """Reconstrói a área de passos baseada no histórico atual"""
         global scroll_passos
         
         # Limpa área atual
@@ -1304,16 +1311,22 @@ def inicializar_interface():
                 text_color=Colors.SUCCESS
             )
             
-            if historico_interativo: # Garante que a sessão foi iniciada
+            if historico_interativo:  # Garante que a sessão foi iniciada
                 total_steps = contador_passos
-                laws_used = [line for line in historico_interativo if "✓ Lei" in line]
-                user_logger.log_simplification_completed(total_steps, laws_used)
                 
-                # Reseta o histórico para não logar a mesma sessão duas vezes
-                historico_interativo = [] 
-            
-            # Finaliza a sessão quando não há mais possibilidades
-            finalizar_sessao_expressao(str(expressao_global), resolvida=True)
+                # Extrai nomes das leis do histórico
+                laws_used = []
+                for line in historico_interativo:
+                    if "✓ Lei" in line and "aplicada com sucesso" in line:
+                        # Extrai o nome da lei da linha do histórico
+                        import re
+                        lei_match = re.search(r"Lei '(.+?)' aplicada", line)
+                        if lei_match:
+                            laws_used.append(lei_match.group(1))
+                
+                # CHAMA A FUNÇÃO DE LOG DE CONCLUSÃO
+                user_logger.log_simplification_completed(total_steps, laws_used)
+                print(f"📝 Simplificação concluída: {total_steps} passos, {len(laws_used)} leis aplicadas")
             
             # Desabilita botões
             if botoes_leis:
@@ -1367,7 +1380,6 @@ def inicializar_interface():
             widget.destroy()
     
     def abrir_chat_ia():
-        """Abre o popup de chat com IA para o simplificador interativo"""
         try:
             expressao_atual = str(arvore_interativa) if arvore_interativa else expressao_global
             contexto_passo = ""

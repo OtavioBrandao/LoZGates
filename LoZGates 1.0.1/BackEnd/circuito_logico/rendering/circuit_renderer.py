@@ -1,12 +1,11 @@
 """
-Módulo para renderização automática de circuitos lógicos baseado na AST.
-Gera visualizações estáticas dos circuitos com layout automático.
+    Módulo para renderização automática de circuitos lógicos baseado na AST.
+    Gera visualizações estáticas dos circuitos com layout automático.
 """
 
 from ..logic.parser import criar_ast_de_expressao, calcular_layout_dinamico, _coletar_variaveis
 
 def desenhar_circuito_dinamico(layout, x_pos, bus_positions, drawer):
-    """Desenha recursivamente o circuito baseado no layout calculado."""
     layout_type = layout.get('type')
     
     if layout_type in ['variable', 'negated_variable']:
@@ -62,7 +61,6 @@ def desenhar_circuito_dinamico(layout, x_pos, bus_positions, drawer):
 
 
 def desenhar_circuito_logico_base(expressao_booleana, drawer, screen_width, screen_height):
-    """Função principal para desenhar o circuito lógico completo."""
     try:
         ast_root = criar_ast_de_expressao(expressao_booleana)
     except ValueError as e:
@@ -109,7 +107,6 @@ def desenhar_circuito_logico_base(expressao_booleana, drawer, screen_width, scre
 
 
 def draw_ui_info(screen, camera, font):
-    """Desenha informações de controle na tela."""
     ui_texts = [
         "Controles:",
         "- Arrastar: Mouse esquerdo",

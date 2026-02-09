@@ -109,8 +109,6 @@ def register_law(expression, law_name, success=True, tempo_gasto=0, log_path="lo
 
 # Função para gerar relatório HTML (corrigida)
 def gerar_relatorio_html(log_path="logs.json", output_path="relatorio_estatisticas.html"):
-    """Gera um relatório HTML com as estatísticas dos logs"""
-    
     logs = load_log(log_path)
     
     if not logs["expressions"]:  # CORRIGIDO: usar "expressions"

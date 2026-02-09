@@ -1,14 +1,9 @@
-"""
-    Módulo para o painel de seleção de componentes (paleta de ferramentas)
-    onde o usuário pode escolher quais portas lógicas adicionar ao circuito.
-"""
+#Módulo para o painel de seleção de componentes (paleta de ferramentas) onde o usuário pode escolher quais portas lógicas adicionar ao circuito.
 
 import pygame
 import math
 
 class ComponentPalette:
-    """Painel de seleção de componentes para o circuito interativo."""
-    
     def __init__(self, screen_width, screen_height):
         self.screen_width = screen_width
         self.screen_height = screen_height
@@ -38,22 +33,18 @@ class ComponentPalette:
         self.drag_offset = (0, 0)
     
     def set_gate_limitations(self, allowed_gates):
-        """Define quais portas são permitidas."""
         self.allowed_gates = allowed_gates
     
     def is_component_allowed(self, comp_type):
-        """Verifica se um componente é permitido pelas limitações atuais."""
         if self.allowed_gates is None:
             return True
         return comp_type in self.allowed_gates
     
     def get_button_rect(self, index):
-        """Retorna o retângulo de um botão específico."""
         y_pos = self.y + 30 + index * (self.button_height + self.button_margin)
         return pygame.Rect(self.x + 5, y_pos, self.width - 10, self.button_height)
     
     def handle_click(self, pos):
-        """Processa cliques no painel."""
         if not self.visible or not self.point_in_palette(pos):
             return None
         
@@ -69,12 +60,10 @@ class ComponentPalette:
         return 'palette_click'  #Clicou no painel mas não em um botão
     
     def point_in_palette(self, pos):
-        """Verifica se um ponto está dentro do painel."""
         palette_rect = pygame.Rect(self.x, self.y, self.width, self.height)
         return palette_rect.collidepoint(pos)
     
     def draw(self, screen, font=None):
-        """Desenha o painel de componentes."""
         if not self.visible:
             return
         
@@ -122,7 +111,6 @@ class ComponentPalette:
             button_index += 1
     
     def _draw_gate_icon(self, screen, gate_type, button_rect, is_enabled):
-        """Desenha ícone simplificado da porta lógica."""
         if not is_enabled:
             return
             
@@ -190,5 +178,4 @@ class ComponentPalette:
                 pygame.draw.circle(screen, color, (icon_x + 6, icon_y), 2, 1)
     
     def toggle_visibility(self):
-        """Alterna a visibilidade do painel."""
         self.visible = not self.visible

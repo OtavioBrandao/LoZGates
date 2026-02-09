@@ -1,41 +1,47 @@
 # Conversão lógica -> algebra
-    - Arrumar a lógica do implica ✅ (testar mais)
-    - Implementar a lógica do bi implica (<>)  ✅
-    - Coloquei so na conversão, preciso ver o coisa do circuito logico agora ✅
 
 
 # Simplificador Interativo
     - Tentar colocar uma explicação sobre o motivo de não conseguir usar determinada lei*
-    - Colocar um botão " Voltar Sugestão " na parte interativa ✅
-    - Verificar problemas de não aparecer o botão voltar em resoluções diferentes (urgente) ✅
     - Colocar algum botão para reogarnizar a expressão (comutatividade de outra forma)
     - Colocar para funcionar independente da letra
+    - Deixar mais intuitivo, talvez fazer um vídeo
+    - Resolver o problema do scroll, as vezes precisa pra fazer algum passo (depende do pc)
+    - Resolver as inconsistencias relacionada ao DO e UNDO
 
 # Simplificador Resultado
     - Colocar para funcionar independente da letra
     - Implementar uma lógica para reorganizar a expressão e só aí retornar se pode ou não fazer a simplificação
 
 # Tabela
-    - Melhorar o print ✅
-        - Printar de acordo com a quantidad de sub expressões ✅
 
 # Textbox
-    - Colocar a textbox do "Ver solução" scrollable ✅
     - Centralizar os textos
 
 # Problemas reais
     - Consertar o scroll, o de dentro so vai quando o de fora chega no limite (container_problemas)
 
 # Circuito Lógico Interativo
-    - Se a dica estiver aberta e clicar outra vez, fecha (ou apertando o botão parar). -Otavio✅
-    - Mesma coisa para o controle. -Otavio✅
-    - Tirar a possibilidade de ter como escrever na caixa de dicas e controle -Otavio✅
-    - Desafio minimo deveria mostrar a mensagem de parabêns mesmo que nem todas as variaveis sejam conectadas, basta uma. (resolver de uma forma que respeite poo) ✅
+   - Colocar botão para fechar (sair)
+   - Deixar mais intuitivo, talvez fazer um vídeo
+   - Arrumar o info quando clica na interrogação "?"
 
 # Banco de questões
-    - Levar a resposta para ser analisada no circuito e na simplificação. ✅
-    - Depois que resolver essa primeira parte, colocar para expressões iguais, mas com variaveis diferentes, sejam equivalentes APENAS para essa parte.
-    por exemplo: A>B == P>Q. Porque aí não precisa definir variáveis, e não daria essa dica.
+    - Como a>b = p>q, podemos tirar as dicas de variaveis para ser usadas, mas vale a pena? pq a resposta pode ficar confusa para compreensão da pessoa. (PENSAR A RESPEITO)
 
 # Integração com IA
     - Ver como colocar a API pra fase de testes sem ter problema com terceiros
+
+# INTERFACE PRINCIPAL
+    - Banco de problemas no início ficaria mais intuitivo
+    - Colocar expressão digitada pelo usuário no circuito interativo
+
+# Manual interface
+    - Melhorar o sobre da sintaxe, tá parecendo que pode colocar os dois (provalvemente tava falando de colocar tanto & quanto *)
+    - Melhorar as cores dos botões, ta meio ruim de ver 
+    - Leis: colocar o 1 -> V e 0 -> f
+    - Trocar a ordem do como jogar e controles, um dos primeiros no ajuda
+
+
+# VER PARA QUAL PARTE É, EU ESQUECI
+    - Colocar try no coisa de digitar a expressão pra precisar do token

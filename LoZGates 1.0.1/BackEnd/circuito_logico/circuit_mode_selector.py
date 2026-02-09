@@ -1,6 +1,5 @@
-"""
-    Módulo para gerenciar diferentes modos de circuito interativo.
-"""
+#Módulo para gerenciar diferentes modos de circuito interativo.
+
 import tkinter as tk
 from typing import List, Optional, Dict, Any
 from .interactive.interactive_circuit import CircuitoInterativoManual
@@ -185,21 +184,16 @@ class CircuitModeManager:
             
         if mode_key is None:
             return ["Selecione um modo primeiro para ver dicas específicas."]
-            
+        #MODIFICAR DICAS AQUI    
         tips = {
             'livre': [
-                "Experimente diferentes combinações de portas",
-                "Teste sua implementação com diferentes entradas"
+                "Experimente diferentes combinações de portas"
             ],
             'nand_only': [
-                "Lembre-se: NAND é funcionalmente completa",
-                "AND = NAND + NOT",
                 "OR pode ser implementado usando as leis de De Morgan",
                 "Pense em como ~(A*B) = ~A + ~B"
             ],
             'nor_only': [
-                "Lembre-se: NOR é funcionalmente completa",
-                "OR = NOR + NOT", 
                 "AND pode ser implementado usando as leis de De Morgan",
                 "Pense em como ~(A+B) = ~A * ~B"
             ],
@@ -210,11 +204,9 @@ class CircuitModeManager:
             ],
             'advanced_gates': [
                 "XOR é útil para funções de paridade",
-                "XNOR é o complemento do XOR",
-                "Combine portas avançadas com básicas estrategicamente"
+                "XNOR é o complemento do XOR"
             ],
             'minimal': [
-                "Tente usar o menor número possível de portas",
                 "Aplique simplificações algébricas primeiro",
                 "Considere usar portas que implementem múltiplas funções"
             ]
