@@ -111,7 +111,6 @@ class AIChatPopup:
         self.entry.bind("<Return>", lambda e: self.send_message())
     
     def add_message(self, sender, message, is_error=False):
-        """Adiciona mensagem ao chat"""
         message_frame = ctk.CTkFrame(self.chat_frame)
         message_frame.pack(fill="x", padx=5, pady=2)
         
@@ -147,14 +146,12 @@ class AIChatPopup:
         self.popup.after(100, self._scroll_to_bottom)
     
     def _scroll_to_bottom(self):
-        """Rola o chat para baixo"""
         try:
             self.chat_frame._parent_canvas.yview_moveto(1.0)
         except:
             pass
     
     def send_message(self):
-        """Envia mensagem do usuário"""
         message = self.entry.get().strip()
         if not message:
             return
@@ -185,7 +182,6 @@ class AIChatPopup:
         self.ai_assistant.ask_question(message, self.expression, callback)
     
     def get_suggestion(self):
-        """Solicita nova sugestão da IA"""
         if not self.expression:
             self.add_message("Sistema", "Nenhuma expressão disponível para análise.", is_error=True)
             return
@@ -215,7 +211,6 @@ class AIChatPopup:
         self.ai_assistant.get_ai_suggestion(self.expression, self.step_context, callback)
     
     def get_initial_suggestion(self):
-        """Obtém sugestão inicial automaticamente"""
         def callback(response, error):
             if error:
                 self.add_message("IA", f"Erro ao conectar: {error}", is_error=True)
@@ -228,7 +223,6 @@ class AIChatPopup:
         self.ai_assistant.get_ai_suggestion(self.expression, self.step_context, callback)
     
     def explain_laws(self):
-        """Explica as leis da lógica proposicional"""
         self.add_message("Você", "Explicar leis da lógica")
         
         explanation = """Principais leis da lógica proposicional:
