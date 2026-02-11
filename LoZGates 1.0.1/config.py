@@ -10,7 +10,6 @@ duvida_circuitos = """
 ═══════════════════════════════════════════════════════════════════════════
 
 🎮 CONTROLES ESSENCIAIS:
-• TAB: Abrir/fechar painel de componentes
 • ESPAÇO: Testar o circuito
 • Clique: Selecionar componentes
 • Arrastar: Mover componentes  
