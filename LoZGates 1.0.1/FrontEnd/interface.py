@@ -49,7 +49,7 @@ botoes_leis = []
 circuito_interativo_instance = None
 does_it_has_interactveon = False
 
-# Variáveis para a nova interface interativa
+#Variáveis para a nova interface interativa
 label_expressao_inicial = None
 label_analise_atual = None
 scroll_passos = None
@@ -61,8 +61,8 @@ frame_controles_interativo = None
 
 def inicializar_interface():
 
-    ctk.set_appearance_mode("dark")  # Modo escuro
-    ctk.set_default_color_theme("blue")  # Tema azul
+    ctk.set_appearance_mode("dark")  #Modo escuro
+    ctk.set_default_color_theme("blue")  #Tema azul
     janela = ctk.CTk()
     janela.title("LoZ Gates")
     janela.configure(bg=Colors.PRIMARY_BG)
@@ -108,7 +108,7 @@ def inicializar_interface():
 
         #Espera a imagem ser criada antes de continuar
         def aguardar_imagem():
-            tempo_max = 10  # Aumentado para 10 segundos
+            tempo_max = 10  #Aumentado para 10 segundos
             tempo_passado = 0
             while not os.path.exists(caminho_imagem) and tempo_passado < tempo_max:
                 time.sleep(0.2)
@@ -123,13 +123,13 @@ def inicializar_interface():
         threading.Thread(target=aguardar_imagem).start()
 
     def popup_erro(mensagem):
-        popup = tk.Toplevel(janela)  # <- tk.Toplevel ao invés de ctk.CTkToplevel
+        popup = tk.Toplevel(janela)  #<- tk.Toplevel ao invés de ctk.CTkToplevel
         popup.attributes('-topmost', True)
         popup.after(10, lambda: popup.attributes('-topmost', False))
         popup.title("Erro")
         popup.iconbitmap(os.path.join(ASSETS_PATH, "endeota.ico"))
 
-        # Tamanho e centralização
+        #Tamanho e centralização
         largura_popup = 400
         altura_popup = 120
         popup.geometry(f"{largura_popup}x{altura_popup}")
@@ -138,10 +138,10 @@ def inicializar_interface():
         y = (popup.winfo_screenheight() // 2) - (altura_popup // 2)
         popup.geometry(f"{largura_popup}x{altura_popup}+{x}+{y}")
 
-        # Cor de fundo
-        popup.configure(bg="#1a1a1a")  # como é Tk puro, use 'bg' e não 'fg_color'
+        #Cor de fundo
+        popup.configure(bg="#1a1a1a")  #como é Tk puro, use 'bg' e não 'fg_color'
 
-        # Conteúdo
+        #Conteúdo
         label = tk.Label(popup, text=mensagem, font=("Trebuchet MS", 12), fg="white", bg="#1a1a1a")
         label.pack(pady=(20, 10))
 
@@ -150,21 +150,21 @@ def inicializar_interface():
         botao_ok.pack(pady=(0, 10))
 
     def popup_duvida(mensagem):
-        popup = tk.Toplevel(janela)  # <- tk.Toplevel ao invés de ctk.CTkToplevel
+        popup = tk.Toplevel(janela)  #<- tk.Toplevel ao invés de ctk.CTkToplevel
         popup.attributes('-topmost', True)
         popup.after(10, lambda: popup.attributes('-topmost', False))
         popup.title("Ajuda")
         popup.iconbitmap(os.path.join(ASSETS_PATH, "endeota.ico"))
         popup.configure(bg="#1a1a1a")
-        # Cria o textbox e insere a mensagem de ajuda/informação
+        #Cria o textbox e insere a mensagem de ajuda/informação
         textbox = tk.Text(popup, wrap="word", font=("Trebuchet MS", 12), fg="white", bg="#1a1a1a", borderwidth=0)
         textbox.pack(padx=10, pady=10, fill="both", expand=True)
-        # Escreve a mensagem recebida + informações extras
+        #Escreve a mensagem recebida + informações extras
         info_extra = "\n\nLoZ Gates - Ajuda\nEste aplicativo permite criar, visualizar e simplificar expressões de lógica proposicional.\nUse as abas para acessar circuitos, expressões e problemas reais."
         textbox.insert("1.0", info_extra + mensagem)
         textbox.configure(state="disabled")
 
-        # Tamanho e centralização
+        #Tamanho e centralização
         largura_popup = 400
         altura_popup = 400
         popup.geometry(f"{largura_popup}x{altura_popup}")
@@ -188,7 +188,7 @@ def inicializar_interface():
                 
             label_circuito_expressao.configure(text=f"Expressão Lógica Proposicional: {expressao}")
             
-            # Criar diretório se não existir
+            #Criar diretório se não existir
             os.makedirs(ASSETS_PATH, exist_ok=True)
             
             with open(caminho_entrada, "w", encoding="utf-8") as file: 
@@ -198,10 +198,10 @@ def inicializar_interface():
             global expressao_global
             expressao_global = saida
 
-            # Gerar circuito pygame
+            #Gerar circuito pygame
             ver_circuito_pygame(saida)
             
-            # Mostrar frame das abas (a criação do circuito interativo acontecerá no callback da aba)
+            #Mostrar frame das abas (a criação do circuito interativo acontecerá no callback da aba)
             show_frame(frame_abas)
             duration = time.time() - start_time
             user_logger.log_feature_used("circuit_generation", duration)
@@ -217,17 +217,17 @@ def inicializar_interface():
             atual_tab = abas.get()
             user_logger.log_tab_changed("tab_navigation", atual_tab)
             if atual_tab == "  Circuito Interativo  ":
-                # Garante que a expressão existe antes de criar qualquer coisa
+                #Garante que a expressão existe antes de criar qualquer coisa
                 if not expressao_global:
                     print("Expressão global não definida - não é possível criar circuito")
                     return
                     
-                # Atualiza display da expressão se a instância existir
+                #Atualiza display da expressão se a instância existir
                 if (circuito_interativo_instance and 
                     hasattr(circuito_interativo_instance, 'update_expression_display')):
                     circuito_interativo_instance.update_expression_display()
                     
-                # Só cria se realmente necessário
+                #Só cria se realmente necessário
                 if_necessary_create_a_circuit()
         except Exception as e:
             print(f"Erro ao detectar mudança de aba: {e}")
@@ -235,14 +235,14 @@ def inicializar_interface():
     def if_necessary_create_a_circuit():
         global circuito_interativo_instance, does_it_have_interaction
         
-        # Verifica se o frame está vazio ou se a instância não existe
+        #Verifica se o frame está vazio ou se a instância não existe
         frame_vazio = len(frame_circuito_interativo.winfo_children()) == 0
         instancia_inexistente = circuito_interativo_instance is None
         
-        # Só cria se não existir
+        #Só cria se não existir
         if frame_vazio or instancia_inexistente:
             print("Criando interface de seleção de modo...")
-            # Usa a expressão atual da entrada, não uma vazia
+            #Usa a expressão atual da entrada, não uma vazia
             expressao_atual = entrada.get().strip().upper().replace(" ", "") if entrada.get().strip() else expressao_global
             if expressao_atual:
                 create_interactive_circuit(expressao_atual)
@@ -254,7 +254,7 @@ def inicializar_interface():
     def create_interactive_circuit(expressao):
         global circuito_interativo_instance, does_it_have_interaction
         
-        # LOG INÍCIO DO CIRCUITO INTERATIVO
+        #LOG INÍCIO DO CIRCUITO INTERATIVO
         user_logger.log_circuit_interaction_start()
         
         def get_global_expression():
@@ -302,7 +302,7 @@ def inicializar_interface():
             popup_erro("A expressão não pode estar vazia.")
             return
         
-        # LOG DA EXPRESSÃO INSERIDA
+        #LOG DA EXPRESSÃO INSERIDA
         user_logger.log_expression_entered(expressao_texto.upper().replace(" ", ""), True)
         
         try:
@@ -324,15 +324,15 @@ def inicializar_interface():
             janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
             janela_tabela.configure(fg_color=Colors.PRIMARY_BG)
 
-            # Gera a tabela verdade usando a função do backend
+            #Gera a tabela verdade usando a função do backend
             dados_tabela = gerar_tabela_verdade(expressao)
             
-            # Extrai os dados do dicionário retornado
+            #Extrai os dados do dicionário retornado
             colunas = dados_tabela["colunas"]
             tabela = dados_tabela["tabela"]
             resultados_finais = dados_tabela["resultados_finais"]
 
-            # Container principal
+            #Container principal
             main_container = ctk.CTkFrame(
                 janela_tabela,
                 fg_color=Colors.PRIMARY_BG,
@@ -340,7 +340,7 @@ def inicializar_interface():
             )
             main_container.pack(fill="both", expand=True, padx=Spacing.LG, pady=Spacing.LG)
 
-            # Título da janela
+            #Título da janela
             titulo_tabela = ctk.CTkLabel(
                 main_container,
                 text=f"Tabela Verdade: {expressao}",
@@ -349,7 +349,7 @@ def inicializar_interface():
             )
             titulo_tabela.pack(pady=(Spacing.SM, Spacing.LG))
 
-            # Frame da tabela com design padronizado
+            #Frame da tabela com design padronizado
             frame_tabela_container = ctk.CTkFrame(
                 main_container,
                 fg_color=Colors.SURFACE_LIGHT,
@@ -357,7 +357,7 @@ def inicializar_interface():
             )
             frame_tabela_container.pack(fill="both", expand=True, pady=(0, Spacing.MD))
 
-            # Área scrollável para a tabela
+            #Área scrollável para a tabela
             frame_tabela = ctk.CTkScrollableFrame(
                 frame_tabela_container,
                 fg_color=Colors.SURFACE_DARK,
@@ -365,16 +365,16 @@ def inicializar_interface():
             )
             frame_tabela.pack(fill="both", expand=True, padx=Spacing.SM, pady=Spacing.SM)
 
-            # Calcular larguras otimizadas para cada coluna
+            #Calcular larguras otimizadas para cada coluna
             larguras = []
             for i, col in enumerate(colunas):
                 max_len = len(str(col))
                 for linha in tabela:
                     if i < len(linha):
                         max_len = max(max_len, len(str(linha[i])))
-                larguras.append(max(max_len + 1, 3))  # Mínimo 3, +1 para espaçamento
+                larguras.append(max(max_len + 1, 3))  #Mínimo 3, +1 para espaçamento
 
-            # Cabeçalho da tabela
+            #Cabeçalho da tabela
             header_frame = ctk.CTkFrame(
                 frame_tabela,
                 fg_color=Colors.SURFACE_MEDIUM,
@@ -391,7 +391,7 @@ def inicializar_interface():
             )
             label_cabecalho.pack(pady=Spacing.SM)
 
-            # Linhas da tabela
+            #Linhas da tabela
             for i, linha_valores in enumerate(tabela):
                 linha_frame = ctk.CTkFrame(
                     frame_tabela,
@@ -409,7 +409,7 @@ def inicializar_interface():
                 )
                 label_linha.pack(pady=Spacing.XS)
 
-            # Frame para conclusão
+            #Frame para conclusão
             conclusao_frame = ctk.CTkFrame(
                 main_container,
                 fg_color=Colors.SURFACE_MEDIUM,
@@ -417,10 +417,10 @@ def inicializar_interface():
             )
             conclusao_frame.pack(fill="x", pady=(0, Spacing.MD))
 
-            # Verifica a conclusão da expressão
+            #Verifica a conclusão da expressão
             conclusao = verificar_conclusao(resultados_finais)
             
-            # Define cor baseada no tipo de conclusão
+            #Define cor baseada no tipo de conclusão
             if "TAUTOLOGIA" in conclusao:
                 cor_conclusao = Colors.SUCCESS
             elif "CONTRADIÇÃO" in conclusao:
@@ -436,7 +436,7 @@ def inicializar_interface():
             )
             label_conclusao.pack(pady=Spacing.MD)
 
-            # Botão para fechar
+            #Botão para fechar
             botao_fechar = Button.botao_padrao("Fechar", main_container)
             botao_fechar.configure(command=janela_tabela.destroy)
             botao_fechar.pack(pady=Spacing.SM)
@@ -446,55 +446,74 @@ def inicializar_interface():
             print(f"Erro detalhado: {e}")
 
     def comparar():
-        try:
-            expressao2 = entrada2.get().strip().upper()
-            expressao3 = entrada3.get().strip().upper()
-            
-            if not expressao2 or not expressao3:
-                popup_erro("As expressões não podem estar vazias.")
-                return
-            
-            valor_direto = tabela(expressao2, expressao3)
-            if valor_direto == 1:
-                print(f"✅ RESULTADO: Expressões são logicamente equivalentes!")
-                print(f"{'='*60}\n")
-                resultado = True
-            else: #Equivalência estrutural (so muda as variaveis tipo a&b = p&q)
-                expressions_are_structurally_equivalent(expressao2, expressao3)
+            try:
+                expressao2 = entrada2.get().strip().upper()
+                expressao3 = entrada3.get().strip().upper()
                 
-                #Normaliza e testa novamente
-                norm1 = normalize_for_comparison(expressao2)
-                norm2 = normalize_for_comparison(expressao3)
+                if not expressao2 or not expressao3:
+                    popup_erro("As expressões não podem estar vazias.")
+                    return
                 
-                print(f"   Expressão 1 normalizada: {norm1}")
-                print(f"   Expressão 2 normalizada: {norm2}")
+                print(f"\n{'='*60}")
+                print(f"🔍 COMPARAÇÃO DE EXPRESSÕES")
+                print(f"{'='*60}")
+                print(f"📝 Expressão 1: {expressao2}")
+                print(f"📝 Expressão 2: {expressao3}")
                 
-                valor_normalizado = tabela(norm1, norm2)
+                #PRIMEIRA VERIFICAÇÃO: Equivalência lógica direta
+                print(f"\n🧮 Verificando equivalência lógica direta...")
+                from BackEnd.equivalencia import check_universal_equivalence
+                is_logically_equivalent = check_universal_equivalence(expressao2, expressao3, debug=True)
                 
-                if valor_normalizado == 1:
-                    print(f"✅ RESULTADO: Expressões são estruturalmente equivalentes!")
+                if is_logically_equivalent:
+                    print(f"✅ RESULTADO: Expressões são logicamente equivalentes!")
                     print(f"{'='*60}\n")
                     resultado = True
                 else:
-                    print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
-                    print(f"{'='*60}\n")
-                    resultado = False
+                    #SEGUNDA VERIFICAÇÃO: Equivalência estrutural (variáveis diferentes)
+                    print(f"\n🔄 Verificando equivalência estrutural (ignorando nomes de variáveis)...")
+                    from BackEnd.normalizer import normalize_for_comparison, expressions_are_structurally_equivalent
+                    
+                    is_structurally_equivalent = expressions_are_structurally_equivalent(expressao2, expressao3)
+                    
+                    if is_structurally_equivalent:
+                        #Normaliza e testa novamente
+                        norm1 = normalize_for_comparison(expressao2)
+                        norm2 = normalize_for_comparison(expressao3)
+                        
+                        print(f"   Expressão 1 normalizada: {norm1}")
+                        print(f"   Expressão 2 normalizada: {norm2}")
+                        
+                        is_equiv_normalized = check_universal_equivalence(norm1, norm2, debug=False)
+                        
+                        if is_equiv_normalized:
+                            print(f"✅ RESULTADO: Expressões são estruturalmente equivalentes!")
+                            print(f"{'='*60}\n")
+                            resultado = True
+                        else:
+                            print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
+                            print(f"{'='*60}\n")
+                            resultado = False
+                    else:
+                        print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
+                        print(f"{'='*60}\n")
+                        resultado = False
 
-            # LOG DETALHADO COM EXPRESSÕES REAIS
-            user_logger.log_equivalence_check_with_expressions(
-                expressao2, expressao3, resultado
-            )
-            
-            if resultado:
-                equivalente.place(relx=0.5, y=360, anchor="center")
-                nao_equivalente.place_forget()
-            else:
-                nao_equivalente.place(relx=0.5, y=360, anchor="center")
-                equivalente.place_forget()
+                #LOG DETALHADO COM EXPRESSÕES REAIS
+                user_logger.log_equivalence_check_with_expressions(
+                    expressao2, expressao3, resultado
+                )
                 
-        except Exception as e:
-            user_logger.log_error("equivalence_check_error", str(e), "comparar_function")
-            popup_erro(f"Erro ao comparar expressões: {e}")
+                if resultado:
+                    equivalente.place(relx=0.5, y=360, anchor="center")
+                    nao_equivalente.place_forget()
+                else:
+                    nao_equivalente.place(relx=0.5, y=360, anchor="center")
+                    equivalente.place_forget()
+                    
+            except Exception as e:
+                user_logger.log_error("equivalence_check_error", str(e), "comparar_function")
+                popup_erro(f"Erro ao comparar expressões: {e}")
               
     def go_back_to(frame):
         try:
@@ -504,13 +523,13 @@ def inicializar_interface():
                 botao_ver_circuito.destroy()
                 botao_ver_circuito = None
 
-            # Lógica melhorada para parar o circuito
+            #Lógica melhorada para parar o circuito
             if circuito_interativo_instance:
-                # Se voltando para frame_abas, NÃO para o circuito
+                #Se voltando para frame_abas, NÃO para o circuito
                 if frame == frame_abas:
                     print("Voltando para abas - mantendo circuito ativo")
                 else:
-                    # Para qualquer outro destino, para o circuito
+                    #Para qualquer outro destino, para o circuito
                     try:
                         circuito_interativo_instance.cleanup()
                         circuito_interativo_instance = None
@@ -519,12 +538,12 @@ def inicializar_interface():
                     except Exception as e:
                         print(f"Erro ao limpar circuito: {e}")
 
-            # Limpa as entradas apenas se não for para certas telas
+            #Limpa as entradas apenas se não for para certas telas
             if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
                 entrada.delete(0, tk.END) 
                 does_it_have_interaction = False
                 try:
-                    esconder_botoes_simplificar()  # Reset dos botões ao limpar entrada
+                    esconder_botoes_simplificar()  #Reset dos botões ao limpar entrada
                 except:
                     pass
 
@@ -538,13 +557,13 @@ def inicializar_interface():
             equivalente.place_forget()
             nao_equivalente.place_forget()
             
-            # Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
+            #Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
             if frame != frame_abas:
                 label_convertida.pack_forget()
                 log_simplificacao_textbox.pack_forget()
                 step_view.pack_forget()
                 try:
-                    esconder_botoes_simplificar()  # Esconde botões de simplificação
+                    esconder_botoes_simplificar()  #Esconde botões de simplificação
                 except:
                     pass
 
@@ -554,7 +573,7 @@ def inicializar_interface():
             if frame == principal:
                 entrada.focus_set()
             
-            # Se voltando para frame_abas, garante que a interface esteja disponível
+            #Se voltando para frame_abas, garante que a interface esteja disponível
             if frame == frame_abas and expressao_global:
                 janela.after(200, if_necessary_create_a_circuit)
             
@@ -673,21 +692,21 @@ def inicializar_interface():
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
     def handle_problem_answer(expression, destination):
-        # Preenche o campo de entrada principal
+        #Preenche o campo de entrada principal
         entrada.delete(0, tk.END)
         entrada.insert(0, expression)
         
-        # Log da ação
+        #Log da ação
         user_logger.log_feature_used("problem_answer_analysis", 0)
         
-        # Navega baseado no destino
+        #Navega baseado no destino
         if destination == "circuit":
-            # Confirma expressão e vai para circuito
+            #Confirma expressão e vai para circuito
             confirmar_expressao()
             janela.after(500, lambda: trocar_para_abas())
         
         elif destination == "simplifier":
-            # Confirma expressão e vai para simplificador
+            #Confirma expressão e vai para simplificador
             confirmar_expressao()
             janela.after(500, lambda: [
                 trocar_para_abas(),
@@ -698,19 +717,19 @@ def inicializar_interface():
             ])
         
         elif destination == "table":
-            # Abre diretamente a tabela verdade
+            #Abre diretamente a tabela verdade
             exibir_tabela_verdade(expression)
 
     def setup_problems_interface_with_callback(scroll_container, voltar_callback, principal_frame, button_class):
         interface = IntegratedProblemsInterface(scroll_container)
         
-        # Configura o callback ANTES de criar a interface
+        #Configura o callback ANTES de criar a interface
         interface.main_entry_callback = handle_problem_answer
         
-        # Cria a tela principal
+        #Cria a tela principal
         interface.create_problems_main_screen(scroll_container, voltar_callback, principal_frame)
 
-    # Use esta função no lugar da original
+    #Use esta função no lugar da original
     setup_problems_interface_with_callback(scroll_problemas_reais, go_back_to, principal, Button)
         
     #---------------- FRAME DE ABAS ----------------
@@ -805,7 +824,7 @@ def inicializar_interface():
             except Exception as e:
                 print(f"Erro no logger: {e}")
 
-    # Componente StepView para visualização passo a passo
+    #Componente StepView para visualização passo a passo
     step_view = StepView(scroll_conteudo)
     
     frame_borda = ctk.CTkFrame(
@@ -830,7 +849,7 @@ def inicializar_interface():
 
     def mostrar_expressao_convertida():
         try:
-            # Esconde elementos antigos
+            #Esconde elementos antigos
             log_simplificacao_textbox.pack_forget()
             step_view.pack_forget()
             label_solucao.pack_forget()
@@ -862,16 +881,16 @@ def inicializar_interface():
 
     def expressao_simplificada():
         try:
-            # 1. Pega a expressão mais recente direto da caixa de entrada principal
+            #1. Pega a expressão mais recente direto da caixa de entrada principal
             entrada_txt = entrada.get().strip().upper()
             if not entrada_txt:
                 popup_erro("A expressão na tela principal está vazia.")
                 return
 
-            # 2. Converte para o formato de álgebra booleana
+            #2. Converte para o formato de álgebra booleana
             expressao_para_simplificar = converter_para_algebra_booleana(entrada_txt)
             
-            # Esconde componentes antigos e mostra StepView
+            #Esconde componentes antigos e mostra StepView
             if label_solucao.winfo_ismapped():
                 label_solucao.pack_forget()
                 log_simplificacao_textbox.pack_forget()
@@ -882,10 +901,10 @@ def inicializar_interface():
             step_view.configure(height=800)
             botao_go_back_to_aba2.pack(pady=Spacing.MD)
 
-            # Inicializa StepView
+            #Inicializa StepView
             step_view.reset(expressao_para_simplificar)
             
-            # Parser para converter log em passos
+            #Parser para converter log em passos
             parser = StepParser(step_view)
             
             class StepLogger:
@@ -907,9 +926,9 @@ def inicializar_interface():
             def simplificar_thread():
                 with redirect_stdout(step_logger):
                     try:
-                        # 3. Usa a expressão recém-capturada e convertida
+                        #3. Usa a expressão recém-capturada e convertida
                         principal_simplificar(expressao_para_simplificar)
-                        # Finaliza o parsing
+                        #Finaliza o parsing
                         janela.after(0, lambda: parser.finalize_parsing(expressao_para_simplificar, True))
                     except Exception as e:
                         janela.after(0, lambda: popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}"))
@@ -933,11 +952,11 @@ def inicializar_interface():
 
     def executar_conversao():
         try:
-            esconder_botoes_simplificar()  # Esconde botões antigos primeiro
+            esconder_botoes_simplificar()  #Esconde botões antigos primeiro
         except:
             pass
         mostrar_expressao_convertida()
-        mostrar_botoes_simplificar()   # Mostra novos botões
+        mostrar_botoes_simplificar()   #Mostra novos botões
     
     def go_to_interactive():
         #Função wrapper para garantir a ordem correta das chamadas
@@ -956,12 +975,12 @@ def inicializar_interface():
     botao_interativo.configure(command=executar_simplificacao_interativa)
 
     
-    # Variáveis globais para componentes interativos (serão criadas dinamicamente)
+    #Variáveis globais para componentes interativos (serão criadas dinamicamente)
     escolher_caminho = None
     area_expressao = None
     
 #---------------------- PARTE DA SIMPLFICAÇÃO ---------------------------------
-    # Variável para controlar visibilidade dos botões
+    #Variável para controlar visibilidade dos botões
     botoes_visiveis = False
     
     def mostrar_botoes_simplificar():
@@ -997,8 +1016,8 @@ def inicializar_interface():
     botao_solucao.configure(command=executar_simplificacao_resultado)
 
     def voltar_para_abas():
-        # Mostra os botões novamente quando voltar para as abas
-        if expressao_booleana_atual:  # Se há uma expressão convertida
+        #Mostra os botões novamente quando voltar para as abas
+        if expressao_booleana_atual:  #Se há uma expressão convertida
             mostrar_botoes_simplificar()
         go_back_to(frame_abas)
     
@@ -1007,16 +1026,16 @@ def inicializar_interface():
     botao_go_back_to_aba2.pack(side="bottom", pady=Spacing.MD)
     
     def finalizar_sessao_expressao(expression, resolvida=False):
-        # """Finaliza a sessão e registra os dados finais"""
-        # global tempo_inicio_expressao, tentativas_atuais
+        #"""Finaliza a sessão e registra os dados finais"""
+        #global tempo_inicio_expressao, tentativas_atuais
     
-        # if tempo_inicio_expressao is None:
-        #     return
+        #if tempo_inicio_expressao is None:
+        #    return
         
-        # tempo_total = time.time() - tempo_inicio_expressao
+        #tempo_total = time.time() - tempo_inicio_expressao
     
-        # tempo_inicio_expressao = None
-        # tentativas_atuais = 0
+        #tempo_inicio_expressao = None
+        #tentativas_atuais = 0
         pass
 
 
@@ -1040,7 +1059,7 @@ def inicializar_interface():
             print("Nada para desfazer.") 
             return
 
-        # LOG DO UNDO
+        #LOG DO UNDO
         user_logger.log_simplification_undo()
 
         estado_anterior = historico_de_estados.pop()
@@ -1062,11 +1081,11 @@ def inicializar_interface():
         global scroll_passos, contador_passos
         contador_passos = 0
         
-        # Limpa área anterior
+        #Limpa área anterior
         for widget in scroll_passos.winfo_children():
             widget.destroy()
         
-        # Adiciona passo inicial
+        #Adiciona passo inicial
         adicionar_passo_inicial(str(arvore_interativa))
     
     def adicionar_passo_inicial(expressao_inicial):
@@ -1105,7 +1124,7 @@ def inicializar_interface():
         )
         passo_frame.pack(fill="x", padx=Spacing.SM, pady=Spacing.XS)
         
-        # Título com número do passo e lei
+        #Título com número do passo e lei
         titulo_passo = ctk.CTkLabel(
             passo_frame,
             text=f"Passo {contador_passos} — {lei_nome}",
@@ -1114,7 +1133,7 @@ def inicializar_interface():
         )
         titulo_passo.pack(pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM, anchor="w")
         
-        # Subexpressão analisada
+        #Subexpressão analisada
         if subexpressao:
             sub_label = ctk.CTkLabel(
                 passo_frame,
@@ -1124,7 +1143,7 @@ def inicializar_interface():
             )
             sub_label.pack(pady=(0, Spacing.XS), padx=Spacing.SM, anchor="w")
         
-        # Transformação
+        #Transformação
         transform_frame = ctk.CTkFrame(
             passo_frame,
             fg_color=Colors.SURFACE_DARK,
@@ -1142,7 +1161,7 @@ def inicializar_interface():
         )
         transform_label.pack(pady=Spacing.SM, padx=Spacing.SM)
         
-        # Resultado
+        #Resultado
         resultado_frame = ctk.CTkFrame(passo_frame, fg_color="transparent")
         resultado_frame.pack(fill="x", pady=(Spacing.XS, Spacing.SM), padx=Spacing.SM)
         
@@ -1154,7 +1173,7 @@ def inicializar_interface():
         )
         status_label.pack(side="left")
         
-        # Auto-scroll para o final
+        #Auto-scroll para o final
         scroll_passos.after(100, lambda: scroll_passos._parent_canvas.yview_moveto(1.0))
     
     def adicionar_passo_pular(subexpressao):
@@ -1181,48 +1200,48 @@ def inicializar_interface():
         )
         sub_label.pack(pady=(0, Spacing.SM), padx=Spacing.SM, anchor="w")
         
-        # Auto-scroll para o final
+        #Auto-scroll para o final
         scroll_passos.after(100, lambda: scroll_passos._parent_canvas.yview_moveto(1.0))
     
     def atualizar_area_passos():
-        # Esta função pode ser expandida se necessário para atualizações dinâmicas
+        #Esta função pode ser expandida se necessário para atualizações dinâmicas
         pass
     
     def reconstruir_area_passos():
         global scroll_passos
         
-        # Limpa área atual
+        #Limpa área atual
         for widget in scroll_passos.winfo_children():
             widget.destroy()
         
-        # Adiciona passo inicial
+        #Adiciona passo inicial
         if historico_interativo and len(historico_interativo) > 0:
-            # Extrai expressão inicial do primeiro item do histórico
+            #Extrai expressão inicial do primeiro item do histórico
             primeiro_item = historico_interativo[0]
             if "Expressão Inicial:" in primeiro_item:
                 expressao_inicial = primeiro_item.replace("Expressão Inicial:", "").strip()
                 adicionar_passo_inicial(expressao_inicial)
             
-            # Reconstrói passos baseado no histórico
+            #Reconstrói passos baseado no histórico
             passo_num = 0
             i = 1
             while i < len(historico_interativo):
                 linha = historico_interativo[i]
                 if "✓ Lei" in linha and "aplicada com sucesso" in linha:
                     passo_num += 1
-                    # Extrai nome da lei
+                    #Extrai nome da lei
                     lei_match = re.search(r"Lei '(.+?)' aplicada", linha)
                     lei_nome = lei_match.group(1) if lei_match else "Lei desconhecida"
                     
-                    # Próxima linha deve ter a nova expressão
+                    #Próxima linha deve ter a nova expressão
                     if i + 1 < len(historico_interativo):
                         proxima_linha = historico_interativo[i + 1]
                         if "Nova Expressão:" in proxima_linha:
                             nova_expr = proxima_linha.replace("Nova Expressão:", "").strip()
                             adicionar_passo_sucesso(lei_nome, "", "(anterior)", "(simplificada)", nova_expr)
-                            i += 1  # Pula a próxima linha já processada
+                            i += 1  #Pula a próxima linha já processada
                 elif "↷ Sub-expressão" in linha and "ignorada" in linha:
-                    # Extrai subexpressão ignorada
+                    #Extrai subexpressão ignorada
                     ignore_match = re.search(r"'(.+?)' ignorada", linha)
                     subexpr = ignore_match.group(1) if ignore_match else "desconhecida"
                     adicionar_passo_pular(subexpr)
@@ -1243,7 +1262,7 @@ def inicializar_interface():
         
         nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
         
-        # LOG DA APLICAÇÃO DE LEI
+        #LOG DA APLICAÇÃO DE LEI
         user_logger.log_law_applied(lei_usada, sucesso, contador_passos + 1)
         
         if sucesso:
@@ -1259,7 +1278,7 @@ def inicializar_interface():
             )
             iniciar_rodada_interativa()
         else:
-            # LOG DA FALHA
+            #LOG DA FALHA
             full_expression_state = str(arvore_interativa)
             reason_for_failure = f"Lei não aplicável à subexpressão '{subexpressao_antes}' no contexto de '{full_expression_state}'"
             user_logger.log_simplification_step_failed(lei_usada, contador_passos + 1, reason_for_failure, full_expression_state)
@@ -1276,7 +1295,7 @@ def inicializar_interface():
             botao_desfazer.configure(state="normal")
             subexpressao_ignorada = str(passo_atual_info['no_atual'])
             
-            # LOG DO PULAR
+            #LOG DO PULAR
             user_logger.log_simplification_skip(contador_passos)
             
             nos_ignorados.add(passo_atual_info['no_atual'])
@@ -1287,11 +1306,11 @@ def inicializar_interface():
     def atualizar_ui_interativa():
         global botoes_leis, label_expressao_inicial, label_analise_atual, scroll_passos
         
-        # Atualiza expressão inicial
+        #Atualiza expressão inicial
         if label_expressao_inicial and arvore_interativa:
             label_expressao_inicial.configure(text=str(arvore_interativa))
         
-        # Atualiza análise atual
+        #Atualiza análise atual
         if passo_atual_info:
             sub_expr = str(passo_atual_info['no_atual'])
             label_analise_atual.configure(
@@ -1299,7 +1318,7 @@ def inicializar_interface():
                 text_color=Colors.TEXT_PRIMARY
             )
             
-            # Habilita botões
+            #Habilita botões
             if botoes_leis:
                 for botao in botoes_leis:
                     botao.configure(state="normal")
@@ -1311,31 +1330,31 @@ def inicializar_interface():
                 text_color=Colors.SUCCESS
             )
             
-            if historico_interativo:  # Garante que a sessão foi iniciada
+            if historico_interativo:  #Garante que a sessão foi iniciada
                 total_steps = contador_passos
                 
-                # Extrai nomes das leis do histórico
+                #Extrai nomes das leis do histórico
                 laws_used = []
                 for line in historico_interativo:
                     if "✓ Lei" in line and "aplicada com sucesso" in line:
-                        # Extrai o nome da lei da linha do histórico
+                        #Extrai o nome da lei da linha do histórico
                         import re
                         lei_match = re.search(r"Lei '(.+?)' aplicada", line)
                         if lei_match:
                             laws_used.append(lei_match.group(1))
                 
-                # CHAMA A FUNÇÃO DE LOG DE CONCLUSÃO
+                #CHAMA A FUNÇÃO DE LOG DE CONCLUSÃO
                 user_logger.log_simplification_completed(total_steps, laws_used)
                 print(f"📝 Simplificação concluída: {total_steps} passos, {len(laws_used)} leis aplicadas")
             
-            # Desabilita botões
+            #Desabilita botões
             if botoes_leis:
                 for botao in botoes_leis:
                     botao.configure(state="disabled")
             if botao_pular:
                 botao_pular.configure(state="disabled")
         
-        # Atualiza área de passos
+        #Atualiza área de passos
         atualizar_area_passos()
 
     def iniciar_rodada_interativa():
@@ -1355,7 +1374,7 @@ def inicializar_interface():
         try:
             simplification_start_time = time.time()
             
-            # LOG INÍCIO DA SESSÃO INTERATIVA
+            #LOG INÍCIO DA SESSÃO INTERATIVA
             user_logger.log_interactive_simplification_start(expressao_global)
             
             arvore_interativa = simpli.construir_arvore(expressao_global)
@@ -1396,15 +1415,15 @@ def inicializar_interface():
         global escolher_caminho, area_expressao, botoes_leis, botao_pular, botao_desfazer
         global frame_expressao_inicial, frame_analise, frame_passos, frame_controles_interativo
         
-        # Container principal com scroll
+        #Container principal com scroll
         main_container = ctk.CTkScrollableFrame(frame_interativo, fg_color=Colors.PRIMARY_BG)
         main_container.pack(expand=True, fill="both", padx=Spacing.LG, pady=Spacing.LG)
         
-        # Configurar grid para expansão
-        main_container.grid_rowconfigure(2, weight=1)  # frame_passos deve expandir
+        #Configurar grid para expansão
+        main_container.grid_rowconfigure(2, weight=1)  #frame_passos deve expandir
         main_container.grid_columnconfigure(0, weight=1)
         
-        # 1. SEÇÃO: Expressão Inicial
+        #1. SEÇÃO: Expressão Inicial
         frame_expressao_inicial = ctk.CTkFrame(
             main_container,
             fg_color=Colors.SURFACE_LIGHT,
@@ -1412,7 +1431,7 @@ def inicializar_interface():
         )
         frame_expressao_inicial.pack(fill="x", pady=(0, Spacing.MD))
         
-        # Container para título e botão IA
+        #Container para título e botão IA
         header_frame = ctk.CTkFrame(frame_expressao_inicial, fg_color="transparent")
         header_frame.pack(fill="x", pady=(Spacing.SM, Spacing.XS), padx=Spacing.SM)
         
@@ -1424,7 +1443,7 @@ def inicializar_interface():
         )
         titulo_inicial.pack(side="left")
         
-        # Botão Sugestão de IA
+        #Botão Sugestão de IA
         botao_ia = Button.botao_padrao("🤖 Sugestão de IA", header_frame)
         botao_ia.configure(
             command=abrir_chat_ia,
@@ -1434,7 +1453,7 @@ def inicializar_interface():
         )
         botao_ia.pack(side="right")
         
-        # Label para mostrar a expressão inicial (será atualizada dinamicamente)
+        #Label para mostrar a expressão inicial (será atualizada dinamicamente)
         global label_expressao_inicial
         label_expressao_inicial = ctk.CTkLabel(
             frame_expressao_inicial,
@@ -1445,7 +1464,7 @@ def inicializar_interface():
         )
         label_expressao_inicial.pack(pady=(0, Spacing.SM), padx=Spacing.SM)
         
-        # 2. SEÇÃO: Análise Atual
+        #2. SEÇÃO: Análise Atual
         frame_analise = ctk.CTkFrame(
             main_container,
             fg_color=Colors.SURFACE_MEDIUM,
@@ -1461,7 +1480,7 @@ def inicializar_interface():
         )
         titulo_analise.pack(pady=(Spacing.SM, Spacing.XS))
         
-        # Label para mostrar a subexpressão sendo analisada
+        #Label para mostrar a subexpressão sendo analisada
         global label_analise_atual
         label_analise_atual = ctk.CTkLabel(
             frame_analise,
@@ -1472,7 +1491,7 @@ def inicializar_interface():
         )
         label_analise_atual.pack(pady=(0, Spacing.SM), padx=Spacing.SM)
         
-        # 3. SEÇÃO: Passos da Simplificação (área scrollável)
+        #3. SEÇÃO: Passos da Simplificação (área scrollável)
         frame_passos = ctk.CTkFrame(
             main_container,
             fg_color=Colors.SURFACE_DARK,
@@ -1488,7 +1507,7 @@ def inicializar_interface():
         )
         titulo_passos.pack(pady=(Spacing.SM, Spacing.XS))
         
-        # Área scrollável para os passos
+        #Área scrollável para os passos
         global scroll_passos
         scroll_passos = ctk.CTkScrollableFrame(
             frame_passos,
@@ -1498,7 +1517,7 @@ def inicializar_interface():
         )
         scroll_passos.pack(fill="both", expand=True, padx=Spacing.SM, pady=(0, Spacing.SM))
         
-        # 4. SEÇÃO: Seleção de Leis
+        #4. SEÇÃO: Seleção de Leis
         frame_leis = ctk.CTkFrame(
             main_container,
             fg_color=Colors.SURFACE_MEDIUM,
@@ -1514,7 +1533,7 @@ def inicializar_interface():
         )
         titulo_leis.pack(pady=Spacing.SM)
         
-        # Grid de botões de leis
+        #Grid de botões de leis
         frame_grid_leis = ctk.CTkFrame(frame_leis, fg_color="transparent")
         frame_grid_leis.pack(fill="x", padx=Spacing.MD, pady=Spacing.SM)
         
@@ -1541,11 +1560,11 @@ def inicializar_interface():
             frame_grid_leis.grid_columnconfigure(col, weight=1)
             botoes_leis.append(btn)
         
-        # 5. SEÇÃO: Controles
+        #5. SEÇÃO: Controles
         frame_controles_interativo = ctk.CTkFrame(main_container, fg_color="transparent")
         frame_controles_interativo.pack(fill="x", pady=Spacing.MD)
         
-        # Botões de controle
+        #Botões de controle
         botao_desfazer = Button.botao_padrao("↩ Desfazer", frame_controles_interativo)
         botao_desfazer.configure(command=on_desfazer_selecionado, state="disabled")
         botao_desfazer.pack(side="left", padx=Spacing.SM)
@@ -1554,17 +1573,17 @@ def inicializar_interface():
         botao_pular.configure(command=on_pular_selecionado)
         botao_pular.pack(side="left", padx=Spacing.SM)
         
-        # Botão voltar
+        #Botão voltar
         botao_voltar_interativo = Button.botao_voltar("Voltar", frame_controles_interativo)
         botao_voltar_interativo.configure(
             command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), limpar_frame_interativo(), go_back_to(frame_abas)]
         )
         botao_voltar_interativo.pack(side="right", padx=Spacing.SM)
     #------------------------------------------------------------------------
-    # BOTÃO DE RELATÓRIO HTML COMENTADO CONFORME SOLICITADO
-    # botao_relatorio = Button.botao_padrao("📊 Gerar Relatório HTML", frame_inicio)
-    # botao_relatorio.configure(command=generate_html_log)
-    # botao_relatorio.pack(pady=Spacing.MD)
+    #BOTÃO DE RELATÓRIO HTML COMENTADO CONFORME SOLICITADO
+    #botao_relatorio = Button.botao_padrao("📊 Gerar Relatório HTML", frame_inicio)
+    #botao_relatorio.configure(command=generate_html_log)
+    #botao_relatorio.pack(pady=Spacing.MD)
 
     botao_tabela_verdade = Button.botao_padrao("🔢Tabela Verdade", scroll_frame2)
     botao_tabela_verdade.configure(command=lambda: exibir_tabela_verdade(entrada.get().strip().upper()))
@@ -1574,7 +1593,7 @@ def inicializar_interface():
     botao_pedir_ajuda_ia.configure(command=lambda: abrir_duvida_expressao(entrada.get().strip().upper()))
     botao_pedir_ajuda_ia.pack(pady=Spacing.MD)
 
-    # Botões das partes de abas que voltam pro frame de inserir a expressão para ver o circuito
+    #Botões das partes de abas que voltam pro frame de inserir a expressão para ver o circuito
     botao_voltar_principal_2 = Button.botao_voltar("Voltar", scroll_frame2)
     botao_voltar_principal_2.configure(command=lambda: go_back_to(principal))
     botao_voltar_principal_2.pack(pady=Spacing.XXL)
@@ -1677,7 +1696,7 @@ def inicializar_interface():
                     }
                     
                     submitter = ImprovedGoogleFormsSubmitter(FORM_URL, ENTRY_MAPPING)
-                    data_to_send = DetailedUserLogger.create_formatted_shareable_data(user_logger)  # NOVA FUNÇÃO
+                    data_to_send = DetailedUserLogger.create_formatted_shareable_data(user_logger)  #NOVA FUNÇÃO
                     
                     success = submitter.submit_data(data_to_send)
                     

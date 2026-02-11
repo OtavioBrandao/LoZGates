@@ -609,7 +609,7 @@ Problems_bank = [
 
             Desafio: monte a função booleana e um circuito que representa todo o sistema.
         """,
-        answer = "(A&H&R&(!C|S)&((G>T)&(T>G))&(M>D)",
+        answer = "(A&H&R&(!C|S)&((G>T)&(T>G))&(M>D))",
         difficulty = "Difícil"
     ),
         Problems(
