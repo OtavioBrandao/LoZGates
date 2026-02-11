@@ -28,6 +28,7 @@
 
 # Banco de questões
     - Como a>b = p>q, podemos tirar as dicas de variaveis para ser usadas, mas vale a pena? pq a resposta pode ficar confusa para compreensão da pessoa. (PENSAR A RESPEITO)
+    - Fazer um sistema de dicas progressivas
 
 # Integração com IA
     - Ver como colocar a API pra fase de testes sem ter problema com terceiros
@@ -37,10 +38,11 @@
     - Colocar expressão digitada pelo usuário no circuito interativo
 
 # Manual interface
-    - Melhorar o sobre da sintaxe, tá parecendo que pode colocar os dois (provalvemente tava falando de colocar tanto & quanto *)
-    - Melhorar as cores dos botões, ta meio ruim de ver 
-    - Leis: colocar o 1 -> V e 0 -> f
-    - Trocar a ordem do como jogar e controles, um dos primeiros no ajuda
+    - Melhorar o sobre da sintaxe, tá parecendo que pode colocar os dois (provalvemente tava falando de colocar tanto & quanto *) ✅
+    - Melhorar as cores dos botões, ta meio ruim de ver  ✅
+    - Leis: colocar o 1 -> V e 0 -> f ✅
+    - Trocar a ordem do como jogar e controles, um dos primeiros no ajuda (nao sei se é a melhor coisa)
+    - Colocar a tab de dicas (create_tips_tab) dentro de como jogar?
 
 
 # VER PARA QUAL PARTE É, EU ESQUECI

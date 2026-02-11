@@ -71,7 +71,7 @@ class InteractiveHelpSystem:
             fg_color=Colors.SURFACE_LIGHT,
             segmented_button_fg_color=Colors.SURFACE_MEDIUM,
             segmented_button_selected_color=Colors.INFO,
-            segmented_button_selected_hover_color="#1976D2",
+            segmented_button_selected_hover_color=Colors.HOVER_COLOR_HELP,
             segmented_button_unselected_color=Colors.SURFACE_DARK,
             segmented_button_unselected_hover_color=Colors.SURFACE_MEDIUM
         )
@@ -168,8 +168,7 @@ class InteractiveHelpSystem:
                 "description": "Mais de 30 problemas práticos categorizados",
                 "details": [
                     "• 4 níveis de dificuldade",
-                    "• Aplicações reais de lógica proposicional",
-                    "• Sistema de dicas progressivas"
+                    "• Aplicações reais de lógica proposicional"
                 ]
             }
         ]
@@ -189,9 +188,9 @@ class InteractiveHelpSystem:
         self.add_section_title(scroll_frame, "🔣 Operadores lógicos")
         
         operators = [
-            ("CONJUNÇÃO (E)", "& ou *", "A & B  ou  A * B", '"A e B"'),
-            ("DISJUNÇÃO (OU)", "| ou +", "A | B  ou  A + B", '"A ou B"'),
-            ("NEGAÇÃO (NÃO)", "! ou ~", "!A  ou  ~A", '"não A"'),
+            ("CONJUNÇÃO", "&", "A & B", '"A e B"'),
+            ("DISJUNÇÃO", "|", "A | B", '"A ou B"'),
+            ("NEGAÇÃO", "!", "!A", '"não A"'),
             ("IMPLICAÇÃO", ">", "A > B", '"se A então B"'),
             ("BI-IMPLICAÇÃO", "<>", "A <> B", '"A se e somente se B"')
         ]
@@ -201,9 +200,9 @@ class InteractiveHelpSystem:
             
         self.add_section_title(scroll_frame, "⚠️ Precedência dos operadores")
         precedence = [
-            "1. ! ou ~ (Negação) - MAIOR precedência",
-            "2. & ou * (Conjunção)",
-            "3. | ou + (Disjunção)", 
+            "1. ! (Negação) - MAIOR precedência",
+            "2. & (Conjunção)",
+            "3. | (Disjunção)", 
             "4. > (Implicação)",
             "5. <> (Bi-implicação) - MENOR precedência"
         ]
@@ -251,7 +250,7 @@ class InteractiveHelpSystem:
         for category in example_categories:
             self.add_example_category(scroll_frame, category)
             
-        #Botão para testar exemplos (AINDA NÃP FUNCIONA)
+        #Botão para testar exemplos (AINDA NÃO FUNCIONA)
         button_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         button_frame.pack(fill="x", pady=20)
         
@@ -259,8 +258,8 @@ class InteractiveHelpSystem:
             button_frame,
             text="🧪 Testar exemplos no LoZ Gates",
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
-            fg_color=Colors.INFO,
-            hover_color="#1976D2",
+            fg_color=Colors.FG_COLOR_HELP,
+            hover_color=Colors.HOVER_COLOR_HELP,
             height=40,
             command=self.close_and_test_example
         )
@@ -278,12 +277,12 @@ class InteractiveHelpSystem:
             {
                 "name": "🔶 Lei da identidade",
                 "rules": ["A & 1 = A", "A | 0 = A"],
-                "explanation": '"E com verdadeiro é a própria variável"\n"Ou com falso é a própria variável"'
+                "explanation": '"E com verdadeiro (1) é a própria variável"\n"OU com falso (0) é a própria variável"'
             },
             {
                 "name": "🔶 Lei nula (absorção total)",
                 "rules": ["A & 0 = 0", "A | 1 = 1"],
-                "explanation": '"E com falso é sempre falso"\n"Ou com verdadeiro é sempre verdadeiro"'
+                "explanation": '"E com falso (0) é sempre falso"\n"Ou com verdadeiro (1) é sempre verdadeiro"'
             },
             {
                 "name": "🔶 Lei idempotente", 
@@ -335,7 +334,6 @@ class InteractiveHelpSystem:
             {
                 "title": "🔧 Controles básicos - circuito interativo",
                 "controls": [
-                    ("TAB", "Mostrar/esconder painel de componentes"),
                     ("ESPAÇO", "Testar circuito"),
                     ("Clique", "Selecionar componente"),
                     ("Arrastar", "Mover componente"),
@@ -372,12 +370,11 @@ class InteractiveHelpSystem:
         self.add_section_title(scroll_frame, "📋 Como jogar - passo a passo")
         steps = [
             "1. 🎯 Selecione um modo de desafio",
-            "2. ▶️ Clique em 'Iniciar desafio'", 
-            "3. 📱 Use TAB para abrir o painel",
-            "4. 🔧 Adicione componentes clicando no painel",
-            "5. 🔗 Conecte os pontos verdes",
-            "6. 🧪 Pressione ESPAÇO para testar!",
-            "7. ✅ Implemente a expressão corretamente!"
+            "2. ▶️ Clique em 'Iniciar desafio'",
+            "3. 🔧 Adicione componentes clicando no painel",
+            "4. 🔗 Conecte os pontos verdes",
+            "5. 🧪 Pressione ESPAÇO para testar!",
+            "6. ✅ Implemente a expressão corretamente!"
         ]
         self.add_bullet_list(scroll_frame, steps)
         

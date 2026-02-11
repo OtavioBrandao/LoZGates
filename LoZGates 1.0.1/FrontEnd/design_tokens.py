@@ -27,16 +27,20 @@ class Colors:
     SUCCESS = "#45A049"             # Verde 
     WARNING = "#D17710"             # Ouro 
     ERROR = "#961730"               # Vermelho 
-    INFO = "#00D9FF"                # Ciano neon
+    INFO = "#1A9AB0"                # Ciano neon
     HEHEHE = "#72076E"              # Roxo
     
     # Bordas
-    BORDER_DEFAULT = "#444444"
-    BORDER_ACCENT = "#00D9FF"
+    # BORDER_DEFAULT = "#444444"
+    # BORDER_ACCENT = "#00D9FF"
 
     # Bordas
     BORDER_DEFAULT = "#4682B4"
     BORDER_ACCENT = "#00BFFF"
+    
+    # HELP
+    HOVER_COLOR_HELP = "#4682B4"
+    FG_COLOR_HELP = "#1976D2"
 # TIPOGRAFIA
 class Typography:
     FONT_FAMILY = "Segoe UI"
