@@ -1,0 +1,106 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: #0D0D0F;
+  --color-foreground: #FFFFFF;
+  --color-card: #1A1A22;
+  --color-card-foreground: #FFFFFF;
+  --color-popover: #1A1A22;
+  --color-popover-foreground: #FFFFFF;
+  --color-primary: #00D9FF;
+  --color-primary-foreground: #000000;
+  --color-secondary: #24242E;
+  --color-secondary-foreground: #FFFFFF;
+  --color-muted: #24242E;
+  --color-muted-foreground: #999999;
+  --color-accent: #65E6FD;
+  --color-accent-foreground: #000000;
+  --color-destructive: #961730;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #33333D;
+  --color-input: #33333D;
+  --color-ring: #65E6FD;
+  --color-chart-1: #65E6FD;
+  --color-chart-2: #D3C724;
+  --color-chart-3: #45A049;
+  --color-chart-4: #D17710;
+  --color-chart-5: #1A9AB0;
+  --radius: 0.625rem;
+  --color-sidebar-background: #0D0D0F;
+  --color-sidebar-foreground: #FFFFFF;
+  --color-sidebar-primary: #00D9FF;
+  --color-sidebar-primary-foreground: #000000;
+  --color-sidebar-accent: #24242E;
+  --color-sidebar-accent-foreground: #FFFFFF;
+  --color-sidebar-border: #33333D;
+  --color-sidebar-ring: #65E6FD;
+
+  /* Custom semantic tokens */
+  --color-success: #45A049;
+  --color-success-foreground: #FFFFFF;
+  --color-warning: #D17710;
+  --color-warning-foreground: #FFFFFF;
+  --color-info: #1A9AB0;
+  --color-info-foreground: #FFFFFF;
+  --color-gold: #D3C724;
+  --color-gold-foreground: #000000;
+  --color-surface-dark: #24242E;
+  --color-surface-medium: #26262E;
+  --color-surface-light: #33333D;
+  --color-cyan: #65E6FD;
+  --color-cyan-bright: #00FFFF;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border);
+  }
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-light);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-cyan);
+}
+
+/* Truth table styling */
+.truth-table th {
+  background-color: var(--color-surface-dark);
+  color: var(--color-cyan);
+  font-weight: 600;
+}
+.truth-table td {
+  text-align: center;
+}
+.truth-table tr:hover td {
+  background-color: var(--color-surface-dark);
+}
+
+/* Code/expression highlighting */
+.expression-highlight {
+  color: var(--color-cyan);
+  font-family: var(--font-mono);
+}
