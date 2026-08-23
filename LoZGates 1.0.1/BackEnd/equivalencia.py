@@ -31,7 +31,8 @@ class UniversalLogicAnalyzer:
     def tokenize(self, expression): #Converte string em tokens para análise mais simples
         tokens = []
         i = 0
-        expression = expression.replace(' ', '')  #Remove espaços
+        expression = expression.replace(' ', '').upper()
+        parentheses = 0
         
         while i < len(expression):
             if expression[i:i+2] == '<>':
@@ -40,17 +41,36 @@ class UniversalLogicAnalyzer:
             elif expression[i:i+2] == '->':
                 tokens.append('>')  #Converte -> para >
                 i += 2
+            elif expression[i] in '*+~':
+                tokens.append({'*': '&', '+': '|', '~': '!'}[expression[i]])
+                i += 1
             elif expression[i] in '()&|>!=':
-                tokens.append(expression[i])
+                token = expression[i]
+                if token == '(':
+                    parentheses += 1
+                elif token == ')':
+                    parentheses -= 1
+                    if parentheses < 0:
+                        raise ValueError("Parêntese fechado sem abertura")
+                tokens.append(token)
                 i += 1
             elif expression[i].isalpha():  #Variável (qualquer letra)
                 tokens.append(expression[i])
                 i += 1
             elif expression[i].isdigit():  #Números (0, 1)
+                if expression[i] not in '01':
+                    raise ValueError("Apenas as constantes 0 e 1 são aceitas")
                 tokens.append(expression[i])
                 i += 1
             else:
-                i += 1
+                raise ValueError(
+                    f"Caractere inválido na expressão: {expression[i]!r}"
+                )
+
+        if parentheses:
+            raise ValueError("Parênteses não balanceados")
+        if not tokens:
+            raise ValueError("Expressão vazia")
         
         return tokens
     
@@ -70,9 +90,11 @@ class UniversalLogicAnalyzer:
         
         #Processa operadores binários por precedência
         #Ordem: <> (bi-implicação), > (implicação), & (AND), | (OR)
-        for op in ['<>', '>', '&', '|']:
+        for op in ['&', '|', '>', '<>']:
             tokens = self.process_operator(tokens, op, values)
-        
+
+        if len(tokens) != 1:
+            raise ValueError("Expressão lógica malformada")
         return tokens[0] if isinstance(tokens[0], bool) else self.evaluate_token(tokens[0], values)
     
     def evaluate_token(self, token, values):
@@ -106,25 +128,21 @@ class UniversalLogicAnalyzer:
         return tokens[:start] + [result] + tokens[end:]
     
     def process_negation(self, tokens, values):
-        result = []
-        i = 0
-        
-        while i < len(tokens):
-            if tokens[i] == '!' and i + 1 < len(tokens):
-                value = self.evaluate_token(tokens[i+1], values)
-                result.append(not value)
-                i += 2
-            else:
-                result.append(tokens[i])
-                i += 1
-        
-        return result
+        while '!' in tokens:
+            index = max(i for i, token in enumerate(tokens) if token == '!')
+            if index + 1 >= len(tokens):
+                raise ValueError("Negação sem operando")
+            value = self.evaluate_token(tokens[index + 1], values)
+            tokens = tokens[:index] + [not value] + tokens[index + 2:]
+        return tokens
     
     def process_operator(self, tokens, operator, values):
         #Para implicação, processa da direita para esquerda
         if operator == '>':
             indices = [i for i, token in enumerate(tokens) if token == operator]
             for idx in reversed(indices):
+                if idx == 0 or idx + 1 >= len(tokens):
+                    raise ValueError(f"Operador {operator!r} sem dois operandos")
                 left = self.evaluate_token(tokens[idx-1], values)
                 right = self.evaluate_token(tokens[idx+1], values)
                 result = self.operators[operator](left, right)
@@ -133,6 +151,8 @@ class UniversalLogicAnalyzer:
             #Outros operadores da esquerda para direita
             while operator in tokens:
                 idx = tokens.index(operator)
+                if idx == 0 or idx + 1 >= len(tokens):
+                    raise ValueError(f"Operador {operator!r} sem dois operandos")
                 left = self.evaluate_token(tokens[idx-1], values)
                 right = self.evaluate_token(tokens[idx+1], values)
                 result = self.operators[operator](left, right)
@@ -180,8 +200,12 @@ def check_universal_equivalence(expr1, expr2, debug=False):
                     print(f"   {expr1} = {result1}")
                     print(f"   {expr2} = {result2}")
         
-        except Exception as e:
-            print(f"❌ Erro ao analisar {values}: {e}")
+        except Exception:
+            logger.warning(
+                "Erro ao analisar equivalencia com valores %s",
+                values,
+                exc_info=debug,
+            )
             return False
     
     if differences:

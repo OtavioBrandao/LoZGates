@@ -2,10 +2,18 @@ import json
 import logging
 import tempfile
 import unittest
+import os
 from pathlib import Path
 
 from BackEnd.logging_config import configure_logging
-from config import ASSETS_DIR, CIRCUIT_IMAGE_PATH, DATA_DIR, INPUT_CACHE_PATH, ROOT_PATH
+from config import (
+    ASSETS_DIR,
+    CIRCUIT_IMAGE_PATH,
+    DATA_DIR,
+    INPUT_CACHE_PATH,
+    ROOT_PATH,
+    load_environment_file,
+)
 
 
 class ConfigurationTests(unittest.TestCase):
@@ -14,6 +22,26 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual(CIRCUIT_IMAGE_PATH.parent, DATA_DIR)
         self.assertEqual(INPUT_CACHE_PATH.parent, DATA_DIR)
         self.assertNotEqual(CIRCUIT_IMAGE_PATH.parent, ASSETS_DIR)
+
+    def test_env_file_loads_values_without_overriding_process(self):
+        variable = "LOZGATES_TEST_ENV_FILE"
+        original = os.environ.get(variable)
+        try:
+            with tempfile.TemporaryDirectory() as temporary_directory:
+                env_file = Path(temporary_directory) / ".env"
+                env_file.write_text(f"{variable}=from-file\n", encoding="utf-8")
+                os.environ[variable] = "from-process"
+                self.assertTrue(load_environment_file(env_file))
+                self.assertEqual(os.environ[variable], "from-process")
+
+                del os.environ[variable]
+                load_environment_file(env_file)
+                self.assertEqual(os.environ[variable], "from-file")
+        finally:
+            if original is None:
+                os.environ.pop(variable, None)
+            else:
+                os.environ[variable] = original
 
 
 class LoggingTests(unittest.TestCase):

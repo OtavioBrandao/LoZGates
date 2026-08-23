@@ -90,9 +90,13 @@ class ResponsivePygameTests(unittest.TestCase):
         circuit = object.__new__(CircuitoInterativoManual)
         self.assertTrue(circuit.evaluate_expression("(A*B)+~C", {"A": True, "B": True, "C": True}))
         with patch("os.system") as system_call:
-            result = circuit.evaluate_expression(
-                "__import__('os').system('unsafe')", {}
-            )
+            with self.assertLogs(
+                "BackEnd.circuito_logico.interactive.interactive_circuit",
+                level="ERROR",
+            ):
+                result = circuit.evaluate_expression(
+                    "__import__('os').system('unsafe')", {}
+                )
         system_call.assert_not_called()
         self.assertFalse(result)
 

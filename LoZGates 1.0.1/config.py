@@ -10,6 +10,34 @@ ASSETS_DIR = ROOT_PATH / "assets"
 ASSETS_PATH = str(ASSETS_DIR)
 
 
+def load_environment_file(path=None):
+    """Load a simple .env file without overriding the process environment."""
+    env_path = Path(path or ROOT_PATH / ".env")
+    if not env_path.is_file():
+        return False
+
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].lstrip()
+        if "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        name = name.strip()
+        value = value.strip()
+        if not name or not name.replace("_", "").isalnum():
+            continue
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        os.environ.setdefault(name, value)
+    return True
+
+
+load_environment_file()
+
+
 def _configured_path(variable_name, default):
     value = os.getenv(variable_name)
     path = Path(value).expanduser() if value else default
