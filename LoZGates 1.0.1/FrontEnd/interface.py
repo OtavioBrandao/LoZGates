@@ -61,6 +61,7 @@ label_expressao_inicial = None
 label_analise_atual = None
 scroll_passos = None
 contador_passos = 0
+sessao_simplificacao_concluida = False
 frame_expressao_inicial = None
 frame_analise = None
 frame_passos = None
@@ -1040,19 +1041,17 @@ def inicializar_interface():
 
 #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES MODIFICADAS ----------------------
     def salvar_estado_atual():
-        global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info
+        global historico_de_estados, arvore_interativa, historico_interativo
         
         estado = {
             'arvore': copy.deepcopy(arvore_interativa),
             'historico': list(historico_interativo),
-            'ignorados': set(nos_ignorados),
-            'passo_info': copy.deepcopy(passo_atual_info)
         }
         historico_de_estados.append(estado)
 
     def on_desfazer_selecionado():
         global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, botao_desfazer
-        global contador_passos
+        global contador_passos, sessao_simplificacao_concluida
 
         if not historico_de_estados:
             print("Nada para desfazer.") 
@@ -1064,17 +1063,16 @@ def inicializar_interface():
         estado_anterior = historico_de_estados.pop()
         arvore_interativa = estado_anterior['arvore']
         historico_interativo = estado_anterior['historico']
-        nos_ignorados = estado_anterior['ignorados']
-        passo_atual_info = estado_anterior['passo_info']
-        
-        if contador_passos > 0:
-            contador_passos -= 1
+        nos_ignorados = set()
+        passo_atual_info = None
+        sessao_simplificacao_concluida = False
+        simpli.reiniciar_busca()
         
         reconstruir_area_passos()
 
         if not historico_de_estados:
             botao_desfazer.configure(state="disabled")
-        atualizar_ui_interativa()
+        iniciar_rodada_interativa()
   
     def inicializar_area_passos():
         global scroll_passos, contador_passos
@@ -1207,7 +1205,8 @@ def inicializar_interface():
         pass
     
     def reconstruir_area_passos():
-        global scroll_passos
+        global scroll_passos, contador_passos
+        contador_passos = 0
         
         #Limpa área atual
         for widget in scroll_passos.winfo_children():
@@ -1248,7 +1247,7 @@ def inicializar_interface():
 
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados, botao_desfazer
-        global expressao_global, contador_passos
+        global expressao_global, contador_passos, sessao_simplificacao_concluida
 
         if not passo_atual_info:
             return
@@ -1266,6 +1265,7 @@ def inicializar_interface():
         
         if sucesso:
             arvore_interativa = nova_arvore
+            sessao_simplificacao_concluida = False
             
             historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada com sucesso.")
             historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
@@ -1288,7 +1288,7 @@ def inicializar_interface():
             popup_erro("Não foi possível aplicar esta lei.")
 
     def on_pular_selecionado():
-        global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer, contador_passos
+        global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer, contador_passos, sessao_simplificacao_concluida
         if passo_atual_info and passo_atual_info['no_atual']:
             salvar_estado_atual()
             botao_desfazer.configure(state="normal")
@@ -1298,12 +1298,14 @@ def inicializar_interface():
             user_logger.log_simplification_skip(contador_passos)
             
             nos_ignorados.add(passo_atual_info['no_atual'])
+            sessao_simplificacao_concluida = False
             historico_interativo.append(f"↷ Sub-expressão '{subexpressao_ignorada}' ignorada.")
             adicionar_passo_pular(subexpressao_ignorada)
             iniciar_rodada_interativa()
 
     def atualizar_ui_interativa():
         global botoes_leis, label_expressao_inicial, label_analise_atual, scroll_passos
+        global sessao_simplificacao_concluida
         
         #Atualiza expressão inicial
         if label_expressao_inicial and arvore_interativa:
@@ -1312,15 +1314,29 @@ def inicializar_interface():
         #Atualiza análise atual
         if passo_atual_info:
             sub_expr = str(passo_atual_info['no_atual'])
+            aplicabilidade = [
+                bool(lei['verifica'](passo_atual_info['no_atual']))
+                for lei in simpli.LEIS_LOGICAS
+            ]
+            leis_disponiveis = [
+                simpli.LEIS_LOGICAS[index]['nome'].split(' (', 1)[0]
+                for index, aplicavel in enumerate(aplicabilidade)
+                if aplicavel
+            ]
+            orientacao = (
+                "Leis disponíveis: " + ", ".join(leis_disponiveis)
+                if leis_disponiveis
+                else "Nenhuma lei se aplica aqui; use Pular para avançar."
+            )
             label_analise_atual.configure(
-                text=f"🔍 Analisando subexpressão: '{sub_expr}'\n📚 Selecione uma lei para aplicar.",
+                text=f"🔍 Analisando subexpressão: '{sub_expr}'\n📚 {orientacao}",
                 text_color=Colors.TEXT_PRIMARY
             )
             
-            #Habilita botões
+            #Habilita somente as leis válidas para o nó atual.
             if botoes_leis:
-                for botao in botoes_leis:
-                    botao.configure(state="normal")
+                for index, botao in enumerate(botoes_leis):
+                    botao.configure(state="normal" if aplicabilidade[index] else "disabled")
             if botao_pular:
                 botao_pular.configure(state="normal")
         else:
@@ -1329,7 +1345,8 @@ def inicializar_interface():
                 text_color=Colors.SUCCESS
             )
             
-            if historico_interativo:  #Garante que a sessão foi iniciada
+            if historico_interativo and not sessao_simplificacao_concluida:
+                sessao_simplificacao_concluida = True
                 total_steps = contador_passos
                 
                 #Extrai nomes das leis do histórico
@@ -1362,7 +1379,7 @@ def inicializar_interface():
         atualizar_ui_interativa()
         
     def parte_interativa():
-        global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis, historico_de_estados, simplification_start_time
+        global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis, historico_de_estados, simplification_start_time, sessao_simplificacao_concluida
         
         if not expressao_global:
             popup_erro("Por favor, primeiro insira e converta uma expressão.")
@@ -1386,6 +1403,8 @@ def inicializar_interface():
         nos_ignorados = set()
         passo_atual_info = None
         historico_de_estados = []
+        sessao_simplificacao_concluida = False
+        simpli.reiniciar_busca()
         
         criar_interface_interativa_padronizada()
         inicializar_area_passos()

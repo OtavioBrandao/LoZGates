@@ -1,4 +1,3 @@
-import time
 passar_pro_front = []
 
 class Node:
@@ -25,37 +24,67 @@ class Node:
         return size
 
 def construir_arvore(expr):
-    expr = expr.replace(" ", "")
+    """Constroi a arvore booleana e rejeita entradas incompletas ou desbalanceadas."""
+    if not isinstance(expr, str):
+        raise TypeError("A expressão deve ser uma string.")
 
-    def construir_arvore_or(s):
-        depth = 0
-        for i in range(len(s) - 1, -1, -1):
-            c = s[i]
-            if c == ')': depth += 1
-            elif c == '(': depth -= 1
-            elif c == '+' and depth == 0:
-                return Node('+', construir_arvore_or(s[:i]), construir_arvore_and(s[i+1:]))
-        return construir_arvore_and(s)
+    source = expr.replace(" ", "")
+    if not source:
+        raise ValueError("A expressão não pode estar vazia.")
 
-    def construir_arvore_and(s):
-        depth = 0
-        for i in range(len(s) - 1, -1, -1):
-            c = s[i]
-            if c == ')': depth += 1
-            elif c == '(': depth -= 1
-            elif c == '*' and depth == 0:
-                return Node('*', construir_arvore_and(s[:i]), construir_arvore_not(s[i+1:]))
-        return construir_arvore_not(s)
+    position = 0
 
-    def construir_arvore_not(s):
-        if s.startswith('~'):
-            return Node('~', esquerda=construir_arvore_or(s[1:]))
-        elif s.startswith('(') and s.endswith(')'):
-            return construir_arvore_or(s[1:-1])
-        else:
-            return Node(s)
+    def parse_or():
+        nonlocal position
+        node = parse_and()
+        while position < len(source) and source[position] == '+':
+            position += 1
+            node = Node('+', node, parse_and())
+        return node
 
-    return construir_arvore_or(expr)
+    def parse_and():
+        nonlocal position
+        node = parse_not()
+        while position < len(source) and source[position] == '*':
+            position += 1
+            node = Node('*', node, parse_not())
+        return node
+
+    def parse_not():
+        nonlocal position
+        if position < len(source) and source[position] == '~':
+            position += 1
+            return Node('~', esquerda=parse_not())
+        return parse_atom()
+
+    def parse_atom():
+        nonlocal position
+        if position >= len(source):
+            raise ValueError("Operando ausente no final da expressão.")
+
+        if source[position] == '(':
+            position += 1
+            node = parse_or()
+            if position >= len(source) or source[position] != ')':
+                raise ValueError("Parênteses desbalanceados na expressão.")
+            position += 1
+            return node
+
+        start = position
+        while position < len(source) and source[position] not in "*+~()":
+            position += 1
+        atom = source[start:position]
+        if not atom:
+            raise ValueError(f"Token inválido na posição {position + 1}.")
+        return Node(atom)
+
+    root = parse_or()
+    if position != len(source):
+        token = source[position]
+        if token == ')':
+            raise ValueError("Parênteses de fechamento sem abertura correspondente.")
+        raise ValueError(f"Token inesperado '{token}' na posição {position + 1}.")
+    return root
 
 #------------------ Funções de Verificação -------------------
 
@@ -112,23 +141,12 @@ def pode_absorcao(node):
     return False
 
 def pode_distributiva(node):
-    if not node: return False
-    #A + (B * C) -> (A + B) * (A + C)
-    if node.valor == '+' and node.direita and node.direita.valor == '*':
-        return True
-    if node.valor == '+' and node.esquerda and node.esquerda.valor == '*':
-        return True
-    #A * (B + C) -> (A * B) + (A * C) (a mais comum para expansão)
-    if node.valor == '*' and node.direita and node.direita.valor == '+':
-        return True
-    if node.valor == '*' and node.esquerda and node.esquerda.valor == '+':
-        return True
-    #(A+B) * (A+C) -> A + (B*C) (a mais comum para simplificação)
-    if node.valor == '*' and node.esquerda and node.direita and node.esquerda.valor == '+' and node.direita.valor == '+':
-        a, b = node.esquerda.esquerda, node.esquerda.direita
-        c, d = node.direita.esquerda, node.direita.direita
-        if any(str(x) == str(y) for x in [a,b] for y in [c,d]):
-            return True
+    if not node or not node.esquerda or not node.direita:
+        return False
+    if node.valor == '*':
+        return node.esquerda.valor == '+' or node.direita.valor == '+'
+    if node.valor == '+':
+        return node.esquerda.valor == '*' or node.direita.valor == '*'
     return False
 
 def pode_associativa(node):
@@ -197,11 +215,20 @@ def distributiva(node):
     #Expansão: A * (B + C) -> (A * B) + (A * C)
     if node.valor == '*':
         if node.direita and node.direita.valor == '+':
-             a, b, c = node.esquerda, node.direita.esquerda, node.direita.direita
-             return Node('+', Node('*', a, b), Node('*', a, c))
+            a, b, c = node.esquerda, node.direita.esquerda, node.direita.direita
+            return Node('+', Node('*', a, b), Node('*', a, c))
         if node.esquerda and node.esquerda.valor == '+':
-             a, b, c = node.direita, node.esquerda.esquerda, node.esquerda.direita
-             return Node('+', Node('*', a, b), Node('*', a, c))
+            a, b, c = node.direita, node.esquerda.esquerda, node.esquerda.direita
+            return Node('+', Node('*', a, b), Node('*', a, c))
+
+    #Expansão dual: A + (B * C) -> (A + B) * (A + C)
+    if node.valor == '+':
+        if node.direita and node.direita.valor == '*':
+            a, b, c = node.esquerda, node.direita.esquerda, node.direita.direita
+            return Node('*', Node('+', a, b), Node('+', a, c))
+        if node.esquerda and node.esquerda.valor == '*':
+            a, b, c = node.direita, node.esquerda.esquerda, node.esquerda.direita
+            return Node('*', Node('+', a, b), Node('+', a, c))
 
     return node #Retorna o nó original se nenhuma regra aplicou
 
@@ -240,6 +267,15 @@ LEIS_LOGICAS = [
 #Variável global para armazenar a lista ordenada de nós
 _todos_os_nos_ordenados = []
 _indice_no_atual = 0
+_chave_busca_atual = None
+
+
+def reiniciar_busca():
+    """Invalida o cursor global mantido por compatibilidade com a interface."""
+    global _todos_os_nos_ordenados, _indice_no_atual, _chave_busca_atual
+    _todos_os_nos_ordenados = []
+    _indice_no_atual = 0
+    _chave_busca_atual = None
 
 #------------------ Funções para Controle da GUI -------------------
 
@@ -260,20 +296,23 @@ def _coletar_todos_os_nos(node, parent=None, branch=None, collected_nodes=None):
     return collected_nodes
 
 def encontrar_proximo_passo(arvore_raiz, nos_a_ignorar=None):
-    global _todos_os_nos_ordenados, _indice_no_atual
+    global _todos_os_nos_ordenados, _indice_no_atual, _chave_busca_atual
 
     if nos_a_ignorar is None:
         nos_a_ignorar = set()
 
-    #Na primeira chamada ou se a árvore mudou ou se o índice atual está fora dos limites refazemos a lista de todos os nós.
-    #Usamos o ID do objeto para verificar se a árvore é a mesma.
-    if not _todos_os_nos_ordenados or id(arvore_raiz) != getattr(encontrar_proximo_passo, '_ultima_arvore_id', None):
-        todos_nos_info = _coletar_todos_os_nos(arvore_raiz) 
+    chave_busca = (
+        id(arvore_raiz),
+        str(arvore_raiz),
+        frozenset(id(node) for node in nos_a_ignorar),
+    )
+    if chave_busca != _chave_busca_atual:
+        todos_nos_info = _coletar_todos_os_nos(arvore_raiz)
         _todos_os_nos_ordenados = [info for info in todos_nos_info if info['no_atual'] not in nos_a_ignorar]
         
         _todos_os_nos_ordenados.sort(key=lambda x: (x['no_atual'].pegar_tamanho(), str(x['no_atual'])))
         _indice_no_atual = 0
-        setattr(encontrar_proximo_passo, '_ultima_arvore_id', id(arvore_raiz)) #Salva o ID da árvore
+        _chave_busca_atual = chave_busca
 
     #Avança o índice até encontrar um nó não ignorado
     while _indice_no_atual < len(_todos_os_nos_ordenados):
@@ -283,20 +322,53 @@ def encontrar_proximo_passo(arvore_raiz, nos_a_ignorar=None):
 
     return None
 
+
+def _contem_identidade(raiz, alvo):
+    if raiz is alvo:
+        return True
+    if raiz is None:
+        return False
+    return _contem_identidade(raiz.esquerda, alvo) or _contem_identidade(
+        raiz.direita, alvo
+    )
+
+
 def aplicar_lei_e_substituir(arvore_raiz, passo_info, indice_lei):
+    if not isinstance(indice_lei, int) or not 0 <= indice_lei < len(LEIS_LOGICAS):
+        return arvore_raiz, False
+    if not arvore_raiz or not passo_info:
+        return arvore_raiz, False
+
     lei_escolhida = LEIS_LOGICAS[indice_lei]
-    no_alvo = passo_info['no_atual']
-    pai = passo_info['pai']
-    ramo = passo_info['ramo']
+    no_alvo = passo_info.get('no_atual')
+    pai = passo_info.get('pai')
+    ramo = passo_info.get('ramo')
+
+    #Impede que referencias copiadas separadamente (caso do undo antigo)
+    #informem sucesso sem modificar a arvore exibida.
+    if pai is None:
+        if no_alvo is not arvore_raiz:
+            return arvore_raiz, False
+    else:
+        parent_is_attached = _contem_identidade(arvore_raiz, pai)
+        target_matches_branch = (
+            (ramo == 'esquerda' and pai.esquerda is no_alvo)
+            or (ramo == 'direita' and pai.direita is no_alvo)
+        )
+        if not parent_is_attached or not target_matches_branch:
+            return arvore_raiz, False
 
     #Verifica novamente por segurança
     if not lei_escolhida['verifica'](no_alvo):
         return arvore_raiz, False
 
     novo_no = lei_escolhida['aplica'](no_alvo)
+    if novo_no is None or str(novo_no) == str(no_alvo):
+        return arvore_raiz, False
 
     if pai is None:
         #A raiz da árvore foi substituída
+        reiniciar_busca()
         return novo_no, True
     
     if ramo == 'esquerda':
@@ -305,4 +377,5 @@ def aplicar_lei_e_substituir(arvore_raiz, passo_info, indice_lei):
         pai.direita = novo_no
 
     #Retorna a raiz original, que agora aponta para a árvore modificada
+    reiniciar_busca()
     return arvore_raiz, True
