@@ -1,5 +1,9 @@
 import re
+import logging
 from itertools import product
+
+
+logger = logging.getLogger(__name__)
 
 class UniversalLogicAnalyzer:
     def __init__(self):
@@ -81,7 +85,7 @@ class UniversalLogicAnalyzer:
         elif token in values:
             return values[token]
         else:
-            print(f"AVISO: Variável '{token}' não encontrada, assumindo False")
+            logger.warning("Variavel '%s' nao encontrada; assumindo False", token)
             return False
     
     def process_parentheses(self, tokens, values):

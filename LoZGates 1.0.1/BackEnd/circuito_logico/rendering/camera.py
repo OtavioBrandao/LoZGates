@@ -37,11 +37,13 @@ class Camera:
     
     def zoom_at(self, screen_pos, zoom_delta):
         world_pos = self.screen_to_world(screen_pos)
-        old_zoom = self.zoom
         self.zoom = max(self.min_zoom, min(self.max_zoom, self.zoom + zoom_delta))
-        zoom_ratio = self.zoom / old_zoom
-        self.x = world_pos[0] - (world_pos[0] - self.x) * zoom_ratio
-        self.y = world_pos[1] - (world_pos[1] - self.y) * zoom_ratio
+        self.x = world_pos[0] - (screen_pos[0] - self.screen_width / 2) / self.zoom
+        self.y = world_pos[1] - (screen_pos[1] - self.screen_height / 2) / self.zoom
+
+    def update_viewport(self, screen_width, screen_height):
+        self.screen_width = max(1, int(screen_width))
+        self.screen_height = max(1, int(screen_height))
     
     def reset_view(self):
         self.x = 0
@@ -49,6 +51,11 @@ class Camera:
         self.zoom = 1.0
     
     def handle_event(self, event, interactive_mode=False):
+        if event.type == pygame.MOUSEWHEEL:
+            mouse_position = pygame.mouse.get_pos()
+            self.zoom_at(mouse_position, event.y * self.zoom_speed)
+            return True
+
         # Verifica se o mouse está dentro da área do pygame
         if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
             mouse_x, mouse_y = pygame.mouse.get_pos()

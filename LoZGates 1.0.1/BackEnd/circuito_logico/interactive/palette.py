@@ -5,13 +5,7 @@ import math
 
 class ComponentPalette:
     def __init__(self, screen_width, screen_height):
-        self.screen_width = screen_width
-        self.screen_height = screen_height
         self.visible = True
-        self.x = 10
-        self.y = 200
-        self.width = 120
-        self.height = 400
         
         #Componentes disponíveis
         self.components = [
@@ -31,6 +25,25 @@ class ComponentPalette:
         
         self.dragging_component = None
         self.drag_offset = (0, 0)
+        self.resize(screen_width, screen_height)
+
+    def resize(self, screen_width, screen_height):
+        self.screen_width = max(320, int(screen_width))
+        self.screen_height = max(240, int(screen_height))
+        self.x = 8
+        self.width = max(100, min(140, int(self.screen_width * 0.14)))
+        self.y = max(60, min(160, int(self.screen_height * 0.20)))
+        available_height = max(170, self.screen_height - self.y - 8)
+        button_area = max(140, available_height - 30)
+        self.button_margin = 4
+        self.button_height = max(
+            16,
+            min(45, button_area // max(1, len(self.components)) - self.button_margin),
+        )
+        self.height = min(
+            available_height,
+            30 + len(self.components) * (self.button_height + self.button_margin),
+        )
     
     def set_gate_limitations(self, allowed_gates):
         self.allowed_gates = allowed_gates

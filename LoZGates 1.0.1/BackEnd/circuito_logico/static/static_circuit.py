@@ -2,11 +2,15 @@
 
 import pygame
 import tkinter as tk
-import os
+import logging
 
 from ..rendering.camera import Camera
 from ..rendering.drawer import CircuitDrawer
 from ..rendering.circuit_renderer import desenhar_circuito_logico_base, draw_ui_info
+from ..platform_support import configure_sdl_embedding, fit_surface_size
+
+
+logger = logging.getLogger(__name__)
 
 class CircuitoInterativo:
     def __init__(self, parent_frame, expressao):
@@ -16,37 +20,79 @@ class CircuitoInterativo:
         self.pygame_thread = None
         self.info_label = None
         self.status_label = None
+        self._resize_after_id = None
+        self._configure_binding_id = None
         
         # Estado da interface
         self._move = {'up': False, 'down': False, 'left': False, 'right': False}
         
         # Inicialização
         self.parent_frame.after(100, self.init_pygame)
+
+    def _create_display_surface(self, size):
+        try:
+            return pygame.display.set_mode(size, self.display_flags, vsync=1)
+        except (TypeError, pygame.error):
+            return pygame.display.set_mode(size, self.display_flags)
+
+    def _on_parent_configure(self, event):
+        if not self.running or event.widget is not self.parent_frame:
+            return
+        if event.width <= 1 or event.height <= 1:
+            return
+        if self._resize_after_id:
+            try:
+                self.parent_frame.after_cancel(self._resize_after_id)
+            except (tk.TclError, ValueError):
+                pass
+        self._resize_after_id = self.parent_frame.after(
+            100,
+            lambda width=event.width, height=event.height: self._resize_surface(
+                width, height
+            ),
+        )
+
+    def _resize_surface(self, width, height):
+        self._resize_after_id = None
+        if not self.running:
+            return
+        new_size = fit_surface_size(width, height)
+        if new_size == (self.screen_width, self.screen_height):
+            return
+        self.screen_width, self.screen_height = new_size
+        self.screen = self._create_display_surface(new_size)
+        self.camera.update_viewport(*new_size)
+        self.drawer.screen = self.screen
+        logger.debug("Superficie Pygame estatica redimensionada para %sx%s", *new_size)
     
     def init_pygame(self):
         try:
-            os.environ['SDL_WINDOWID'] = str(self.parent_frame.winfo_id())
-            os.environ['SDL_VIDEODRIVER'] = 'windows'
+            self.parent_frame.update_idletasks()
+            if self.parent_frame.winfo_width() <= 1 or self.parent_frame.winfo_height() <= 1:
+                self.parent_frame.after(200, self.init_pygame)
+                return
+
+            configure_sdl_embedding(self.parent_frame.winfo_id())
 
             pygame.init()
             pygame.font.init()
             self.parent_frame.update()
 
-            self.screen_width = max(800, self.parent_frame.winfo_width())
-            self.screen_height = max(600, self.parent_frame.winfo_height())
+            self.screen_width, self.screen_height = fit_surface_size(
+                self.parent_frame.winfo_width(), self.parent_frame.winfo_height()
+            )
 
-            flags = pygame.DOUBLEBUF
-            try:
-                self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), flags, vsync=1)
-            except TypeError:
-                self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), flags)
+            self.display_flags = pygame.DOUBLEBUF
+            self.screen = self._create_display_surface(
+                (self.screen_width, self.screen_height)
+            )
 
             self.camera = Camera(self.screen_width, self.screen_height)
             self.drawer = CircuitDrawer(self.screen, self.camera)
 
             try:
                 self.font = pygame.font.Font(None, 24)
-            except:
+            except pygame.error:
                 self.font = None
 
             # Configuração do frame Tkinter
@@ -55,11 +101,20 @@ class CircuitoInterativo:
             self.parent_frame.bind("<Enter>", lambda e: self.parent_frame.focus_set())
             self.parent_frame.bind("<KeyPress>", self._on_key_press)
             self.parent_frame.bind("<KeyRelease>", self._on_key_release)
+            self._configure_binding_id = self.parent_frame.bind(
+                "<Configure>", self._on_parent_configure, add="+"
+            )
 
             self.running = True
+            logger.info(
+                "Pygame estatico inicializado em %sx%s",
+                self.screen_width,
+                self.screen_height,
+            )
             self._tick()
 
         except Exception as e:
+            logger.exception("Erro ao inicializar Pygame estatico")
             tk.Label(self.parent_frame, text=f"Erro Pygame: {e}", fg="red", bg="black").pack()
 
     def _on_key_press(self, e):
@@ -81,8 +136,8 @@ class CircuitoInterativo:
         if not self.running:
             try:
                 pygame.quit()
-            except:
-                pass
+            except pygame.error:
+                logger.debug("Pygame ja estava finalizado", exc_info=True)
             return
 
         # Processa eventos do Pygame
@@ -113,3 +168,16 @@ class CircuitoInterativo:
 
     def stop(self):
         self.running = False
+        if self._resize_after_id:
+            try:
+                self.parent_frame.after_cancel(self._resize_after_id)
+            except (tk.TclError, ValueError):
+                pass
+            self._resize_after_id = None
+        if self._configure_binding_id:
+            try:
+                self.parent_frame.unbind("<Configure>", self._configure_binding_id)
+            except tk.TclError:
+                pass
+            self._configure_binding_id = None
+        logger.info("Circuito Pygame estatico parado")

@@ -3,7 +3,13 @@
     Gera visualizações estáticas dos circuitos com layout automático.
 """
 
+import logging
+import pygame
+
 from ..logic.parser import criar_ast_de_expressao, calcular_layout_dinamico, _coletar_variaveis
+
+
+logger = logging.getLogger(__name__)
 
 def desenhar_circuito_dinamico(layout, x_pos, bus_positions, drawer):
     layout_type = layout.get('type')
@@ -122,5 +128,5 @@ def draw_ui_info(screen, camera, font):
             surface = font.render(text, True, (255, 255, 255))
             screen.blit(surface, (10, y))
             y += 25
-        except: 
-            pass
+        except pygame.error:
+            logger.debug("Falha ao desenhar texto de ajuda do Pygame", exc_info=True)
