@@ -3,19 +3,24 @@ from customtkinter import CTkFont
 import threading
 import tkinter as tk
 from tkinter import filedialog
-import os
 from PIL import Image, ImageTk, ImageOps
 import time
 import webbrowser
 import urllib.parse
 from contextlib import redirect_stdout
 import copy
+import logging
 import re
 
-from config import ASSETS_PATH, informacoes, duvida_circuitos
+from config import (
+    CIRCUIT_IMAGE_PATH,
+    INPUT_CACHE_PATH,
+    apply_window_icon,
+    duvida_circuitos,
+    informacoes,
+)
 from FrontEnd.design_tokens import Colors, Typography, Dimensions, Spacing, TabConfig, get_font, get_title_font
 
-from BackEnd.imagem import converte_matrix_para_tkinter_imagem_icon
 from BackEnd.tabela import gerar_tabela_verdade, verificar_conclusao
 from BackEnd.converter import converter_para_algebra_booleana
 from BackEnd.equivalencia import tabela
@@ -36,6 +41,8 @@ from FrontEnd.ai_chat_popup import AIChatPopup
 from FrontEnd.problems_interface import IntegratedProblemsInterface
 
 from FrontEnd.logging_system import DetailedUserLogger, DetailedDataSharingDialog, ImprovedGoogleFormsSubmitter
+
+logger = logging.getLogger(__name__)
 user_logger = DetailedUserLogger("1.0-beta")
 
 expressao_global = ""
@@ -73,12 +80,7 @@ def inicializar_interface():
         janela.after(250, lambda: janela.state('zoomed'))
     janela.grid_rowconfigure(0, weight=1)
     janela.grid_columnconfigure(0, weight=1)
-    bytes_per_row = 32  #Número de bytes por linha na matriz
-    icon = converte_matrix_para_tkinter_imagem_icon(bytes_per_row)
-    try:
-        janela.iconbitmap(icon)
-    except Exception as e:
-        print(f"Erro ao gerar o icone: {e}")
+    apply_window_icon(janela)
         
     janela.resizable(True, True)
 
@@ -89,45 +91,45 @@ def inicializar_interface():
         def rodar_pygame():
             try:
                 circuito_integrado.plotar_circuito_logico(expressao, 0, 1200, 800)
-                print("Circuito gerado com sucesso!")
+                logger.info("Circuito estatico gerado com sucesso")
             except Exception as e:
-                print(f"Erro ao gerar circuito: {e}")
+                logger.exception("Erro ao gerar circuito estatico")
                 janela.after(0, lambda: popup_erro(f"Erro ao gerar circuito: {e}"))
         
         #Remove imagem antiga se existir
-        caminho_imagem = os.path.join(ASSETS_PATH, "circuito.png")
-        if os.path.exists(caminho_imagem):
+        caminho_imagem = CIRCUIT_IMAGE_PATH
+        if caminho_imagem.exists():
             try:
-                os.remove(caminho_imagem)
-            except Exception as e:
-                print(f"Aviso: Não foi possível remover imagem anterior: {e}")
+                caminho_imagem.unlink()
+            except OSError:
+                logger.warning("Nao foi possivel remover a imagem anterior", exc_info=True)
 
         #Executa o Pygame em uma thread
-        thread = threading.Thread(target=rodar_pygame)
+        thread = threading.Thread(target=rodar_pygame, daemon=True)
         thread.start()
 
         #Espera a imagem ser criada antes de continuar
         def aguardar_imagem():
             tempo_max = 10  #Aumentado para 10 segundos
             tempo_passado = 0
-            while not os.path.exists(caminho_imagem) and tempo_passado < tempo_max:
+            while not caminho_imagem.exists() and tempo_passado < tempo_max:
                 time.sleep(0.2)
                 tempo_passado += 0.2
             
-            if os.path.exists(caminho_imagem):
+            if caminho_imagem.exists():
                 janela.after(0, atualizar_imagem_circuito)
             else:
                 janela.after(0, lambda: popup_erro("Erro: A imagem do circuito não foi criada a tempo."))
 
         #Espera a imagem num thread separado para não travar a GUI
-        threading.Thread(target=aguardar_imagem).start()
+        threading.Thread(target=aguardar_imagem, daemon=True).start()
 
     def popup_erro(mensagem):
         popup = tk.Toplevel(janela)  #<- tk.Toplevel ao invés de ctk.CTkToplevel
         popup.attributes('-topmost', True)
         popup.after(10, lambda: popup.attributes('-topmost', False))
         popup.title("Erro")
-        popup.iconbitmap(os.path.join(ASSETS_PATH, "endeota.ico"))
+        apply_window_icon(popup)
 
         #Tamanho e centralização
         largura_popup = 400
@@ -154,7 +156,7 @@ def inicializar_interface():
         popup.attributes('-topmost', True)
         popup.after(10, lambda: popup.attributes('-topmost', False))
         popup.title("Ajuda")
-        popup.iconbitmap(os.path.join(ASSETS_PATH, "endeota.ico"))
+        apply_window_icon(popup)
         popup.configure(bg="#1a1a1a")
         #Cria o textbox e insere a mensagem de ajuda/informação
         textbox = tk.Text(popup, wrap="word", font=("Trebuchet MS", 12), fg="white", bg="#1a1a1a", borderwidth=0)
@@ -175,7 +177,7 @@ def inicializar_interface():
 
     def trocar_para_abas():
         try:
-            caminho_entrada = os.path.join(ASSETS_PATH, "entrada.txt")
+            caminho_entrada = INPUT_CACHE_PATH
             start_time = time.time()
             expressao = entrada.get().strip().upper().replace(" ", "")
             
@@ -188,11 +190,8 @@ def inicializar_interface():
                 
             label_circuito_expressao.configure(text=f"Expressão Lógica Proposicional: {expressao}")
             
-            #Criar diretório se não existir
-            os.makedirs(ASSETS_PATH, exist_ok=True)
-            
-            with open(caminho_entrada, "w", encoding="utf-8") as file: 
-                file.write(expressao) 
+            caminho_entrada.parent.mkdir(parents=True, exist_ok=True)
+            caminho_entrada.write_text(expressao, encoding="utf-8")
 
             saida = converter_para_algebra_booleana(expressao)
             global expressao_global
@@ -207,8 +206,8 @@ def inicializar_interface():
             user_logger.log_feature_used("circuit_generation", duration)
             
         except Exception as e:
+            logger.exception("Erro ao processar expressao")
             popup_erro(f"Erro ao processar expressão: {e}")
-            print(f"Erro detalhado: {e}")
             
     #Detecta mudança de aba e recria o circuito se necessário
     def on_tab_change():
@@ -583,8 +582,8 @@ def inicializar_interface():
        
     def atualizar_imagem_circuito():
         try:
-            caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
-            if os.path.exists(caminho_img):
+            caminho_img = CIRCUIT_IMAGE_PATH
+            if caminho_img.exists():
                 imagem_pil = Image.open(caminho_img)
 
                 #Adiciona borda branca de 10px
@@ -769,8 +768,8 @@ def inicializar_interface():
 
     def salvar_imagem():
         try:
-            caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
-            if os.path.exists(caminho_img):
+            caminho_img = CIRCUIT_IMAGE_PATH
+            if caminho_img.exists():
                 caminho_salvar = filedialog.asksaveasfilename(
                     defaultextension=".png", 
                     filetypes=[("Imagem PNG", "*.png")], 

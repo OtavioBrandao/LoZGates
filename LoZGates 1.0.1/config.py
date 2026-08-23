@@ -1,7 +1,71 @@
+import logging
 import os
+from dataclasses import dataclass
+from pathlib import Path
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_PATH = os.path.join(ROOT_DIR, "assets")
+
+ROOT_PATH = Path(__file__).resolve().parent
+ROOT_DIR = str(ROOT_PATH)  # Compatibilidade com consumidores antigos.
+ASSETS_DIR = ROOT_PATH / "assets"
+ASSETS_PATH = str(ASSETS_DIR)
+
+
+def _configured_path(variable_name, default):
+    value = os.getenv(variable_name)
+    path = Path(value).expanduser() if value else default
+    if not path.is_absolute():
+        path = ROOT_PATH / path
+    return path.resolve()
+
+
+def _env_float(variable_name, default, minimum=0.1):
+    try:
+        return max(minimum, float(os.getenv(variable_name, default)))
+    except (TypeError, ValueError):
+        return float(default)
+
+
+DATA_DIR = _configured_path("LOZGATES_DATA_DIR", ROOT_PATH / "data")
+LOG_DIR = _configured_path("LOZGATES_LOG_DIR", ROOT_PATH / "logs")
+CIRCUIT_IMAGE_PATH = DATA_DIR / "circuito.png"
+INPUT_CACHE_PATH = DATA_DIR / "entrada.txt"
+ACTIVITY_LOG_PATH = DATA_DIR / "user_activity_detailed.json"
+ACTIVITY_SETTINGS_PATH = DATA_DIR / "logging_settings.json"
+LEGACY_ACTIVITY_LOG_PATH = ROOT_PATH / "user_activity_detailed.json"
+LEGACY_ACTIVITY_SETTINGS_PATH = ROOT_PATH / "logging_settings.json"
+WINDOW_ICON_PATH = ASSETS_DIR / "icon.ico"
+
+
+def ensure_runtime_directories():
+    """Cria somente os diretorios gravaveis usados em tempo de execucao."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+
+@dataclass(frozen=True)
+class AISettings:
+    api_key: str
+    api_url: str
+    model: str
+    timeout_seconds: float
+    service_url: str
+
+    @classmethod
+    def from_environment(cls):
+        return cls(
+            api_key=(
+                os.getenv("LOZGATES_AI_API_KEY")
+                or os.getenv("GROQ_API_KEY")
+                or ""
+            ).strip(),
+            api_url=os.getenv(
+                "LOZGATES_AI_API_URL",
+                "https://api.groq.com/openai/v1/chat/completions",
+            ).strip(),
+            model=os.getenv("LOZGATES_AI_MODEL", "openai/gpt-oss-120b").strip(),
+            timeout_seconds=_env_float("LOZGATES_AI_TIMEOUT", 15),
+            service_url=os.getenv("LOZGATES_AI_SERVICE_URL", "").strip().rstrip("/"),
+        )
 
 #Texto curto para dúvidas rápidas sobre circuitos
 duvida_circuitos = """
@@ -146,8 +210,10 @@ def make_window_visible_robust(window, parent=None, modal=False):
     if parent:
         try:
             window.transient(parent)
-        except:
-            pass
+        except Exception:
+            logging.getLogger(__name__).debug(
+                "Nao foi possivel associar a janela ao parent", exc_info=True
+            )
     
     window.update_idletasks()
     
@@ -159,17 +225,35 @@ def make_window_visible_robust(window, parent=None, modal=False):
             window.focus_force()
             if modal:
                 window.grab_set()
-        except:
-            pass
+        except Exception:
+            logging.getLogger(__name__).debug(
+                "Nao foi possivel forcar a visibilidade da janela", exc_info=True
+            )
     
     def normalize():
         try:
             window.attributes('-topmost', 0) 
             if modal:
                 window.grab_release()
-        except:
-            pass
+        except Exception:
+            logging.getLogger(__name__).debug(
+                "Nao foi possivel normalizar a janela", exc_info=True
+            )
     
     window.after(10, force_visibility) 
-    window.after(250, normalize)         
+    window.after(250, normalize)
     return window
+
+
+def apply_window_icon(window):
+    """Aplica o icone quando suportado pelo backend Tk da plataforma."""
+    if not WINDOW_ICON_PATH.exists():
+        return False
+    try:
+        window.iconbitmap(str(WINDOW_ICON_PATH))
+        return True
+    except Exception:
+        logging.getLogger(__name__).debug(
+            "Backend Tk nao suporta o icone %s", WINDOW_ICON_PATH, exc_info=True
+        )
+        return False

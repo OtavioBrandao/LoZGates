@@ -5,19 +5,32 @@ import os
 import time
 import hashlib
 import platform
+import shutil
 from datetime import datetime
 from typing import Dict, List, Any
 import customtkinter as ctk
+import logging
 
 from BackEnd import converter
-from config import make_window_visible_robust
+from config import (
+    ACTIVITY_LOG_PATH,
+    ACTIVITY_SETTINGS_PATH,
+    LEGACY_ACTIVITY_LOG_PATH,
+    LEGACY_ACTIVITY_SETTINGS_PATH,
+    make_window_visible_robust,
+)
+
+
+logger = logging.getLogger(__name__)
 
 class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados granulares de uso.
     
     def __init__(self, app_version="1.0-beta"):
         self.app_version = app_version
-        self.log_file = "user_activity_detailed.json"
-        self.settings_file = "logging_settings.json"
+        self.log_file = str(ACTIVITY_LOG_PATH)
+        self.settings_file = str(ACTIVITY_SETTINGS_PATH)
+        ACTIVITY_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        self._migrate_legacy_files()
         
         #ID anônimo do usuário (baseado no hardware)
         self.user_id = self._generate_anonymous_id()
@@ -89,6 +102,24 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
         #Carrega configurações existentes
         self._load_settings()
         self._initialize_log_file()
+
+    def _migrate_legacy_files(self):
+        """Preserva configuracao e historico das versoes que gravavam na raiz."""
+        for source, destination in (
+            (LEGACY_ACTIVITY_LOG_PATH, ACTIVITY_LOG_PATH),
+            (LEGACY_ACTIVITY_SETTINGS_PATH, ACTIVITY_SETTINGS_PATH),
+        ):
+            if destination.exists() or not source.exists():
+                continue
+            try:
+                shutil.copy2(source, destination)
+            except OSError:
+                logger.warning(
+                    "Nao foi possivel migrar %s para %s",
+                    source,
+                    destination,
+                    exc_info=True,
+                )
     
     def _generate_anonymous_id(self) -> str: #Gera ID anônimo baseado no hardware do usuário.
         try:

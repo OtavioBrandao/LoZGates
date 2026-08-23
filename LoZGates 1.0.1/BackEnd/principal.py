@@ -3,8 +3,7 @@ Arquivo principal do módulo de circuitos lógicos.
 Contém as funções de compatibilidade para integração com a interface gráfica.
 """
 import pygame
-import os
-from PIL import Image, ImageOps
+import logging
 
 from BackEnd.circuito_logico.rendering.camera import Camera
 from BackEnd.circuito_logico.rendering.drawer import CircuitDrawer
@@ -12,10 +11,13 @@ from BackEnd.circuito_logico.rendering.circuit_renderer import desenhar_circuito
 from BackEnd.circuito_logico.interactive.interactive_circuit import CircuitoInterativoManual
 from BackEnd.circuito_logico.static.static_circuit import CircuitoInterativo
 from .converter import converter_para_algebra_booleana
+from config import CIRCUIT_IMAGE_PATH
+
+
+logger = logging.getLogger(__name__)
 
 
 def plotar_circuito_logico(expressao, x_offset=0, width=1200, height=800):
-    from config import ASSETS_PATH
     try:
         if not pygame.get_init():
             pygame.init()
@@ -62,8 +64,8 @@ def plotar_circuito_logico(expressao, x_offset=0, width=1200, height=800):
             
             temp_camera.zoom = max(0.2, min(3.0, optimal_zoom))
             
-        except Exception as e:
-            print(f"Erro ao calcular layout: {e}")
+        except Exception:
+            logger.warning("Erro ao calcular layout; usando camera padrao", exc_info=True)
             #Usa valores padrão se houver erro
             temp_camera.x = 400
             temp_camera.y = 300
@@ -76,11 +78,11 @@ def plotar_circuito_logico(expressao, x_offset=0, width=1200, height=800):
         
         desenhar_circuito_logico_base(expressao_booleana, drawer, width, height)
         
-        caminho_img = os.path.join(ASSETS_PATH, "circuito.png")
-        pygame.image.save(screen, caminho_img)
+        CIRCUIT_IMAGE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        pygame.image.save(screen, str(CIRCUIT_IMAGE_PATH))
         
-    except Exception as e:
-        print(f"Erro ao plotar circuito estático: {e}")
+    except Exception:
+        logger.exception("Erro ao plotar circuito estatico")
         raise
 
 

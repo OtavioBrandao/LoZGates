@@ -2,6 +2,7 @@ import json
 from collections import Counter
 from datetime import datetime
 import numpy as np
+from config import ACTIVITY_LOG_PATH
 
 class LoZGatesDataAnalyzer:
     def __init__(self, data_file_path: str):
@@ -776,7 +777,7 @@ class LoZGatesDataAnalyzer:
             print(f"❌ Erro ao salvar relatório HTML: {e}")
             
 if __name__ == "__main__":
-    analyzer = LoZGatesDataAnalyzer("user_activity_detailed.json")
+    analyzer = LoZGatesDataAnalyzer(str(ACTIVITY_LOG_PATH))
     report = analyzer.generate_comprehensive_report()
     analyzer.save_report_to_file(report)
     analyzer.generate_html_report(report)

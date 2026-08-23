@@ -669,4 +669,3 @@ Problems_bank = [
         )
 
 ]
-print(f"{Problems_bank[0].show_the_problem()}")
