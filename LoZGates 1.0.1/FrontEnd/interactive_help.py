@@ -2,6 +2,7 @@ import customtkinter as ctk
 import webbrowser
 from FrontEnd.design_tokens import Colors, Typography, Dimensions, get_font, get_title_font
 from config import make_window_visible_robust
+from FrontEnd.responsive import calculate_window_layout
 
 class InteractiveHelpSystem:
     def __init__(self, parent_window):
@@ -20,14 +21,15 @@ class InteractiveHelpSystem:
         self.help_window = ctk.CTkToplevel(self.parent)
         make_window_visible_robust(self.help_window, parent=self.parent)
         self.help_window.title("📚 LoZ Gates - manual interativo")
-        self.help_window.geometry("1000x700")
+        layout = calculate_window_layout(
+            self.help_window.winfo_screenwidth(),
+            self.help_window.winfo_screenheight(),
+            preferred=(1000, 700),
+            minimum=(640, 480),
+        )
+        self.help_window.geometry(layout.geometry)
+        self.help_window.minsize(layout.minimum_width, layout.minimum_height)
         self.help_window.resizable(True, True)
-        
-        #Centralizar na tela
-        self.help_window.update_idletasks()
-        x = (self.help_window.winfo_screenwidth() // 2) - 500
-        y = (self.help_window.winfo_screenheight() // 2) - 350
-        self.help_window.geometry(f"1000x700+{x}+{y}")
         
         self.help_window.configure(fg_color=Colors.PRIMARY_BG)
         self.create_header()

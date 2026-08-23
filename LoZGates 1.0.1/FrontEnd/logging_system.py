@@ -19,6 +19,7 @@ from config import (
     LEGACY_ACTIVITY_SETTINGS_PATH,
     make_window_visible_robust,
 )
+from FrontEnd.responsive import calculate_window_layout
 
 
 logger = logging.getLogger(__name__)
@@ -709,13 +710,15 @@ class DetailedDataSharingDialog:
         root = ctk.CTkToplevel()
         make_window_visible_robust(root, modal=True)
         root.title("Compartilhamento de dados detalhados - LoZ Gates Beta")
-        root.geometry("800x700")
+        layout = calculate_window_layout(
+            root.winfo_screenwidth(),
+            root.winfo_screenheight(),
+            preferred=(800, 700),
+            minimum=(520, 480),
+        )
+        root.geometry(layout.geometry)
+        root.minsize(layout.minimum_width, layout.minimum_height)
         root.resizable(True, True)
-        
-        root.update_idletasks()
-        x = (root.winfo_screenwidth() // 2) - (400)
-        y = (root.winfo_screenheight() // 2) - (350)
-        root.geometry(f"800x700+{x}+{y}")
         
         main_frame = ctk.CTkScrollableFrame(root)
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)

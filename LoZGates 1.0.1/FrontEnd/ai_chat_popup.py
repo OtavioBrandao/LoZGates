@@ -4,6 +4,7 @@ from tkinter import scrolledtext
 import threading
 from BackEnd.ai_assistant import AIAssistant
 from config import make_window_visible_robust
+from FrontEnd.responsive import calculate_window_layout
 
 class AIChatPopup:
     def __init__(self, parent, expression="", step_context=""):
@@ -16,14 +17,16 @@ class AIChatPopup:
         self.popup = ctk.CTkToplevel(parent)
         make_window_visible_robust(self.popup, parent=parent)
         self.popup.title("Sugestão de IA - Simplificador Lógico")
-        self.popup.geometry("500x600")
+        layout = calculate_window_layout(
+            self.popup.winfo_screenwidth(),
+            self.popup.winfo_screenheight(),
+            preferred=(560, 640),
+            minimum=(360, 480),
+            margin=24,
+        )
+        self.popup.geometry(layout.geometry)
+        self.popup.minsize(layout.minimum_width, layout.minimum_height)
         self.popup.resizable(True, True)
-        
-        # Centralizar popup
-        self.popup.update_idletasks()
-        x = (self.popup.winfo_screenwidth() // 2) - (250)
-        y = (self.popup.winfo_screenheight() // 2) - (300)
-        self.popup.geometry(f"500x600+{x}+{y}")
         
         self.setup_ui()
         self.popup.focus()

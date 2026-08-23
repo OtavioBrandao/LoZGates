@@ -20,6 +20,11 @@ from config import (
     informacoes,
 )
 from FrontEnd.design_tokens import Colors, Typography, Dimensions, Spacing, TabConfig, get_font, get_title_font
+from FrontEnd.responsive import (
+    calculate_window_layout,
+    calculate_wraplength,
+    responsive_columns,
+)
 
 from BackEnd.tabela import gerar_tabela_verdade, verificar_conclusao
 from BackEnd.converter import converter_para_algebra_booleana
@@ -74,11 +79,15 @@ def inicializar_interface():
     janela = ctk.CTk()
     janela.title("LoZ Gates")
     janela.configure(bg=Colors.PRIMARY_BG)
-    janela.minsize(1280, 720)
+    window_layout = calculate_window_layout(
+        janela.winfo_screenwidth(), janela.winfo_screenheight()
+    )
+    janela.geometry(window_layout.geometry)
+    janela.minsize(window_layout.minimum_width, window_layout.minimum_height)
     try:
-        janela.wm_attributes('-zoomed', True)
+        janela.state('zoomed')
     except (tk.TclError, AttributeError):
-        janela.after(250, lambda: janela.state('zoomed'))
+        logger.debug("Maximizacao automatica indisponivel nesta plataforma")
     janela.grid_rowconfigure(0, weight=1)
     janela.grid_columnconfigure(0, weight=1)
     apply_window_icon(janela)
@@ -132,20 +141,27 @@ def inicializar_interface():
         popup.title("Erro")
         apply_window_icon(popup)
 
-        #Tamanho e centralização
-        largura_popup = 400
-        altura_popup = 120
-        popup.geometry(f"{largura_popup}x{altura_popup}")
-        popup.update_idletasks()
-        x = (popup.winfo_screenwidth() // 2) - (largura_popup // 2)
-        y = (popup.winfo_screenheight() // 2) - (altura_popup // 2)
-        popup.geometry(f"{largura_popup}x{altura_popup}+{x}+{y}")
+        popup_layout = calculate_window_layout(
+            popup.winfo_screenwidth(),
+            popup.winfo_screenheight(),
+            preferred=(460, 180),
+            minimum=(320, 160),
+            margin=24,
+        )
+        popup.geometry(popup_layout.geometry)
 
         #Cor de fundo
         popup.configure(bg="#1a1a1a")  #como é Tk puro, use 'bg' e não 'fg_color'
 
         #Conteúdo
-        label = tk.Label(popup, text=mensagem, font=("Trebuchet MS", 12), fg="white", bg="#1a1a1a")
+        label = tk.Label(
+            popup,
+            text=mensagem,
+            font=("Segoe UI", 11),
+            fg="white",
+            bg="#1a1a1a",
+            wraplength=max(260, popup_layout.width - 50),
+        )
         label.pack(pady=(20, 10))
 
         botao_ok = tk.Button(popup, text="OK", bg="#7A2020", fg="white", command=popup.destroy)
@@ -167,14 +183,14 @@ def inicializar_interface():
         textbox.insert("1.0", info_extra + mensagem)
         textbox.configure(state="disabled")
 
-        #Tamanho e centralização
-        largura_popup = 400
-        altura_popup = 400
-        popup.geometry(f"{largura_popup}x{altura_popup}")
-        popup.update_idletasks()
-        x = (popup.winfo_screenwidth() // 2) - (largura_popup // 2)
-        y = (popup.winfo_screenheight() // 2) - (altura_popup // 2)
-        popup.geometry(f"{largura_popup}x{altura_popup}+{x}+{y}")
+        popup_layout = calculate_window_layout(
+            popup.winfo_screenwidth(),
+            popup.winfo_screenheight(),
+            preferred=(520, 520),
+            minimum=(340, 320),
+            margin=24,
+        )
+        popup.geometry(popup_layout.geometry)
 
     def trocar_para_abas():
         try:
@@ -310,15 +326,24 @@ def inicializar_interface():
         except:
             pass
         
-        botao_ver_circuito = Button.botao_padrao("🔌Ver Circuito", principal)
+        botao_ver_circuito = Button.botao_padrao("🔌Ver Circuito", principal_card)
         botao_ver_circuito.configure(command=lambda: trocar_para_abas())
-        botao_ver_circuito.place(relx=0.5, y=500, anchor="center")
+        botao_ver_circuito.pack(fill="x", padx=Spacing.XL, pady=(0, Spacing.MD))
 
     def exibir_tabela_verdade(expressao):
         try:
             janela_tabela = ctk.CTkToplevel(janela)
             janela_tabela.title("Tabela Verdade")
-            janela_tabela.geometry("1000x700")
+            table_layout = calculate_window_layout(
+                janela_tabela.winfo_screenwidth(),
+                janela_tabela.winfo_screenheight(),
+                preferred=(1000, 700),
+                minimum=(640, 480),
+            )
+            janela_tabela.geometry(table_layout.geometry)
+            janela_tabela.minsize(
+                table_layout.minimum_width, table_layout.minimum_height
+            )
             janela_tabela.lift()
             janela_tabela.attributes('-topmost', True)
             janela_tabela.after(10, lambda: janela_tabela.attributes('-topmost', False))
@@ -505,11 +530,11 @@ def inicializar_interface():
                 )
                 
                 if resultado:
-                    equivalente.place(relx=0.5, y=360, anchor="center")
-                    nao_equivalente.place_forget()
+                    equivalente.pack(padx=Spacing.XL, pady=Spacing.XS)
+                    nao_equivalente.pack_forget()
                 else:
-                    nao_equivalente.place(relx=0.5, y=360, anchor="center")
-                    equivalente.place_forget()
+                    nao_equivalente.pack(padx=Spacing.XL, pady=Spacing.XS)
+                    equivalente.pack_forget()
                     
             except Exception as e:
                 user_logger.log_error("equivalence_check_error", str(e), "comparar_function")
@@ -634,61 +659,97 @@ def inicializar_interface():
     frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
     #---------------- FRAME DE INÍCIO ----------------
- 
+
+    home_card = ctk.CTkFrame(
+        frame_inicio,
+        fg_color=Colors.SURFACE_DARK,
+        border_width=Dimensions.BORDER_WIDTH_STANDARD,
+        border_color=Colors.BORDER_DEFAULT,
+        corner_radius=Dimensions.CORNER_RADIUS_LARGE,
+    )
+    home_card.place(relx=0.5, rely=0.5, anchor="center")
+
     fonte_momentz = CTkFont(family="Momentz", size=Typography.SIZE_TITLE_LARGE + 2)
     label_inicio = ctk.CTkLabel(
-        frame_inicio,
+        home_card,
         text="<LoZ Gates>",
         font=fonte_momentz,
         text_color=Colors.TEXT_PRIMARY,
-        fg_color=Colors.PRIMARY_BG
+        fg_color="transparent"
     )
-    label_inicio.place(relx=0.5, y=200, anchor="center")
+    label_inicio.pack(padx=Spacing.XXL, pady=(Spacing.XXL, Spacing.XS))
 
-    botao_circuitos = Button.botao_padrao("💡Circuitos e Expressões", frame_inicio)
+    home_subtitle = ctk.CTkLabel(
+        home_card,
+        text="Lógica proposicional e circuitos digitais, passo a passo.",
+        font=get_font(Typography.SIZE_BODY_SMALL),
+        text_color=Colors.TEXT_SECONDARY,
+        wraplength=420,
+    )
+    home_subtitle.pack(padx=Spacing.XL, pady=(0, Spacing.XL))
+
+    botao_circuitos = Button.botao_padrao("💡 Circuitos e Expressões", home_card)
     botao_circuitos.configure(command=lambda: show_frame(principal))
-    botao_circuitos.place(relx=0.5, y=300, anchor="center")
+    botao_circuitos.pack(fill="x", padx=Spacing.XL, pady=Spacing.SM)
 
-    botao_equivalencia = Button.botao_padrao("🔄Equivalência Lógica", frame_inicio)
+    botao_equivalencia = Button.botao_padrao("🔄 Equivalência Lógica", home_card)
     botao_equivalencia.configure(command=lambda: show_frame(frame_equivalencia))
-    botao_equivalencia.place(relx=0.5, y=400, anchor="center")
+    botao_equivalencia.pack(fill="x", padx=Spacing.XL, pady=Spacing.SM)
     
-    botao_info = Button.botao_padrao("❔Ajuda", frame_inicio)
+    botao_info = Button.botao_padrao("❔ Ajuda e manual", home_card)
     botao_info.configure(command=lambda: show_interactive_help(janela))
-    botao_info.place(relx=0.5, y=500, anchor="center")
+    botao_info.pack(fill="x", padx=Spacing.XL, pady=(Spacing.SM, Spacing.XXL))
 
     #---------------- FRAME DOS CIRCUITOS E DAS EXPRESSÕES ----------------
 
+    principal_card = ctk.CTkFrame(
+        principal,
+        fg_color=Colors.SURFACE_DARK,
+        border_width=Dimensions.BORDER_WIDTH_STANDARD,
+        border_color=Colors.BORDER_DEFAULT,
+        corner_radius=Dimensions.CORNER_RADIUS_LARGE,
+    )
+    principal_card.place(relx=0.5, rely=0.5, anchor="center")
+
     label_tarefas = ctk.CTkLabel(
-        principal, 
+        principal_card,
         text="Digite a expressão em Lógica Proposicional:", 
         font=get_title_font(Typography.SIZE_TITLE_SMALL), 
         text_color=Colors.TEXT_PRIMARY, 
         fg_color=None
     )
-    label_tarefas.place(relx=0.5, y=150, anchor="center")
+    label_tarefas.pack(padx=Spacing.XL, pady=(Spacing.XXL, Spacing.SM))
+
+    syntax_hint = ctk.CTkLabel(
+        principal_card,
+        text="Use & para E, | para OU, ! para NÃO e parênteses para prioridade.",
+        font=get_font(Typography.SIZE_CAPTION),
+        text_color=Colors.TEXT_SECONDARY,
+        wraplength=460,
+    )
+    syntax_hint.pack(padx=Spacing.XL, pady=(0, Spacing.MD))
 
     entrada = ctk.CTkEntry(
-        principal, 
+        principal_card,
         width=350, 
-        placeholder_text="Digite aqui", 
+        placeholder_text="Ex.: (A & B) | !C",
         font=get_font(Typography.SIZE_BODY_SMALL),
         corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
     )
-    entrada.place(relx=0.5, y=200, anchor="center")
+    entrada.pack(fill="x", padx=Spacing.XL, pady=(0, Spacing.MD))
     entrada.bind("<Return>", lambda event: confirmar_expressao())
 
-    botao_confirmar_expressao = Button.botao_padrao("✅Confirmar", principal, style="success")
+    botao_confirmar_expressao = Button.botao_padrao("✅ Confirmar", principal_card, style="success")
     botao_confirmar_expressao.configure(command=confirmar_expressao, hover_color="#16723D")
-    botao_confirmar_expressao.place(relx=0.5, y=280, anchor="center")
+    botao_confirmar_expressao.pack(fill="x", padx=Spacing.XL, pady=Spacing.SM)
     
-    botao_problemas_reais = Button.botao_padrao("🔬 Banco de problemas", principal)
+    botao_problemas_reais = Button.botao_padrao("🔬 Banco de problemas", principal_card)
     botao_problemas_reais.configure(command=lambda: show_frame(frame_problemas_reais))
-    botao_problemas_reais.place(relx=0.5, y=360, anchor="center")
+    botao_problemas_reais.pack(fill="x", padx=Spacing.XL, pady=Spacing.SM)
 
-    botao_go_back_to_inicio = Button.botao_voltar("Voltar", principal)
+    botao_go_back_to_inicio = Button.botao_voltar("Voltar", principal_card)
     botao_go_back_to_inicio.configure(command=lambda: go_back_to(frame_inicio))
-    botao_go_back_to_inicio.place(relx=0.5, y=440, anchor="center")
+    botao_go_back_to_inicio.pack(fill="x", padx=Spacing.XL, pady=(Spacing.SM, Spacing.XXL))
     
     #---------------- FRAME DOS PROBLEMAS REAIS ----------------
     def handle_problem_answer(expression, destination):
@@ -752,16 +813,19 @@ def inicializar_interface():
     scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color=Colors.PRIMARY_BG)
     scroll_frame1.pack(expand=True, fill="both")
 
+    circuit_header = ctk.CTkFrame(scroll_frame1, fg_color="transparent")
+    circuit_header.pack(fill="x", padx=Spacing.MD, pady=Spacing.SM)
+
     label_circuito_expressao = ctk.CTkLabel(
-        scroll_frame1, 
+        circuit_header,
         font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD), 
         text_color=Colors.TEXT_ACCENT, 
         text=""
     )
-    label_circuito_expressao.pack(pady=Spacing.MD)
+    label_circuito_expressao.pack(side="left", expand=True, padx=Spacing.SM)
 
-    botao_duvida1 = Button.botao_duvida(scroll_frame1)
-    botao_duvida1.place(relx=0.95, y=5, anchor="ne")
+    botao_duvida1 = Button.botao_duvida(circuit_header, size="small")
+    botao_duvida1.pack(side="right", padx=Spacing.SM)
     botao_duvida1.configure(command=lambda: popup_duvida(duvida_circuitos))
 
     imagem_circuito = ctk.CTkLabel(scroll_frame1, text="")
@@ -1531,7 +1595,7 @@ def inicializar_interface():
             frame_passos,
             fg_color=Colors.SURFACE_DARK,
             corner_radius=Dimensions.CORNER_RADIUS_SMALL,
-            height=330
+            height=240
         )
         scroll_passos.pack(fill="both", expand=True, padx=Spacing.SM, pady=(0, Spacing.SM))
         
@@ -1568,14 +1632,9 @@ def inicializar_interface():
         ]
         
         botoes_leis = []
-        for i, info in enumerate(botoes_info):
-            row = i // 3
-            col = i % 3
-            
+        for info in botoes_info:
             btn = Button.botao_padrao(f"{info['texto']}\n({info['desc']})", frame_grid_leis)
             btn.configure(command=lambda idx=info["idx"]: on_lei_selecionada(idx))
-            btn.grid(row=row, column=col, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
-            frame_grid_leis.grid_columnconfigure(col, weight=1)
             botoes_leis.append(btn)
         
         #5. SEÇÃO: Controles
@@ -1584,19 +1643,60 @@ def inicializar_interface():
         
         #Botões de controle
         botao_desfazer = Button.botao_padrao("↩ Desfazer", frame_controles_interativo)
-        botao_desfazer.configure(command=on_desfazer_selecionado, state="disabled")
-        botao_desfazer.pack(side="left", padx=Spacing.SM)
+        botao_desfazer.configure(
+            command=on_desfazer_selecionado, state="disabled", width=140
+        )
         
         botao_pular = Button.botao_padrao("↪ Pular", frame_controles_interativo)
-        botao_pular.configure(command=on_pular_selecionado)
-        botao_pular.pack(side="left", padx=Spacing.SM)
+        botao_pular.configure(command=on_pular_selecionado, width=140)
         
         #Botão voltar
         botao_voltar_interativo = Button.botao_voltar("Voltar", frame_controles_interativo)
         botao_voltar_interativo.configure(
-            command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), limpar_frame_interativo(), go_back_to(frame_abas)]
+            command=lambda: [finalizar_sessao_expressao(str(expressao_global), resolvida=False), limpar_frame_interativo(), go_back_to(frame_abas)],
+            width=140,
         )
-        botao_voltar_interativo.pack(side="right", padx=Spacing.SM)
+
+        control_buttons = [botao_desfazer, botao_pular, botao_voltar_interativo]
+
+        def reflow_interactive_layout(event=None):
+            container_width = (
+                event.width if event is not None else main_container.winfo_width()
+            )
+            wraplength = calculate_wraplength(container_width)
+            label_expressao_inicial.configure(wraplength=wraplength)
+            label_analise_atual.configure(wraplength=wraplength)
+
+            law_columns = responsive_columns(container_width, item_minimum=250, maximum=3)
+            for column in range(3):
+                frame_grid_leis.grid_columnconfigure(
+                    column, weight=1 if column < law_columns else 0
+                )
+            for index, button in enumerate(botoes_leis):
+                button.grid(
+                    row=index // law_columns,
+                    column=index % law_columns,
+                    padx=Spacing.XS,
+                    pady=Spacing.XS,
+                    sticky="ew",
+                )
+
+            control_columns = 3 if container_width >= 560 else 1
+            for column in range(3):
+                frame_controles_interativo.grid_columnconfigure(
+                    column, weight=1 if column < control_columns else 0
+                )
+            for index, button in enumerate(control_buttons):
+                button.grid(
+                    row=index // control_columns,
+                    column=index % control_columns,
+                    padx=Spacing.XS,
+                    pady=Spacing.XS,
+                    sticky="ew",
+                )
+
+        main_container.bind("<Configure>", reflow_interactive_layout, add="+")
+        main_container.after(0, reflow_interactive_layout)
     #------------------------------------------------------------------------
     #BOTÃO DE RELATÓRIO HTML COMENTADO CONFORME SOLICITADO
     #botao_relatorio = Button.botao_padrao("📊 Gerar Relatório HTML", frame_inicio)
@@ -1643,50 +1743,74 @@ def inicializar_interface():
 
     #---------------- FRAME DE EQUIVALÊNCIA ----------------
 
+    equivalencia_card = ctk.CTkFrame(
+        frame_equivalencia,
+        fg_color=Colors.SURFACE_DARK,
+        border_width=Dimensions.BORDER_WIDTH_STANDARD,
+        border_color=Colors.BORDER_DEFAULT,
+        corner_radius=Dimensions.CORNER_RADIUS_LARGE,
+    )
+    equivalencia_card.place(relx=0.5, rely=0.5, anchor="center")
+
     titulo = ctk.CTkLabel(
-        frame_equivalencia, 
+        equivalencia_card,
         text="Digite as expressões que deseja comparar:", 
         font=get_title_font(Typography.SIZE_TITLE_SMALL), 
         text_color=Colors.TEXT_PRIMARY, 
         fg_color=None
     )
-    titulo.place(relx=0.5, y=130, anchor="center")
+    titulo.pack(padx=Spacing.XL, pady=(Spacing.XXL, Spacing.SM))
+
+    equivalencia_hint = ctk.CTkLabel(
+        equivalencia_card,
+        text="A comparação considera equivalência lógica e estrutural.",
+        font=get_font(Typography.SIZE_CAPTION),
+        text_color=Colors.TEXT_SECONDARY,
+        wraplength=460,
+    )
+    equivalencia_hint.pack(padx=Spacing.XL, pady=(0, Spacing.MD))
 
     entrada2 = ctk.CTkEntry(
-        frame_equivalencia, 
+        equivalencia_card,
         width=350, 
         placeholder_text="Primeira expressão", 
         font=get_font(Typography.SIZE_BODY_SMALL),
         corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
     )
-    entrada2.place(relx=0.5, y=200, anchor="center")
+    entrada2.pack(fill="x", padx=Spacing.XL, pady=Spacing.XS)
 
     entrada3 = ctk.CTkEntry(
-        frame_equivalencia, 
+        equivalencia_card,
         width=350, 
         placeholder_text="Segunda expressão", 
         font=get_font(Typography.SIZE_BODY_SMALL),
         corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
     )
-    entrada3.place(relx=0.5, y=250, anchor="center")
+    entrada3.pack(fill="x", padx=Spacing.XL, pady=Spacing.XS)
 
-    botao_comparar = Button.botao_padrao("✅Comparar", frame_equivalencia, style="success")
+    botao_comparar = Button.botao_padrao("✅ Comparar", equivalencia_card, style="success")
     botao_comparar.configure(command=comparar)
-    botao_comparar.place(relx=0.5, y=320, anchor="center")
+    botao_comparar.pack(fill="x", padx=Spacing.XL, pady=(Spacing.MD, Spacing.SM))
 
-    botao_voltar_equivalencia = Button.botao_voltar("Voltar", frame_equivalencia)
+    resultado_equivalencia_frame = ctk.CTkFrame(
+        equivalencia_card, fg_color="transparent", height=40
+    )
+    resultado_equivalencia_frame.pack(fill="x", padx=Spacing.XL)
+    resultado_equivalencia_frame.pack_propagate(False)
+
+    botao_voltar_equivalencia = Button.botao_voltar("Voltar", equivalencia_card)
     botao_voltar_equivalencia.configure(command=lambda: go_back_to(frame_inicio))
-    botao_voltar_equivalencia.place(relx=0.5, y=400, anchor="center")
+    botao_voltar_equivalencia.pack(fill="x", padx=Spacing.XL, pady=(Spacing.SM, Spacing.XXL))
 
     equivalente = ctk.CTkLabel(
-        frame_equivalencia, 
+        resultado_equivalencia_frame,
         text="✅ São equivalentes!", 
         font=get_title_font(Typography.SIZE_TITLE_SMALL), 
         text_color=Colors.SUCCESS, 
         fg_color=None
     )
     nao_equivalente = ctk.CTkLabel(
-        frame_equivalencia, 
+        resultado_equivalencia_frame,
         text="❌ Não são equivalentes", 
         font=get_title_font(Typography.SIZE_TITLE_SMALL), 
         text_color=Colors.ERROR, 
