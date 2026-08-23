@@ -1,7 +1,5 @@
 import customtkinter as ctk
 import tkinter as tk
-from tkinter import scrolledtext
-import threading
 from BackEnd.ai_assistant import AIAssistant
 from config import make_window_visible_robust
 from FrontEnd.responsive import calculate_window_layout
@@ -151,8 +149,28 @@ class AIChatPopup:
     def _scroll_to_bottom(self):
         try:
             self.chat_frame._parent_canvas.yview_moveto(1.0)
-        except:
+        except (AttributeError, tk.TclError):
             pass
+
+    def _run_on_ui_thread(self, callback):
+        """Marshal worker-thread results back to Tk's event loop."""
+        try:
+            if self.popup.winfo_exists():
+                self.popup.after(0, callback)
+        except tk.TclError:
+            pass
+
+    def _show_ai_result(self, loading_frame, response, error, fallback):
+        try:
+            if loading_frame is not None and loading_frame.winfo_exists():
+                loading_frame.destroy()
+        except tk.TclError:
+            return
+
+        if error:
+            self.add_message("IA", f"Erro: {error}", is_error=True)
+        else:
+            self.add_message("IA", response or fallback)
     
     def send_message(self):
         message = self.entry.get().strip()
@@ -175,12 +193,14 @@ class AIChatPopup:
         loading_label.pack(padx=10, pady=5)
         
         def callback(response, error):
-            loading_frame.destroy()
-            
-            if error:
-                self.add_message("IA", f"Erro: {error}", is_error=True)
-            else:
-                self.add_message("IA", response or "Desculpe, não consegui gerar uma resposta.")
+            self._run_on_ui_thread(
+                lambda: self._show_ai_result(
+                    loading_frame,
+                    response,
+                    error,
+                    "Desculpe, não consegui gerar uma resposta.",
+                )
+            )
         
         self.ai_assistant.ask_question(message, self.expression, callback)
     
@@ -204,24 +224,32 @@ class AIChatPopup:
         loading_label.pack(padx=10, pady=5)
         
         def callback(response, error):
-            loading_frame.destroy()
-            
-            if error:
-                self.add_message("IA", f"Erro: {error}", is_error=True)
-            else:
-                self.add_message("IA", response or "Não consegui gerar uma sugestão específica.")
+            self._run_on_ui_thread(
+                lambda: self._show_ai_result(
+                    loading_frame,
+                    response,
+                    error,
+                    "Não consegui gerar uma sugestão específica.",
+                )
+            )
         
         self.ai_assistant.get_ai_suggestion(self.expression, self.step_context, callback)
     
     def get_initial_suggestion(self):
         def callback(response, error):
-            if error:
-                self.add_message("IA", f"Erro ao conectar: {error}", is_error=True)
-            else:
-                welcome_msg = f"Olá! Vou ajudar você a simplificar a expressão: {self.expression}"
-                self.add_message("IA", welcome_msg)
-                if response:
-                    self.add_message("IA", response)
+            def show_result():
+                if error:
+                    self.add_message("IA", f"Erro ao conectar: {error}", is_error=True)
+                else:
+                    welcome_msg = (
+                        "Olá! Vou ajudar você a simplificar a expressão: "
+                        f"{self.expression}"
+                    )
+                    self.add_message("IA", welcome_msg)
+                    if response:
+                        self.add_message("IA", response)
+
+            self._run_on_ui_thread(show_result)
         
         self.ai_assistant.get_ai_suggestion(self.expression, self.step_context, callback)
     

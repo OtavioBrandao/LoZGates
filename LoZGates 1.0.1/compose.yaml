@@ -1,0 +1,28 @@
+services:
+  ai-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      LOZGATES_AI_API_KEY: ${LOZGATES_AI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      LOZGATES_AI_API_URL: ${LOZGATES_AI_API_URL:-https://api.groq.com/openai/v1/chat/completions}
+      LOZGATES_AI_MODEL: ${LOZGATES_AI_MODEL:-openai/gpt-oss-120b}
+      LOZGATES_AI_TIMEOUT: ${LOZGATES_AI_TIMEOUT:-15}
+      LOZGATES_AI_SERVICE_HOST: 0.0.0.0
+      LOZGATES_AI_SERVICE_PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json,urllib.request; data=json.load(urllib.request.urlopen('http://127.0.0.1:8000/health')); raise SystemExit(0 if data['status'] in ('ok','degraded') else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
