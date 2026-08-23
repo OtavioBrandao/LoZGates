@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Ambientes virtuais
+.venv/
+venv/
+
+# Configuracao local e segredos
+.env
+.env.*
+!.env.example
+
+# Dados e artefatos gerados em runtime
+data/
+logs/
+*.log
+assets/circuito.png
+assets/entrada.txt
+
+# Relatorios locais
+analysis_report.html
+loz_gates_analysis_report.json
+relatorio_estatisticas.html
+
+# IDE / sistema operacional
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
