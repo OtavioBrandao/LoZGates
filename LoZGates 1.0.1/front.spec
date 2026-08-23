@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['front.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets', 'assets'), ('BackEnd/assets', 'BackEnd/assets')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='front',
+    name='LoZGates',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

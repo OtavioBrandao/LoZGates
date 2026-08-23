@@ -126,7 +126,8 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
         try:
             system_info = f"{platform.machine()}{platform.processor()}{platform.platform()}"
             return hashlib.sha256(system_info.encode()).hexdigest()[:16]
-        except:
+        except Exception:
+            logger.warning("Nao foi possivel gerar ID anonimo estavel", exc_info=True)
             return hashlib.sha256(str(time.time()).encode()).hexdigest()[:16]
     
     def _generate_session_id(self) -> str: #Gera ID único para a sessão atual.
@@ -138,7 +139,7 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
                 with open(self.settings_file, 'r', encoding='utf-8') as f:
                     content = f.read()
                     if not content:
-                        print("⚠️ Arquivo de configurações vazio, usando padrões.")
+                        logger.warning("Arquivo de configuracoes vazio; usando padroes")
                         return
 
                     settings = json.loads(content)
@@ -147,9 +148,12 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
                     self.send_frequency_days = settings.get('send_frequency_days', 7)
         
         except json.JSONDecodeError:
-            print(f"❌ Erro ao ler o arquivo de configurações '{self.settings_file}'. Pode estar corrompido. Usando padrões.")
-        except Exception as e:
-            print(f"Erro inesperado ao carregar configurações de logging: {e}")
+            logger.warning(
+                "Arquivo de configuracoes corrompido em %s; usando padroes",
+                self.settings_file,
+            )
+        except Exception:
+            logger.exception("Erro inesperado ao carregar configuracoes de atividade")
     
     def _save_settings(self): #Salva configurações de logging.
         try:
@@ -161,8 +165,8 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             }
             with open(self.settings_file, 'w', encoding='utf-8') as f:
                 json.dump(settings, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"Erro ao salvar configurações: {e}")
+        except Exception:
+            logger.exception("Erro ao salvar configuracoes de atividade")
     
     def _initialize_log_file(self): #Inicializa arquivo de log se não existir ou estiver corrompido.
         try:
@@ -171,7 +175,7 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
                     json.load(f)
                 return
         except (json.JSONDecodeError, FileNotFoundError):
-             print(f"⚠️ Arquivo '{self.log_file}' não encontrado ou corrompido. Um novo será criado.")
+             logger.warning("Arquivo de atividade ausente ou corrompido em %s", self.log_file)
         
         initial_data = {
             "app_info": {
@@ -184,8 +188,8 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
         try:
             with open(self.log_file, 'w', encoding='utf-8') as f:
                 json.dump(initial_data, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"Erro ao inicializar arquivo de log: {e}")
+        except Exception:
+            logger.exception("Erro ao inicializar arquivo de atividade")
     
     def _hash_expression(self, expression: str) -> str: #Cria hash da expressão para análise de padrões sem expor conteúdo.
         return hashlib.md5(expression.encode()).hexdigest()[:8]
@@ -462,10 +466,14 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             with open(self.log_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             
-            print(f"📊 Sessão detalhada salva: {session_duration:.1f}s, {len(self.current_session['events'])} eventos")
+            logger.info(
+                "Sessao de atividade salva: %.1fs, %s eventos",
+                session_duration,
+                len(self.current_session["events"]),
+            )
             
-        except Exception as e:
-            print(f"Erro ao salvar sessão: {e}")
+        except Exception:
+            logger.exception("Erro ao salvar sessao de atividade")
     
     def _calculate_final_stats(self):#Calcula estatísticas finais da sessão.
         #Estatísticas de navegação
@@ -551,8 +559,8 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             
             return summary
             
-        except Exception as e:
-            print(f"Erro ao gerar resumo detalhado: {e}")
+        except Exception:
+            logger.exception("Erro ao gerar resumo detalhado de atividade")
             return {}
     
     def _aggregate_detailed_stats(self, sessions: List[Dict], summary: Dict):
@@ -668,8 +676,8 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
                 "formatted_report": ImprovedDataFormatter.format_for_forms(detailed_summary),
                 "raw_data": detailed_summary  #Mantém dados brutos para análise automática
             }
-        except Exception as e:
-            print(f"Erro ao criar dados compartilháveis formatados: {e}")
+        except Exception:
+            logger.exception("Erro ao criar dados de atividade compartilháveis")
             return {}
 
     def log_simplification_step_failed(self, law_name: str, step_number: int, reason: str = "", expression_state: str = ""): #MODIFIED
@@ -967,14 +975,14 @@ class ImprovedGoogleFormsSubmitter:
             response = requests.post(self.form_url, data=form_data, timeout=10)
             
             if response.status_code == 200:
-                print("✅ Dados formatados enviados com sucesso!")
+                logger.info("Dados formatados enviados com sucesso")
                 return True
             else:
-                print(f"❌ Erro ao enviar dados. Status: {response.status_code}")
+                logger.warning("Falha no envio de dados: HTTP %s", response.status_code)
                 return False
             
-        except Exception as e:
-            print(f"❌ Erro durante o envio: {e}")
+        except Exception:
+            logger.exception("Erro durante o envio de dados")
             return False
         
 

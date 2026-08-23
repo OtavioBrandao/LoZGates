@@ -1,6 +1,10 @@
 import customtkinter as ctk
 import tkinter as tk
+import logging
 from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
+
+
+logger = logging.getLogger(__name__)
 
 class CircuitModeSelector:
     def __init__(self, parent_frame: ctk.CTkFrame, circuit_manager, Button, get_global_expression_func, logger=None):
@@ -376,7 +380,11 @@ class CircuitModeSelector:
                 text_color=Colors.TEXT_ACCENT
             )
             
-            print(f"✅ Circuito iniciado - Expressão: {expression} | Modo: {mode_info['name']}")
+            logger.info(
+                "Circuito iniciado: expressao=%s modo=%s",
+                expression,
+                mode_info["name"],
+            )
             
         except Exception as e:
             #Reverte estado em caso de erro
@@ -387,7 +395,7 @@ class CircuitModeSelector:
                 text=f"❌ Erro ao iniciar: {str(e)}",
                 text_color=Colors.ERROR
             )
-            print(f"❌ Erro: {e}")
+            logger.exception("Erro ao iniciar circuito")
     
     def stop_circuit(self): #Para o circuito.
         try:
@@ -418,8 +426,8 @@ class CircuitModeSelector:
                 text_color=Colors.WARNING
             )
             
-        except Exception as e:
-            print(f"Erro ao parar circuito: {e}")
+        except Exception:
+            logger.exception("Erro ao parar circuito")
     
     def show_tips(self): #Mostra dicas específicas do modo.
         if self.logger and self.current_mode:

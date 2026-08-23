@@ -1,7 +1,11 @@
 import customtkinter as ctk
+import logging
 from BackEnd.problems_bank import Problems_bank, ProblemsToFrame
 from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
 from .buttons import Button
+
+
+logger = logging.getLogger(__name__)
 
 class IntegratedProblemsInterface:
     def __init__(self, parent_window):
@@ -358,7 +362,11 @@ class IntegratedProblemsInterface:
         if hasattr(self, 'main_entry_callback'):
             self.main_entry_callback(expression, destination)
         else:
-            print(f"⚠️ Callback não configurado. Expressão: {expression}, Destino: {destination}")
+            logger.warning(
+                "Callback de problema nao configurado: expressao=%s destino=%s",
+                expression,
+                destination,
+            )
             
     def validate_answer_with_equivalence(self, user_answer, correct_answer):
         from BackEnd.equivalencia import check_universal_equivalence
@@ -368,29 +376,34 @@ class IntegratedProblemsInterface:
             user_answer_clean = user_answer.strip().upper().replace(" ", "")
             correct_answer_clean = correct_answer.strip().upper().replace(" ", "")
             
-            print(f"\n{'='*60}")
-            print(f"🔍 VALIDAÇÃO DE RESPOSTA")
-            print(f"{'='*60}")
-            print(f"📝 Resposta do usuário: {user_answer_clean}")
-            print(f"✅ Resposta correta: {correct_answer_clean}")
+            logger.debug(
+                "Validando resposta de problema: usuario=%s esperada=%s",
+                user_answer_clean,
+                correct_answer_clean,
+            )
             
             #PRIMEIRA VERIFICAÇÃO: Equivalência lógica direta
-            print(f"\n🧮 Verificando equivalência lógica direta...")
-            is_logically_equivalent = check_universal_equivalence(user_answer_clean, correct_answer_clean, debug=True)
+            is_logically_equivalent = check_universal_equivalence(
+                user_answer_clean,
+                correct_answer_clean,
+                debug=False,
+            )
             
             if is_logically_equivalent:
-                print(f"✅ RESULTADO: Expressões são logicamente equivalentes!")
-                print(f"{'='*60}\n")
+                logger.info("Resposta de problema logicamente equivalente")
                 return True, "✅ Resposta correta! Parabéns!"
             
             #SEGUNDA VERIFICAÇÃO: Equivalência estrutural (variáveis diferentes)
-            print(f"\n🔄 Verificando equivalência estrutural (ignorando nomes de variáveis)...")
+            logger.debug("Verificando equivalencia estrutural da resposta")
             
             user_normalized = normalize_for_comparison(user_answer_clean)
             correct_normalized = normalize_for_comparison(correct_answer_clean)
             
-            print(f"   Usuário normalizado: {user_normalized}")
-            print(f"   Correto normalizado: {correct_normalized}")
+            logger.debug(
+                "Resposta normalizada: usuario=%s esperada=%s",
+                user_normalized,
+                correct_normalized,
+            )
             
             is_structurally_equivalent = expressions_are_structurally_equivalent(user_answer_clean, correct_answer_clean)
             
@@ -399,20 +412,15 @@ class IntegratedProblemsInterface:
                 is_equiv_normalized = check_universal_equivalence(user_normalized, correct_normalized, debug=False)
                 
                 if is_equiv_normalized:
-                    print(f"✅ RESULTADO: Expressões são estruturalmente equivalentes!")
-                    print(f"{'='*60}\n")
+                    logger.info("Resposta de problema estruturalmente equivalente")
                     return True, "✅ Resposta correta! Sua expressão tem a mesma estrutura lógica (apenas os nomes das variáveis diferem)."
             
             #NÃO É EQUIVALENTE
-            print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
-            print(f"{'='*60}\n")
+            logger.info("Resposta de problema nao equivalente")
             return False, "❌ Resposta incorreta. Sua expressão não é logicamente equivalente à resposta esperada."
         
         except Exception as e:
-            print(f"❌ Erro geral na validação: {e}")
-            import traceback
-            traceback.print_exc()
-            print(f"{'='*60}\n")
+            logger.exception("Erro geral na validacao de resposta")
             return False, f"❌ Erro na validação: {str(e)}"
 
 def setup_problems_interface(scroll_problemas_reais, voltar_para, principal, Button):

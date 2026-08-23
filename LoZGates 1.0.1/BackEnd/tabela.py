@@ -1,5 +1,9 @@
 import itertools
+import logging
 from BackEnd.equivalencia import UniversalLogicAnalyzer
+
+
+logger = logging.getLogger(__name__)
 
 def gerar_tabela_verdade(expressao):
     analyzer = UniversalLogicAnalyzer()
@@ -20,8 +24,13 @@ def gerar_tabela_verdade(expressao):
             try:
                 resultado_bool = analyzer.analyze_expression(coluna, valores_linha)
                 resultados_linha.append(int(resultado_bool))
-            except Exception as e:
-                print(f"Erro ao avaliar '{coluna}' com {valores_linha}: {e}")
+            except Exception:
+                logger.warning(
+                    "Erro ao avaliar coluna %r com %s",
+                    coluna,
+                    valores_linha,
+                    exc_info=True,
+                )
                 resultados_linha.append(0)  #Valor padrão em caso de erro
         
         tabela_completa.append(resultados_linha)

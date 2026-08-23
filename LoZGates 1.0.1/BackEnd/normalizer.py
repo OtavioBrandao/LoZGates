@@ -1,3 +1,9 @@
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
 class ExprNode:
     #Nó de uma árvore de expressão lógica
     def __init__(self, value, left=None, right=None):
@@ -120,8 +126,8 @@ def normalize_for_comparison(expression):
         #Converte de volta para string
         return tree_to_canonical_string(normalized_tree)
     
-    except Exception as e:
-        print(f"⚠️ Erro ao normalizar '{expression}': {e}")
+    except Exception:
+        logger.warning("Erro ao normalizar %r; usando fallback", expression, exc_info=True)
         #Fallback para normalização simples
         return simple_normalize(expression)
 
@@ -200,14 +206,12 @@ def expressions_are_structurally_equivalent(expr1, expr2):
         norm1 = normalize_for_comparison(expr1)
         norm2 = normalize_for_comparison(expr2)
         
-        print(f"🔄 Comparação estrutural:")
-        print(f"   '{expr1}' → '{norm1}'")
-        print(f"   '{expr2}' → '{norm2}'")
+        logger.debug("Comparacao estrutural: %r -> %r / %r -> %r", expr1, norm1, expr2, norm2)
         
         return norm1 == norm2
     
-    except Exception as e:
-        print(f"⚠️ Erro na comparação: {e}")
+    except Exception:
+        logger.warning("Erro na comparacao estrutural; usando fallback", exc_info=True)
         #Fallback: compara árvores diretamente
         try:
             tree1 = build_expression_tree(expr1)
@@ -215,5 +219,6 @@ def expressions_are_structurally_equivalent(expr1, expr2):
             norm_tree1 = normalize_tree_variables(tree1)
             norm_tree2 = normalize_tree_variables(tree2)
             return norm_tree1 == norm_tree2
-        except:
+        except Exception:
+            logger.exception("Fallback de comparacao estrutural falhou")
             return False

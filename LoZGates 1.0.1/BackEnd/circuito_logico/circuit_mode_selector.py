@@ -1,8 +1,12 @@
 #Módulo para gerenciar diferentes modos de circuito interativo.
 
 import tkinter as tk
+import logging
 from typing import List, Optional, Dict, Any
 from .interactive.interactive_circuit import CircuitoInterativoManual
+
+
+logger = logging.getLogger(__name__)
 
 class CircuitModeManager:
     MODES = {
@@ -96,9 +100,9 @@ class CircuitModeManager:
     def set_mode(self, mode_key: str): #Define o modo atual.
         if mode_key in self.MODES:
             self.current_mode = mode_key
-            print(f"Modo definido para: {mode_key}")
+            logger.info("Modo de circuito definido: %s", mode_key)
         else:
-            print(f"Modo inválido: {mode_key}")
+            logger.warning("Modo de circuito invalido: %s", mode_key)
             self.current_mode = None
     
     def get_current_mode(self) -> str: #Retorna o modo atual.
@@ -130,9 +134,9 @@ class CircuitModeManager:
         if self.current_circuit:
             try:
                 self.current_circuit.stop()
-                print("Circuito anterior parado")
-            except Exception as e:
-                print(f"Erro ao parar circuito anterior: {e}")
+                logger.debug("Circuito anterior parado")
+            except Exception:
+                logger.exception("Erro ao parar circuito anterior")
         
         #Limpa o frame
         for widget in parent_frame.winfo_children():
@@ -146,9 +150,9 @@ class CircuitModeManager:
         mode_info = self.get_mode_info(self.current_mode)
         restrictions = mode_info['restrictions']
         
-        print(f"Criando circuito no modo: {mode_info['name']}")
+        logger.info("Criando circuito no modo %s", mode_info["name"])
         if restrictions:
-            print(f"Restrições ativas: {restrictions}")
+            logger.debug("Restricoes de portas ativas: %s", restrictions)
         
         #Cria novo circuito
         try:
@@ -160,21 +164,21 @@ class CircuitModeManager:
                 mode_key = self.current_mode
             )
             self.circuit_frame = parent_frame
-            print("Circuito criado com sucesso!")
+            logger.info("Circuito interativo criado")
             
             return self.current_circuit
             
-        except Exception as e:
-            print(f"Erro ao criar circuito: {e}")
-            raise e
+        except Exception:
+            logger.exception("Erro ao criar circuito interativo")
+            raise
     
     def stop_current_circuit(self): #Para o circuito atual.
         if self.current_circuit:
             try:
                 self.current_circuit.stop()
-                print("Circuito parado com sucesso")
-            except Exception as e:
-                print(f"Erro ao parar circuito: {e}")
+                logger.info("Circuito interativo parado")
+            except Exception:
+                logger.exception("Erro ao parar circuito interativo")
             finally:
                 self.current_circuit = None
     

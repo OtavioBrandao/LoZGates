@@ -235,7 +235,7 @@ def inicializar_interface():
             if atual_tab == "  Circuito Interativo  ":
                 #Garante que a expressão existe antes de criar qualquer coisa
                 if not expressao_global:
-                    print("Expressão global não definida - não é possível criar circuito")
+                    logger.warning("Expressao global ausente ao abrir circuito")
                     return
                     
                 #Atualiza display da expressão se a instância existir
@@ -245,8 +245,8 @@ def inicializar_interface():
                     
                 #Só cria se realmente necessário
                 if_necessary_create_a_circuit()
-        except Exception as e:
-            print(f"Erro ao detectar mudança de aba: {e}")
+        except Exception:
+            logger.exception("Erro ao detectar mudanca de aba")
            
     def if_necessary_create_a_circuit():
         global circuito_interativo_instance, does_it_have_interaction
@@ -257,15 +257,15 @@ def inicializar_interface():
         
         #Só cria se não existir
         if frame_vazio or instancia_inexistente:
-            print("Criando interface de seleção de modo...")
+            logger.debug("Criando interface de selecao de modo")
             #Usa a expressão atual da entrada, não uma vazia
             expressao_atual = entrada.get().strip().upper().replace(" ", "") if entrada.get().strip() else expressao_global
             if expressao_atual:
                 create_interactive_circuit(expressao_atual)
             else:
-                print("Nenhuma expressão disponível para criar circuito")
+                logger.warning("Nenhuma expressao disponivel para criar circuito")
         else:
-            print("Interface já existe - mantendo")
+            logger.debug("Interface de circuito existente sera preservada")
 
     def create_interactive_circuit(expressao):
         global circuito_interativo_instance, does_it_have_interaction
@@ -279,8 +279,8 @@ def inicializar_interface():
         if circuito_interativo_instance:
             try:
                 circuito_interativo_instance.cleanup()
-            except:
-                pass
+            except Exception:
+                logger.exception("Erro ao limpar instancia anterior do circuito")
         
         for widget in frame_circuito_interativo.winfo_children():
             widget.destroy()
@@ -294,10 +294,10 @@ def inicializar_interface():
                 logger=user_logger 
             )
             does_it_have_interaction = False
-            print("Interface de circuito com modos criada!")
+            logger.info("Interface de circuito com modos criada")
             
-        except Exception as e:
-            print(f"Erro ao criar interface: {e}")
+        except Exception:
+            logger.exception("Erro ao criar interface de circuito")
             does_it_have_interaction = False
             
             error_label = ctk.CTkLabel(
@@ -323,8 +323,8 @@ def inicializar_interface():
         
         try:
             esconder_botoes_simplificar()
-        except:
-            pass
+        except (NameError, AttributeError):
+            logger.debug("Botoes de simplificacao ainda nao foram inicializados")
         
         botao_ver_circuito = Button.botao_padrao("🔌Ver Circuito", principal_card)
         botao_ver_circuito.configure(command=lambda: trocar_para_abas())
@@ -468,7 +468,7 @@ def inicializar_interface():
             
         except Exception as e:
             popup_erro(f"Erro ao gerar tabela verdade: {e}")
-            print(f"Erro detalhado: {e}")
+            logger.exception("Erro ao gerar tabela verdade")
 
     def comparar():
             try:
@@ -479,24 +479,18 @@ def inicializar_interface():
                     popup_erro("As expressões não podem estar vazias.")
                     return
                 
-                print(f"\n{'='*60}")
-                print(f"🔍 COMPARAÇÃO DE EXPRESSÕES")
-                print(f"{'='*60}")
-                print(f"📝 Expressão 1: {expressao2}")
-                print(f"📝 Expressão 2: {expressao3}")
+                logger.debug("Comparando expressoes %s e %s", expressao2, expressao3)
                 
                 #PRIMEIRA VERIFICAÇÃO: Equivalência lógica direta
-                print(f"\n🧮 Verificando equivalência lógica direta...")
                 from BackEnd.equivalencia import check_universal_equivalence
-                is_logically_equivalent = check_universal_equivalence(expressao2, expressao3, debug=True)
+                is_logically_equivalent = check_universal_equivalence(expressao2, expressao3, debug=False)
                 
                 if is_logically_equivalent:
-                    print(f"✅ RESULTADO: Expressões são logicamente equivalentes!")
-                    print(f"{'='*60}\n")
+                    logger.info("Expressoes logicamente equivalentes")
                     resultado = True
                 else:
                     #SEGUNDA VERIFICAÇÃO: Equivalência estrutural (variáveis diferentes)
-                    print(f"\n🔄 Verificando equivalência estrutural (ignorando nomes de variáveis)...")
+                    logger.debug("Verificando equivalencia estrutural")
                     from BackEnd.normalizer import normalize_for_comparison, expressions_are_structurally_equivalent
                     
                     is_structurally_equivalent = expressions_are_structurally_equivalent(expressao2, expressao3)
@@ -506,22 +500,18 @@ def inicializar_interface():
                         norm1 = normalize_for_comparison(expressao2)
                         norm2 = normalize_for_comparison(expressao3)
                         
-                        print(f"   Expressão 1 normalizada: {norm1}")
-                        print(f"   Expressão 2 normalizada: {norm2}")
+                        logger.debug("Expressoes normalizadas: %s / %s", norm1, norm2)
                         
                         is_equiv_normalized = check_universal_equivalence(norm1, norm2, debug=False)
                         
                         if is_equiv_normalized:
-                            print(f"✅ RESULTADO: Expressões são estruturalmente equivalentes!")
-                            print(f"{'='*60}\n")
+                            logger.info("Expressoes estruturalmente equivalentes")
                             resultado = True
                         else:
-                            print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
-                            print(f"{'='*60}\n")
+                            logger.info("Expressoes nao equivalentes")
                             resultado = False
                     else:
-                        print(f"❌ RESULTADO: Expressões NÃO são equivalentes")
-                        print(f"{'='*60}\n")
+                        logger.info("Expressoes nao equivalentes")
                         resultado = False
 
                 #LOG DETALHADO COM EXPRESSÕES REAIS
@@ -552,16 +542,16 @@ def inicializar_interface():
             if circuito_interativo_instance:
                 #Se voltando para frame_abas, NÃO para o circuito
                 if frame == frame_abas:
-                    print("Voltando para abas - mantendo circuito ativo")
+                    logger.debug("Voltando para abas com circuito ativo")
                 else:
                     #Para qualquer outro destino, para o circuito
                     try:
                         circuito_interativo_instance.cleanup()
                         circuito_interativo_instance = None
                         does_it_have_interaction = False
-                        print("Circuito interativo limpo")
-                    except Exception as e:
-                        print(f"Erro ao limpar circuito: {e}")
+                        logger.info("Circuito interativo limpo")
+                    except Exception:
+                        logger.exception("Erro ao limpar circuito interativo")
 
             #Limpa as entradas apenas se não for para certas telas
             if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
@@ -569,8 +559,8 @@ def inicializar_interface():
                 does_it_have_interaction = False
                 try:
                     esconder_botoes_simplificar()  #Reset dos botões ao limpar entrada
-                except:
-                    pass
+                except (NameError, AttributeError):
+                    logger.debug("Botoes de simplificacao indisponiveis durante limpeza")
 
             entrada2.delete(0, tk.END)  
             entrada3.delete(0, tk.END) 
@@ -589,8 +579,8 @@ def inicializar_interface():
                 step_view.pack_forget()
                 try:
                     esconder_botoes_simplificar()  #Esconde botões de simplificação
-                except:
-                    pass
+                except (NameError, AttributeError):
+                    logger.debug("Botoes de simplificacao indisponiveis durante retorno")
 
             show_frame(frame)
             janela.focus_set()
@@ -604,7 +594,7 @@ def inicializar_interface():
             
         except Exception as e:
             popup_erro(f"Erro ao voltar: {e}")
-            print(f"Erro detalhado: {e}")
+            logger.exception("Erro ao retornar para a tela anterior")
        
     def atualizar_imagem_circuito():
         try:
@@ -622,7 +612,7 @@ def inicializar_interface():
             else:
                 imagem_circuito.configure(text="Imagem do circuito não encontrada", image="")
         except Exception as e:
-            print(f"Erro ao atualizar imagem: {e}")
+            logger.exception("Erro ao atualizar imagem do circuito")
             imagem_circuito.configure(text=f"Erro ao carregar imagem: {e}", image="")
     
     #------------- DEFININDO OS FRAMES DA INTERFACE -------------
@@ -885,8 +875,8 @@ def inicializar_interface():
                         else:
                             self.textbox.insert("end", linha.strip() + "\n")
                 self.textbox.see("end")
-            except Exception as e:
-                print(f"Erro no logger: {e}")
+            except Exception:
+                logger.exception("Erro ao encaminhar saida do simplificador para a interface")
 
     #Componente StepView para visualização passo a passo
     step_view = StepView(scroll_conteudo)
@@ -1017,8 +1007,8 @@ def inicializar_interface():
     def executar_conversao():
         try:
             esconder_botoes_simplificar()  #Esconde botões antigos primeiro
-        except:
-            pass
+        except (NameError, AttributeError):
+            logger.debug("Botoes antigos ainda nao foram inicializados")
         mostrar_expressao_convertida()
         mostrar_botoes_simplificar()   #Mostra novos botões
     
@@ -1061,14 +1051,15 @@ def inicializar_interface():
                 botao_solucao.pack_forget()
                 botao_interativo.pack_forget()
                 botoes_visiveis = False
-        except:
+        except (NameError, AttributeError, tk.TclError):
+            logger.debug("Botao interativo indisponivel ao ocultar")
             botoes_visiveis = False
 
     def executar_simplificacao_resultado():
         try:
             esconder_botoes_simplificar()
-        except:
-            pass
+        except (NameError, AttributeError):
+            logger.debug("Botoes de simplificacao indisponiveis")
         show_frame(frame_resolucao_direta)
         expressao_simplificada()
 
@@ -1118,7 +1109,7 @@ def inicializar_interface():
         global contador_passos, sessao_simplificacao_concluida
 
         if not historico_de_estados:
-            print("Nada para desfazer.") 
+            logger.debug("Nenhum estado de simplificacao para desfazer")
             return
 
         #LOG DO UNDO
@@ -1425,7 +1416,11 @@ def inicializar_interface():
                 
                 #CHAMA A FUNÇÃO DE LOG DE CONCLUSÃO
                 user_logger.log_simplification_completed(total_steps, laws_used)
-                print(f"📝 Simplificação concluída: {total_steps} passos, {len(laws_used)} leis aplicadas")
+                logger.info(
+                    "Simplificacao concluida: %s passos, %s leis aplicadas",
+                    total_steps,
+                    len(laws_used),
+                )
             
             #Desabilita botões
             if botoes_leis:
@@ -1826,7 +1821,7 @@ def inicializar_interface():
                 result = dialog.show_dialog()
                 
                 if result == True:
-                    print("Usuário aceitou enviar os dados detalhados. Preparando para envio...")
+                    logger.info("Usuario autorizou o envio dos dados detalhados")
                     
                     FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd9QNzL1_1MpD0cy_PUA4b59Kpy998015HIsfIT60VC6nOHZA/formResponse"
                     
@@ -1845,14 +1840,14 @@ def inicializar_interface():
                     if success:
                         user_logger._save_settings() 
                     else:
-                        print("O envio falhou. Os dados não foram enviados.")
+                        logger.warning("O envio de dados de atividade falhou")
                         
                 elif result == "never":
                     user_logger.logging_enabled = False
                     user_logger._save_settings()
                     
-            except Exception as e:
-                print(f"Erro no dialog de compartilhamento: {e}")
+            except Exception:
+                logger.exception("Erro no dialogo de compartilhamento")
         
         janela.destroy()
         
