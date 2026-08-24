@@ -37,6 +37,11 @@ class StepView(ctk.CTkFrame):
         
         self._steps = []
         self.current_iteration = 0
+
+    def set_processing(self, processing: bool) -> None:
+        self.header.configure(
+            text="Simplificando expressão..." if processing else "Progresso da Simplificação"
+        )
         
     def reset(self, original_expression: str) -> None:
         #Limpa passos anteriores
@@ -44,7 +49,7 @@ class StepView(ctk.CTkFrame):
             widget.destroy()
         
         #Esconde rodapé
-        self.footer.pack_forget()
+        self.footer.grid_remove()
         
         #Mostra expressão inicial
         initial_frame = ctk.CTkFrame(self.scroll_area, fg_color=Colors.SURFACE_LIGHT, corner_radius=Dimensions.CORNER_RADIUS_SMALL)
@@ -62,7 +67,9 @@ class StepView(ctk.CTkFrame):
             initial_frame,
             text=original_expression,
             font=get_font(Typography.SIZE_BODY),
-            text_color=Colors.TEXT_PRIMARY
+            text_color=Colors.TEXT_PRIMARY,
+            wraplength=700,
+            justify="left",
         )
         expr_label.pack(pady=(0, Spacing.SM))
         

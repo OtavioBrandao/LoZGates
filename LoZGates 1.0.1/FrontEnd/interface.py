@@ -3,13 +3,14 @@ from customtkinter import CTkFont
 import threading
 import tkinter as tk
 from tkinter import filedialog
-from PIL import Image, ImageTk, ImageOps
+from PIL import Image, ImageOps
 import time
 import webbrowser
 import urllib.parse
 from contextlib import redirect_stdout
 import copy
 import logging
+import queue
 import re
 
 from config import (
@@ -24,6 +25,12 @@ from FrontEnd.responsive import (
     calculate_window_layout,
     calculate_wraplength,
     responsive_columns,
+)
+from FrontEnd.navigation import (
+    CIRCUIT_TAB,
+    EXPRESSION_TAB,
+    INTERACTIVE_CIRCUIT_TAB,
+    NavigationController,
 )
 
 from BackEnd.tabela import gerar_tabela_verdade, verificar_conclusao
@@ -71,6 +78,8 @@ frame_expressao_inicial = None
 frame_analise = None
 frame_passos = None
 frame_controles_interativo = None
+simplification_guard = None
+motivo_parada_interativo = None
 
 def inicializar_interface():
 
@@ -94,17 +103,34 @@ def inicializar_interface():
         
     janela.resizable(True, True)
 
-    def show_frame(frame):
-        frame.tkraise()
+    navigation = None
+    circuit_generation_in_progress = False
+    simplification_in_progress = False
+    circuit_image_source = None
+    circuit_resize_job = None
 
-    def ver_circuito_pygame(expressao):
+    def show_frame(frame, view_name=None):
+        if navigation is None:
+            frame.tkraise()
+            return
+        navigation.show_frame(frame, view_name=view_name)
+
+    def show_tab(view_name):
+        if navigation is None:
+            raise RuntimeError("Navegação por abas ainda não foi inicializada.")
+        navigation.show_tab(view_name)
+
+    def ver_circuito_pygame(expressao, on_complete=None):
+        result_queue = queue.Queue(maxsize=1)
+
         def rodar_pygame():
             try:
                 circuito_integrado.plotar_circuito_logico(expressao, 0, 1200, 800)
                 logger.info("Circuito estatico gerado com sucesso")
-            except Exception as e:
+                result_queue.put((True, None))
+            except Exception as error:
                 logger.exception("Erro ao gerar circuito estatico")
-                janela.after(0, lambda: popup_erro(f"Erro ao gerar circuito: {e}"))
+                result_queue.put((False, str(error)))
         
         #Remove imagem antiga se existir
         caminho_imagem = CIRCUIT_IMAGE_PATH
@@ -118,21 +144,30 @@ def inicializar_interface():
         thread = threading.Thread(target=rodar_pygame, daemon=True)
         thread.start()
 
-        #Espera a imagem ser criada antes de continuar
-        def aguardar_imagem():
-            tempo_max = 10  #Aumentado para 10 segundos
-            tempo_passado = 0
-            while not caminho_imagem.exists() and tempo_passado < tempo_max:
-                time.sleep(0.2)
-                tempo_passado += 0.2
-            
-            if caminho_imagem.exists():
-                janela.after(0, atualizar_imagem_circuito)
-            else:
-                janela.after(0, lambda: popup_erro("Erro: A imagem do circuito não foi criada a tempo."))
+        #Consulta o worker com after(), sem bloquear ou atualizar Tk fora da UI.
+        started_at = time.monotonic()
 
-        #Espera a imagem num thread separado para não travar a GUI
-        threading.Thread(target=aguardar_imagem, daemon=True).start()
+        def poll_generation():
+            try:
+                succeeded, error_message = result_queue.get_nowait()
+            except queue.Empty:
+                if time.monotonic() - started_at < 10:
+                    janela.after(100, poll_generation)
+                    return
+                succeeded, error_message = False, "A geração excedeu o limite de 10 segundos."
+
+            if succeeded and caminho_imagem.exists():
+                atualizar_imagem_circuito()
+            else:
+                popup_erro(
+                    f"Erro ao gerar circuito: {error_message}"
+                    if error_message
+                    else "Erro: a imagem do circuito não foi criada."
+                )
+            if on_complete:
+                on_complete(succeeded and caminho_imagem.exists())
+
+        janela.after(100, poll_generation)
 
     def popup_erro(mensagem):
         popup = tk.Toplevel(janela)  #<- tk.Toplevel ao invés de ctk.CTkToplevel
@@ -192,7 +227,11 @@ def inicializar_interface():
         )
         popup.geometry(popup_layout.geometry)
 
-    def trocar_para_abas():
+    def trocar_para_abas(target_view="circuit"):
+        nonlocal circuit_generation_in_progress
+        if circuit_generation_in_progress:
+            logger.info("Circuit generation ignored because one is already running")
+            return
         try:
             caminho_entrada = INPUT_CACHE_PATH
             start_time = time.time()
@@ -214,15 +253,38 @@ def inicializar_interface():
             global expressao_global
             expressao_global = saida
 
+            circuit_generation_in_progress = True
+            if botao_ver_circuito and botao_ver_circuito.winfo_exists():
+                botao_ver_circuito.configure(state="disabled", text="Processando...")
+
+            def finish_generation(_succeeded):
+                nonlocal circuit_generation_in_progress
+                circuit_generation_in_progress = False
+                try:
+                    if botao_ver_circuito and botao_ver_circuito.winfo_exists():
+                        botao_ver_circuito.configure(
+                            state="normal", text="🔌 Ver Circuito"
+                        )
+                except tk.TclError:
+                    pass
+
             #Gerar circuito pygame
-            ver_circuito_pygame(saida)
+            ver_circuito_pygame(saida, on_complete=finish_generation)
             
-            #Mostrar frame das abas (a criação do circuito interativo acontecerá no callback da aba)
-            show_frame(frame_abas)
+            #Uma ação explícita escolhe sua aba; depois a navegação volta a ser livre.
+            show_tab(target_view)
             duration = time.time() - start_time
             user_logger.log_feature_used("circuit_generation", duration)
             
         except Exception as e:
+            circuit_generation_in_progress = False
+            try:
+                if botao_ver_circuito and botao_ver_circuito.winfo_exists():
+                    botao_ver_circuito.configure(
+                        state="normal", text="🔌 Ver Circuito"
+                    )
+            except tk.TclError:
+                pass
             logger.exception("Erro ao processar expressao")
             popup_erro(f"Erro ao processar expressão: {e}")
             
@@ -231,8 +293,10 @@ def inicializar_interface():
         global does_it_have_interaction
         try:
             atual_tab = abas.get()
+            if navigation is not None:
+                navigation.sync_tab(atual_tab)
             user_logger.log_tab_changed("tab_navigation", atual_tab)
-            if atual_tab == "  Circuito Interativo  ":
+            if atual_tab == INTERACTIVE_CIRCUIT_TAB:
                 #Garante que a expressão existe antes de criar qualquer coisa
                 if not expressao_global:
                     logger.warning("Expressao global ausente ao abrir circuito")
@@ -296,13 +360,13 @@ def inicializar_interface():
             does_it_have_interaction = False
             logger.info("Interface de circuito com modos criada")
             
-        except Exception:
+        except Exception as error:
             logger.exception("Erro ao criar interface de circuito")
             does_it_have_interaction = False
             
             error_label = ctk.CTkLabel(
                 frame_circuito_interativo,
-                text=f"Erro ao criar circuito interativo: {e}",
+                text=f"Erro ao criar circuito interativo: {error}",
                 text_color="red"
             )
             error_label.pack(expand=True)
@@ -326,8 +390,8 @@ def inicializar_interface():
         except (NameError, AttributeError):
             logger.debug("Botoes de simplificacao ainda nao foram inicializados")
         
-        botao_ver_circuito = Button.botao_padrao("🔌Ver Circuito", principal_card)
-        botao_ver_circuito.configure(command=lambda: trocar_para_abas())
+        botao_ver_circuito = Button.botao_padrao("🔌 Ver Circuito", principal_card)
+        botao_ver_circuito.configure(command=trocar_para_abas)
         botao_ver_circuito.pack(fill="x", padx=Spacing.XL, pady=(0, Spacing.MD))
 
     def exibir_tabela_verdade(expressao):
@@ -597,23 +661,50 @@ def inicializar_interface():
             logger.exception("Erro ao retornar para a tela anterior")
        
     def atualizar_imagem_circuito():
+        nonlocal circuit_image_source
         try:
             caminho_img = CIRCUIT_IMAGE_PATH
             if caminho_img.exists():
-                imagem_pil = Image.open(caminho_img)
+                with Image.open(caminho_img) as imagem_pil:
+                    circuit_image_source = imagem_pil.convert("RGB")
 
-                #Adiciona borda branca de 10px
-                borda = 10
-                imagem_com_borda = ImageOps.expand(imagem_pil, border=borda, fill="white")
-
-                imagem_tk = ImageTk.PhotoImage(imagem_com_borda)
-                imagem_circuito.configure(image=imagem_tk, text="")
-                imagem_circuito.image = imagem_tk  #Mantém uma referência à imagem
+                render_circuit_image()
             else:
                 imagem_circuito.configure(text="Imagem do circuito não encontrada", image="")
         except Exception as e:
             logger.exception("Erro ao atualizar imagem do circuito")
             imagem_circuito.configure(text=f"Erro ao carregar imagem: {e}", image="")
+
+    def render_circuit_image():
+        if circuit_image_source is None:
+            return
+        try:
+            available_width = max(320, scroll_frame1.winfo_width() - 2 * Spacing.LG)
+            scale = min(1.0, available_width / circuit_image_source.width)
+            display_size = (
+                max(1, int(circuit_image_source.width * scale)),
+                max(1, int(circuit_image_source.height * scale)),
+            )
+            resized = circuit_image_source.resize(display_size, Image.Resampling.LANCZOS)
+
+            borda = min(10, max(2, display_size[0] // 80))
+            imagem_com_borda = ImageOps.expand(resized, border=borda, fill="white")
+
+            imagem_tk = ctk.CTkImage(
+                light_image=imagem_com_borda,
+                dark_image=imagem_com_borda,
+                size=imagem_com_borda.size,
+            )
+            imagem_circuito.configure(image=imagem_tk, text="")
+            imagem_circuito.image = imagem_tk
+        except (tk.TclError, OSError):
+            logger.exception("Erro ao redimensionar imagem do circuito")
+
+    def schedule_circuit_image_resize(_event=None):
+        nonlocal circuit_resize_job
+        if circuit_resize_job is not None:
+            janela.after_cancel(circuit_resize_job)
+        circuit_resize_job = janela.after(120, render_circuit_image)
     
     #------------- DEFININDO OS FRAMES DA INTERFACE -------------
     
@@ -754,18 +845,18 @@ def inicializar_interface():
         if destination == "circuit":
             #Confirma expressão e vai para circuito
             confirmar_expressao()
-            janela.after(500, lambda: trocar_para_abas())
+            janela.after(500, trocar_para_abas)
         
         elif destination == "simplifier":
             #Confirma expressão e vai para simplificador
             confirmar_expressao()
-            janela.after(500, lambda: [
-                trocar_para_abas(),
-                janela.after(300, lambda: [
-                    abas.set("      Expressão      "),
-                    janela.after(200, executar_conversao)
-                ])
-            ])
+            janela.after(
+                500,
+                lambda: [
+                    trocar_para_abas("expression"),
+                    janela.after(200, executar_conversao),
+                ],
+            )
         
         elif destination == "table":
             #Abre diretamente a tabela verdade
@@ -795,11 +886,11 @@ def inicializar_interface():
         segmented_button_unselected_hover_color=TabConfig.UNSELECTED_HOVER, 
         command=on_tab_change
     )
-    abas.pack(expand=True, fill="both")
+    abas.pack(expand=True, fill="both", padx=Spacing.SM, pady=Spacing.SM)
 
     #---------------------- ABA DO CIRCUITO ----------------------
 
-    aba_circuito = abas.add("      Circuito      ")
+    aba_circuito = abas.add(CIRCUIT_TAB)
     scroll_frame1 = ctk.CTkScrollableFrame(aba_circuito, fg_color=Colors.PRIMARY_BG)
     scroll_frame1.pack(expand=True, fill="both")
 
@@ -813,13 +904,21 @@ def inicializar_interface():
         text=""
     )
     label_circuito_expressao.pack(side="left", expand=True, padx=Spacing.SM)
+    circuit_header.bind(
+        "<Configure>",
+        lambda event: label_circuito_expressao.configure(
+            wraplength=max(220, event.width - 100)
+        ),
+        add="+",
+    )
 
     botao_duvida1 = Button.botao_duvida(circuit_header, size="small")
     botao_duvida1.pack(side="right", padx=Spacing.SM)
     botao_duvida1.configure(command=lambda: popup_duvida(duvida_circuitos))
 
     imagem_circuito = ctk.CTkLabel(scroll_frame1, text="")
-    imagem_circuito.pack(pady=Spacing.MD)
+    imagem_circuito.pack(fill="x", padx=Spacing.MD, pady=Spacing.MD)
+    scroll_frame1.bind("<Configure>", schedule_circuit_image_resize, add="+")
 
     def salvar_imagem():
         try:
@@ -844,13 +943,13 @@ def inicializar_interface():
     botao_salvar.configure(command=salvar_imagem)
     botao_salvar.pack(pady=Spacing.LG)
  #------------------------------------------------ ABA DO CIRCUITO INTERATIVO  ----------------------------------------------
-    aba_circuito_interativo = abas.add("  Circuito Interativo  ")
+    aba_circuito_interativo = abas.add(INTERACTIVE_CIRCUIT_TAB)
     frame_circuito_interativo = tk.Frame(aba_circuito_interativo, bg=Colors.PRIMARY_BG)
     frame_circuito_interativo.pack(expand=True, fill="both", padx=Spacing.SM, pady=Spacing.SM)
     
  #------------------------------------------------ ABA DE EXPRESSÃO  ----------------------------------------------
  
-    aba_expressao = abas.add("      Expressão      ")
+    aba_expressao = abas.add(EXPRESSION_TAB)
     scroll_frame2 = ctk.CTkScrollableFrame(aba_expressao, fg_color=Colors.PRIMARY_BG)
     scroll_frame2.pack(expand=True, fill="both")
     expressao_booleana_atual = ""
@@ -934,12 +1033,18 @@ def inicializar_interface():
     )
 
     def expressao_simplificada():
+        nonlocal simplification_in_progress
+        if simplification_in_progress:
+            logger.info("Duplicate simplification request ignored")
+            return
         try:
             #1. Pega a expressão mais recente direto da caixa de entrada principal
             entrada_txt = entrada.get().strip().upper()
             if not entrada_txt:
                 popup_erro("A expressão na tela principal está vazia.")
                 return
+
+            simplification_in_progress = True
 
             #2. Converte para o formato de álgebra booleana
             expressao_para_simplificar = converter_para_algebra_booleana(entrada_txt)
@@ -957,39 +1062,89 @@ def inicializar_interface():
 
             #Inicializa StepView
             step_view.reset(expressao_para_simplificar)
+            step_view.set_processing(True)
+            botao_go_back_to_aba2.configure(state="disabled")
             
             #Parser para converter log em passos
             parser = StepParser(step_view)
+            step_events = queue.Queue()
             
             class StepLogger:
-                def __init__(self, parser):
-                    self.parser = parser
+                def __init__(self, event_queue):
+                    self.event_queue = event_queue
                     self.buffer = ""
                     
                 def write(self, text):
-                    lines = text.splitlines()
-                    for line in lines:
+                    self.buffer += text
+                    while "\n" in self.buffer:
+                        line, self.buffer = self.buffer.split("\n", 1)
                         if line.strip():
-                            self.parser.parse_log_line(line)
+                            self.event_queue.put(("line", line))
+                    return len(text)
                             
                 def flush(self):
-                    pass
+                    if self.buffer.strip():
+                        self.event_queue.put(("line", self.buffer))
+                    self.buffer = ""
 
-            step_logger = StepLogger(parser)
+            step_logger = StepLogger(step_events)
 
             def simplificar_thread():
-                with redirect_stdout(step_logger):
-                    try:
+                error_message = None
+                result = None
+                try:
+                    with redirect_stdout(step_logger):
                         #3. Usa a expressão recém-capturada e convertida
-                        principal_simplificar(expressao_para_simplificar)
-                        #Finaliza o parsing
-                        janela.after(0, lambda: parser.finalize_parsing(expressao_para_simplificar, True))
-                    except Exception as e:
-                        janela.after(0, lambda: popup_erro(f"\n--- OCORREU UM ERRO ---\n{e}"))
+                        result = principal_simplificar(expressao_para_simplificar)
+                    if result is None:
+                        error_message = "Não foi possível simplificar a expressão informada."
+                except Exception as error:
+                    logger.exception("simplification exception in UI worker")
+                    error_message = str(error)
+                finally:
+                    step_logger.flush()
+                    step_events.put(("done", result is not None, error_message))
 
-            threading.Thread(target=simplificar_thread).start()
-        except Exception as e:
-            popup_erro(f"Erro ao simplificar expressão: {e}")
+            def poll_simplification():
+                nonlocal simplification_in_progress
+                completed = None
+                while True:
+                    try:
+                        event = step_events.get_nowait()
+                    except queue.Empty:
+                        break
+                    if event[0] == "line":
+                        parser.parse_log_line(event[1])
+                    else:
+                        completed = event
+
+                if completed is None:
+                    janela.after(40, poll_simplification)
+                    return
+
+                _, succeeded, error_message = completed
+                parser.finalize_parsing(expressao_para_simplificar, succeeded)
+                step_view.set_processing(False)
+                botao_go_back_to_aba2.configure(state="normal")
+                simplification_in_progress = False
+                if error_message:
+                    popup_erro(f"Erro ao simplificar expressão: {error_message}")
+
+            threading.Thread(
+                target=simplificar_thread,
+                name="lozgates-simplifier",
+                daemon=True,
+            ).start()
+            janela.after(40, poll_simplification)
+        except Exception as error:
+            simplification_in_progress = False
+            try:
+                botao_go_back_to_aba2.configure(state="normal")
+                step_view.set_processing(False)
+            except (NameError, tk.TclError):
+                pass
+            logger.exception("simplification exception while preparing UI")
+            popup_erro(f"Erro ao simplificar expressão: {error}")
             
     def abrir_duvida_expressao(expressao):
         try:
@@ -1107,6 +1262,7 @@ def inicializar_interface():
     def on_desfazer_selecionado():
         global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, botao_desfazer
         global contador_passos, sessao_simplificacao_concluida
+        global simplification_guard, motivo_parada_interativo
 
         if not historico_de_estados:
             logger.debug("Nenhum estado de simplificacao para desfazer")
@@ -1121,6 +1277,8 @@ def inicializar_interface():
         nos_ignorados = set()
         passo_atual_info = None
         sessao_simplificacao_concluida = False
+        motivo_parada_interativo = None
+        simplification_guard = simpli.SimplificationGuard(arvore_interativa)
         simpli.reiniciar_busca()
         
         reconstruir_area_passos()
@@ -1303,44 +1461,94 @@ def inicializar_interface():
     def on_lei_selecionada(indice_lei):
         global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados, botao_desfazer
         global expressao_global, contador_passos, sessao_simplificacao_concluida
+        global simplification_guard, motivo_parada_interativo
 
         if not passo_atual_info:
             return
 
-        salvar_estado_atual()
-        botao_desfazer.configure(state="normal")
+        for botao in botoes_leis:
+            botao.configure(state="disabled")
+        if botao_pular:
+            botao_pular.configure(state="disabled")
 
-        lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
-        subexpressao_antes = str(passo_atual_info['no_atual'])
-        
-        nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(arvore_interativa, passo_atual_info, indice_lei)
-        
-        #LOG DA APLICAÇÃO DE LEI
-        user_logger.log_law_applied(lei_usada, sucesso, contador_passos + 1)
-        
-        if sucesso:
-            arvore_interativa = nova_arvore
-            sessao_simplificacao_concluida = False
-            
-            historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada com sucesso.")
-            historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
-            nos_ignorados = set()
-            
-            adicionar_passo_sucesso(
-                lei_usada, subexpressao_antes, subexpressao_antes,
-                "(simplificada)", str(arvore_interativa)
+        try:
+            salvar_estado_atual()
+            botao_desfazer.configure(state="normal")
+
+            lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
+            subexpressao_antes = str(passo_atual_info['no_atual'])
+
+            nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(
+                arvore_interativa, passo_atual_info, indice_lei
             )
+
+            user_logger.log_law_applied(lei_usada, sucesso, contador_passos + 1)
+
+            if sucesso:
+                decision = simplification_guard.consider(nova_arvore)
+                if not decision.accepted:
+                    estado_anterior = historico_de_estados.pop()
+                    arvore_interativa = estado_anterior['arvore']
+                    historico_interativo = estado_anterior['historico']
+                    passo_atual_info = None
+                    motivo_parada_interativo = decision.reason
+                    simpli.reiniciar_busca()
+                    if decision.reason == "maximum_steps":
+                        logger.warning(
+                            "maximum steps reached in interactive simplification: limit=%s",
+                            simplification_guard.max_steps,
+                        )
+                    elif decision.reason == "repeated_state":
+                        logger.warning(
+                            "repeated state detected in interactive simplification: %s",
+                            nova_arvore,
+                        )
+                    else:
+                        logger.warning(
+                            "interactive transformation stopped without progress: %s",
+                            nova_arvore,
+                        )
+                    atualizar_ui_interativa()
+                    return
+
+                arvore_interativa = nova_arvore
+                motivo_parada_interativo = None
+                sessao_simplificacao_concluida = False
+
+                historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada com sucesso.")
+                historico_interativo.append(f"   Nova Expressão: {str(arvore_interativa)}")
+                nos_ignorados = set()
+
+                logger.info(
+                    "rule applied in interactive simplification: rule=%s step=%s expression=%s",
+                    lei_usada,
+                    contador_passos + 1,
+                    arvore_interativa,
+                )
+                adicionar_passo_sucesso(
+                    lei_usada, subexpressao_antes, subexpressao_antes,
+                    "(simplificada)", str(arvore_interativa)
+                )
+                iniciar_rodada_interativa()
+            else:
+                full_expression_state = str(arvore_interativa)
+                reason_for_failure = f"Lei não aplicável à subexpressão '{subexpressao_antes}' no contexto de '{full_expression_state}'"
+                user_logger.log_simplification_step_failed(
+                    lei_usada,
+                    contador_passos + 1,
+                    reason_for_failure,
+                    full_expression_state,
+                )
+
+                historico_de_estados.pop()
+                if not historico_de_estados:
+                    botao_desfazer.configure(state="disabled")
+                popup_erro("Esta transformação não reduz a expressão atual.")
+                iniciar_rodada_interativa()
+        except Exception:
+            logger.exception("simplification exception in interactive rule handler")
+            popup_erro("Não foi possível aplicar a lei selecionada.")
             iniciar_rodada_interativa()
-        else:
-            #LOG DA FALHA
-            full_expression_state = str(arvore_interativa)
-            reason_for_failure = f"Lei não aplicável à subexpressão '{subexpressao_antes}' no contexto de '{full_expression_state}'"
-            user_logger.log_simplification_step_failed(lei_usada, contador_passos + 1, reason_for_failure, full_expression_state)
-            
-            historico_de_estados.pop()
-            if not historico_de_estados:
-                botao_desfazer.configure(state="disabled")
-            popup_erro("Não foi possível aplicar esta lei.")
 
     def on_pular_selecionado():
         global nos_ignorados, passo_atual_info, historico_interativo, botao_desfazer, contador_passos, sessao_simplificacao_concluida
@@ -1395,8 +1603,18 @@ def inicializar_interface():
             if botao_pular:
                 botao_pular.configure(state="normal")
         else:
+            stop_messages = {
+                "repeated_state": "Estado equivalente já visitado. A simplificação foi encerrada.",
+                "maximum_steps": "Limite de segurança atingido. A última expressão válida foi mantida.",
+                "no_progress": "A próxima transformação não reduziria a expressão.",
+                "no_further_simplification": "Não foram encontradas outras simplificações.",
+            }
+            stop_message = stop_messages.get(
+                motivo_parada_interativo,
+                "Não foram encontradas outras simplificações.",
+            )
             label_analise_atual.configure(
-                text="✅ Simplificação concluída!\n🎉 Nenhuma outra lei pode ser aplicada.",
+                text=f"✅ Simplificação encerrada\n{stop_message}",
                 text_color=Colors.SUCCESS
             )
             
@@ -1433,12 +1651,19 @@ def inicializar_interface():
         atualizar_area_passos()
 
     def iniciar_rodada_interativa():
-        global passo_atual_info
+        global passo_atual_info, motivo_parada_interativo
         passo_atual_info = simpli.encontrar_proximo_passo(arvore_interativa, nos_a_ignorar=nos_ignorados)
+        if passo_atual_info is None and motivo_parada_interativo is None:
+            motivo_parada_interativo = "no_further_simplification"
+            logger.info(
+                "no further simplification in interactive mode: expression=%s",
+                arvore_interativa,
+            )
         atualizar_ui_interativa()
         
     def parte_interativa():
         global arvore_interativa, historico_interativo, nos_ignorados, passo_atual_info, expressao_global, botoes_leis, historico_de_estados, simplification_start_time, sessao_simplificacao_concluida
+        global simplification_guard, motivo_parada_interativo
         
         if not expressao_global:
             popup_erro("Por favor, primeiro insira e converta uma expressão.")
@@ -1451,6 +1676,7 @@ def inicializar_interface():
             
             #LOG INÍCIO DA SESSÃO INTERATIVA
             user_logger.log_interactive_simplification_start(expressao_global)
+            logger.info("simplification started in interactive mode: %s", expressao_global)
             
             arvore_interativa = simpli.construir_arvore(expressao_global)
         except Exception as e:
@@ -1463,6 +1689,8 @@ def inicializar_interface():
         passo_atual_info = None
         historico_de_estados = []
         sessao_simplificacao_concluida = False
+        motivo_parada_interativo = None
+        simplification_guard = simpli.SimplificationGuard(arvore_interativa)
         simpli.reiniciar_busca()
         
         criar_interface_interativa_padronizada()
@@ -1851,6 +2079,20 @@ def inicializar_interface():
         
         janela.destroy()
         
-    janela.protocol("WM_DELETE_WINDOW", on_closing) 
-    show_frame(frame_inicio)
+    janela.protocol("WM_DELETE_WINDOW", on_closing)
+    navigation = NavigationController(
+        frame_abas,
+        abas,
+        frame_names={
+            frame_inicio: "home",
+            principal: "expression_entry",
+            frame_equivalencia: "equivalence",
+            frame_problemas_reais: "problems",
+            frame_resolucao_direta: "simplification_result",
+            frame_interativo: "interactive_simplifier",
+            frame_info: "information",
+        },
+    )
+    janela._lozgates_navigation = navigation
+    show_frame(frame_inicio, view_name="home")
     janela.mainloop()
