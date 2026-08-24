@@ -250,7 +250,7 @@ fornecida.
 
 ## 12. Testes
 
-Resultado automatizado final executado nesta reconstrução: 30/30 testes
+Resultado automatizado final executado após o refinamento: 39/39 testes
 aprovados, cobrindo:
 
 - configuração `.env`, caminhos e logging rotativo com stack trace;
@@ -266,7 +266,7 @@ redimensionou para 800x600, 1024x768 e 1600x900 e encerrou normalmente. O Python
 3.12 empacotado no ambiente não tinha Tcl/Tk completo, então foi usado o Python
 do sistema para a validação visual.
 
-O último ciclo terminou em `Ran 30 tests ... OK`; não houve teste gráfico real em
+O último ciclo terminou em `Ran 39 tests ... OK`; não houve teste gráfico real em
 Linux, chamada real à Groq nem build de imagem com daemon Docker ativo.
 
 ## 13. Arquivos importantes alterados

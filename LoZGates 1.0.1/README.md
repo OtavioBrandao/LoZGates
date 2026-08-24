@@ -230,6 +230,18 @@ O teste de UI real abre e redimensiona a janela; execute-o somente em uma
 sessão gráfica. O driver `dummy` valida desenho e regras do Pygame sem abrir uma
 janela.
 
+Para validar o fluxo integrado de navegação e simplificação em uma sessão Tk
+real, usando um renderizador de circuito isolado e determinístico:
+
+```powershell
+python tests\ui_workflow_smoke.py
+```
+
+O simplificador automático aceita apenas passos que diminuem sua métrica de
+complexidade, registra representações canônicas já visitadas e possui limite
+defensivo de 100 passos. Expressão já reduzida ou sem regra aplicável é uma
+conclusão normal, não um erro.
+
 ## Troubleshooting
 
 - `ModuleNotFoundError`: confirme que o ambiente virtual correto está ativo e
