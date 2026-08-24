@@ -4,7 +4,9 @@ import unittest
 from BackEnd.equivalencia import check_universal_equivalence
 from BackEnd.simplificador_interativo import (
     LEIS_LOGICAS,
+    SimplificationGuard,
     aplicar_lei_e_substituir,
+    calcular_complexidade,
     construir_arvore,
     encontrar_proximo_passo,
     reiniciar_busca,
@@ -49,7 +51,7 @@ class InteractiveSimplifierTests(unittest.TestCase):
             (3, "A*A", "A"),
             (4, "A*(A+B)", "A"),
             (5, "~(A*B)", "(~A+~B)"),
-            (6, "A+(B*C)", "((A+B)*(A+C))"),
+            (6, "(A*B)+(A*C)", "(A*(B+C))"),
             (7, "(A*B)*C", "(A*(B*C))"),
             (8, "B+A", "(A+B)"),
         )
@@ -72,6 +74,54 @@ class InteractiveSimplifierTests(unittest.TestCase):
         self.assertTrue(success)
         self.assertEqual(str(result), "(A+(B*C))")
         self.assert_equivalent(original, result)
+
+    def test_distributive_expansion_is_not_offered_as_simplification(self):
+        tree = construir_arvore("A+(B*C)")
+        self.assertFalse(LEIS_LOGICAS[6]["verifica"](tree))
+        result, success = aplicar_lei_e_substituir(tree, root_step(tree), 6)
+        self.assertFalse(success)
+        self.assertIs(result, tree)
+
+    def test_guard_rejects_repetition_non_progress_and_maximum(self):
+        repeated_guard = SimplificationGuard(construir_arvore("A+B"))
+        self.assertEqual(
+            repeated_guard.consider(construir_arvore("B+A")).reason,
+            "repeated_state",
+        )
+
+        progress_guard = SimplificationGuard(construir_arvore("A*1"), max_steps=1)
+        accepted = progress_guard.consider(construir_arvore("A"))
+        self.assertTrue(accepted.accepted)
+        self.assertEqual(
+            progress_guard.consider(construir_arvore("0")).reason,
+            "maximum_steps",
+        )
+
+        no_progress_guard = SimplificationGuard(construir_arvore("A+B"))
+        decision = no_progress_guard.consider(construir_arvore("(A+B)+C"))
+        self.assertEqual(decision.reason, "no_progress")
+
+    def test_every_accepted_law_reduces_weighted_complexity(self):
+        expressions = (
+            "A*~A",
+            "A*0",
+            "A*1",
+            "A*A",
+            "A*(A+B)",
+            "~(A*B)",
+            "(A*B)+(A*C)",
+            "(A*B)*C",
+            "B+A",
+        )
+        for index, expression in enumerate(expressions):
+            with self.subTest(law=LEIS_LOGICAS[index]["nome"]):
+                tree = construir_arvore(expression)
+                before = calcular_complexidade(tree)
+                result, success = aplicar_lei_e_substituir(
+                    tree, root_step(tree), index
+                )
+                self.assertTrue(success)
+                self.assertLess(calcular_complexidade(result), before)
 
     def test_child_change_invalidates_traversal_cache(self):
         tree = construir_arvore("(A*1)+C")

@@ -1,3 +1,9 @@
+import logging
+from dataclasses import dataclass
+
+
+logger = logging.getLogger(__name__)
+MAX_SIMPLIFICATION_STEPS = 100
 passar_pro_front = []
 
 class Node:
@@ -22,6 +28,102 @@ class Node:
         if self.direita:
             size += self.direita.pegar_tamanho()
         return size
+
+
+def representacao_canonica(node):
+    """Normaliza associação e ordem de operadores comutativos para detectar ciclos."""
+    if node is None:
+        return ""
+    operator = {"&": "*", "|": "+", "!": "~"}.get(node.valor, node.valor)
+    if operator == "~":
+        return f"~{representacao_canonica(node.esquerda)}"
+    if operator not in ("*", "+"):
+        return str(node.valor).upper()
+
+    operands = []
+
+    def collect(current):
+        current_operator = {"&": "*", "|": "+"}.get(
+            getattr(current, "valor", None), getattr(current, "valor", None)
+        )
+        if current is not None and current_operator == operator:
+            collect(current.esquerda)
+            collect(current.direita)
+        else:
+            operands.append(representacao_canonica(current))
+
+    collect(node)
+    return f"{operator}({','.join(sorted(operands))})"
+
+
+def chave_ordenacao(node):
+    operator = {"&": "*", "|": "+", "!": "~"}.get(
+        getattr(node, "valor", None), getattr(node, "valor", None)
+    )
+    return (1 if operator in ("*", "+", "~") else 0, representacao_canonica(node))
+
+
+def calcular_complexidade(node):
+    """Mede tamanho e padrões de reorganização; menor significa progresso."""
+    if node is None:
+        return 0
+    operator = {"&": "*", "|": "+", "!": "~"}.get(node.valor, node.valor)
+    if operator not in ("*", "+", "~"):
+        return 2  # um nó e um literal
+
+    left_cost = calcular_complexidade(node.esquerda)
+    right_cost = calcular_complexidade(node.direita)
+    base_cost = 2 + left_cost + right_cost  # nó + operador
+    penalty = 0
+
+    if operator == "~" and node.esquerda:
+        child_operator = {"&": "*", "|": "+"}.get(
+            node.esquerda.valor, node.esquerda.valor
+        )
+        if child_operator in ("*", "+"):
+            penalty += 3
+    if operator in ("*", "+") and node.esquerda:
+        left_operator = {"&": "*", "|": "+"}.get(
+            node.esquerda.valor, node.esquerda.valor
+        )
+        if left_operator == operator:
+            penalty += 1
+        if node.direita and chave_ordenacao(node.direita) < chave_ordenacao(node.esquerda):
+            penalty += 1
+    return base_cost + penalty
+
+
+@dataclass(frozen=True)
+class SimplificationDecision:
+    accepted: bool
+    reason: str
+
+
+class SimplificationGuard:
+    """Tracks finite progress for automatic and user-driven simplification."""
+
+    def __init__(self, initial_tree, max_steps=MAX_SIMPLIFICATION_STEPS):
+        self.max_steps = max(1, int(max_steps))
+        self.accepted_steps = 0
+        self.current_complexity = calcular_complexidade(initial_tree)
+        self.visited_states = {representacao_canonica(initial_tree)}
+
+    def consider(self, candidate):
+        if self.accepted_steps >= self.max_steps:
+            return SimplificationDecision(False, "maximum_steps")
+
+        canonical = representacao_canonica(candidate)
+        if canonical in self.visited_states:
+            return SimplificationDecision(False, "repeated_state")
+
+        complexity = calcular_complexidade(candidate)
+        if complexity >= self.current_complexity:
+            return SimplificationDecision(False, "no_progress")
+
+        self.visited_states.add(canonical)
+        self.current_complexity = complexity
+        self.accepted_steps += 1
+        return SimplificationDecision(True, "accepted")
 
 def construir_arvore(expr):
     """Constroi a arvore booleana e rejeita entradas incompletas ou desbalanceadas."""
@@ -140,29 +242,45 @@ def pode_absorcao(node):
             return True
     return False
 
+def _fator_comum(left, right):
+    if not left or not right or not left.esquerda or not left.direita:
+        return None
+    if not right.esquerda or not right.direita:
+        return None
+    candidates = (
+        (left.esquerda, left.direita, right.esquerda, right.direita),
+        (left.esquerda, left.direita, right.direita, right.esquerda),
+        (left.direita, left.esquerda, right.esquerda, right.direita),
+        (left.direita, left.esquerda, right.direita, right.esquerda),
+    )
+    for common_left, other_left, common_right, other_right in candidates:
+        if str(common_left) == str(common_right):
+            return common_left, other_left, other_right
+    return None
+
+
 def pode_distributiva(node):
     if not node or not node.esquerda or not node.direita:
         return False
-    if node.valor == '*':
-        return node.esquerda.valor == '+' or node.direita.valor == '+'
-    if node.valor == '+':
-        return node.esquerda.valor == '*' or node.direita.valor == '*'
+    if node.valor == '*' and node.esquerda.valor == '+' and node.direita.valor == '+':
+        return _fator_comum(node.esquerda, node.direita) is not None
+    if node.valor == '+' and node.esquerda.valor == '*' and node.direita.valor == '*':
+        return _fator_comum(node.esquerda, node.direita) is not None
     return False
 
 def pode_associativa(node):
     if not node: return False
     #(A op B) op C  -> A op (B op C)
-    if node.valor in ('*', '+') and node.esquerda and node.esquerda.valor == node.valor:
-        return True
-    #A op (B op C) -> (A op B) op C
-    if node.valor in ('*', '+') and node.direita and node.direita.valor == node.valor:
-        return True
-    return False
+    return bool(
+        node.valor in ('*', '+')
+        and node.esquerda
+        and node.esquerda.valor == node.valor
+    )
 
 def pode_comutativa(node):
     if not node or not node.esquerda or not node.direita: return False
     #Aplica para ordenar (ex: B * A -> A * B)
-    return node.valor in ('*', '+') and str(node.direita) < str(node.esquerda)
+    return node.valor in ('*', '+') and chave_ordenacao(node.direita) < chave_ordenacao(node.esquerda)
 
 
 #------------------ Leis Lógicas -------------------
@@ -202,33 +320,17 @@ def absorcao(node):
 def distributiva(node):
     #Simplificação: (A+B) * (A+C) -> A + (B*C)
     if node.valor == '*' and node.esquerda.valor == '+' and node.direita.valor == '+':
-        a, b = node.esquerda.esquerda, node.esquerda.direita
-        c, d = node.direita.esquerda, node.direita.direita
-        common, o1, o2 = (None, None, None)
-        if str(a) == str(c): common, o1, o2 = a, b, d
-        elif str(a) == str(d): common, o1, o2 = a, b, c
-        elif str(b) == str(c): common, o1, o2 = b, a, d
-        elif str(b) == str(d): common, o1, o2 = b, a, c
-        if common:
+        factor = _fator_comum(node.esquerda, node.direita)
+        if factor:
+            common, o1, o2 = factor
             return Node('+', common, Node('*', o1, o2))
-            
-    #Expansão: A * (B + C) -> (A * B) + (A * C)
-    if node.valor == '*':
-        if node.direita and node.direita.valor == '+':
-            a, b, c = node.esquerda, node.direita.esquerda, node.direita.direita
-            return Node('+', Node('*', a, b), Node('*', a, c))
-        if node.esquerda and node.esquerda.valor == '+':
-            a, b, c = node.direita, node.esquerda.esquerda, node.esquerda.direita
-            return Node('+', Node('*', a, b), Node('*', a, c))
 
-    #Expansão dual: A + (B * C) -> (A + B) * (A + C)
-    if node.valor == '+':
-        if node.direita and node.direita.valor == '*':
-            a, b, c = node.esquerda, node.direita.esquerda, node.direita.direita
-            return Node('*', Node('+', a, b), Node('+', a, c))
-        if node.esquerda and node.esquerda.valor == '*':
-            a, b, c = node.direita, node.esquerda.esquerda, node.esquerda.direita
-            return Node('*', Node('+', a, b), Node('+', a, c))
+    #Simplificação dual: (A*B) + (A*C) -> A * (B+C)
+    if node.valor == '+' and node.esquerda.valor == '*' and node.direita.valor == '*':
+        factor = _fator_comum(node.esquerda, node.direita)
+        if factor:
+            common, o1, o2 = factor
+            return Node('*', common, Node('+', o1, o2))
 
     return node #Retorna o nó original se nenhuma regra aplicou
 
@@ -257,7 +359,7 @@ LEIS_LOGICAS = [
     {"nome": "Idempotente (A * A = A)", "verifica": pode_idempotente, "aplica": idempotente},
     {"nome": "Absorção (A * (A+B) = A)", "verifica": pode_absorcao, "aplica": absorcao},
     {"nome": "De Morgan (~(A*B) = ~A+~B)", "verifica": pode_demorgan, "aplica": demorgan},
-    {"nome": "Distributiva ((A+B)*(A+C) = A+(B*C))", "verifica": pode_distributiva, "aplica": distributiva},
+    {"nome": "Distributiva com fator comum", "verifica": pode_distributiva, "aplica": distributiva},
     
     #Leis de reorganização
     {"nome": "Associativa ((A*B)*C = A*(B*C))", "verifica": pode_associativa, "aplica": associativa},
@@ -364,6 +466,14 @@ def aplicar_lei_e_substituir(arvore_raiz, passo_info, indice_lei):
 
     novo_no = lei_escolhida['aplica'](no_alvo)
     if novo_no is None or str(novo_no) == str(no_alvo):
+        return arvore_raiz, False
+    if calcular_complexidade(novo_no) >= calcular_complexidade(no_alvo):
+        logger.info(
+            "Transformation rejected without simplification: rule=%s before=%s after=%s",
+            lei_escolhida["nome"],
+            no_alvo,
+            novo_no,
+        )
         return arvore_raiz, False
 
     if pai is None:

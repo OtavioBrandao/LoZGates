@@ -1,4 +1,16 @@
-import time
+import copy
+import io
+import logging
+from contextlib import redirect_stdout
+
+from BackEnd.simplificador_interativo import (
+    MAX_SIMPLIFICATION_STEPS,
+    SimplificationGuard,
+    calcular_complexidade,
+)
+
+
+logger = logging.getLogger(__name__)
 
 class Node:
     """
@@ -191,56 +203,152 @@ def distributiva(node):
         if common:
             novo_no = Node('|', common, Node('&', o1, o2))
             print(f"Aplicando Distributiva em '{node}' -> '{novo_no}'\n")
-            return novo_no 
+            return novo_no
+
+    #(A&B)|(A&C) -> A&(B|C)
+    if node.valor == '|' and (node.esquerda and node.direita and
+                              node.esquerda.valor == '&' and node.direita.valor == '&'):
+        a, b = node.esquerda.esquerda, node.esquerda.direita
+        c, d = node.direita.esquerda, node.direita.direita
+        common, o1, o2 = (None, None, None)
+
+        if str(a) == str(c): common, o1, o2 = a, b, d
+        elif str(a) == str(d): common, o1, o2 = a, b, c
+        elif str(b) == str(c): common, o1, o2 = b, a, d
+        elif str(b) == str(d): common, o1, o2 = b, a, c
+
+        if common:
+            novo_no = Node('&', common, Node('|', o1, o2))
+            print(f"Aplicando Distributiva em '{node}' -> '{novo_no}'\n")
+            return novo_no
     return node
- 
+
 # ------------------ Processo de Simplificação -------------------
-def aplicar_leis_recursivo(node):
+LEIS_AUTOMATICAS = [
+    ("Nula", nula),
+    ("Inversa", inversa),
+    ("Idempotência", idempotente),
+    ("Identidade", identidade),
+    ("Absorção", absorcao),
+    ("De Morgan", demorgan),
+    ("Distributiva", distributiva),
+]
+
+
+def _aplicar_primeira_reducao(node):
+    """Apply at most one strictly reducing rule, traversing children first."""
     if node is None:
-        return None
+        return node, False, None
 
-    #simplifica recursivamente os filhos primeiro
     if node.esquerda:
-        node.esquerda = aplicar_leis_recursivo(node.esquerda)
+        new_left, changed, law_name = _aplicar_primeira_reducao(node.esquerda)
+        if changed:
+            node.esquerda = new_left
+            return node, True, law_name
     if node.direita:
-        node.direita = aplicar_leis_recursivo(node.direita)
-        
-    original_str = str(node) #Guarda o estado original para detectar mudanças
-    
-    #aplica um conjunto de leis que retornam um novo nó em caso de mudança
-    novo_no = node
-    
-    leis_a_aplicar = [nula, inversa, idempotente, identidade, absorcao, demorgan, associativa, distributiva, comutativa]
-    
-    for lei in leis_a_aplicar:
-        novo_no = lei(novo_no)
+        new_right, changed, law_name = _aplicar_primeira_reducao(node.direita)
+        if changed:
+            node.direita = new_right
+            return node, True, law_name
 
-    #se teve alguma mudança, imprime o passo
-    if str(novo_no) != original_str:
-        #print(f"Passo de simplificação: {original_str} -> {novo_no}\n\n")
-        return aplicar_leis_recursivo(novo_no)
-        
-    return novo_no
+    original_complexity = calcular_complexidade(node)
+    for law_name, law in LEIS_AUTOMATICAS:
+        captured_output = io.StringIO()
+        with redirect_stdout(captured_output):
+            candidate = law(node)
+        if str(candidate) == str(node):
+            continue
+        if calcular_complexidade(candidate) >= original_complexity:
+            logger.debug(
+                "Automatic rule did not reduce complexity: rule=%s before=%s after=%s",
+                law_name,
+                node,
+                candidate,
+            )
+            continue
+        print(captured_output.getvalue(), end="")
+        return candidate, True, law_name
 
-def simplificar(arvore):
-    #Aplica as leis lógicas na árvore até que nenhuma outra simplificação seja possível
+    return node, False, None
+
+
+def aplicar_leis_recursivo(node):
+    """Compatibility helper: perform one safe reducing traversal."""
+    candidate, _, _ = _aplicar_primeira_reducao(copy.deepcopy(node))
+    return candidate
+
+
+def simplificar(arvore, max_steps=MAX_SIMPLIFICATION_STEPS):
+    """Simplify finitely, keeping the last accepted expression."""
 
     print("--- Iniciando Simplificação ---")
-    passo = 1
-    while True:
+    logger.info("simplification started: expression=%s", arvore)
+    guard = SimplificationGuard(arvore, max_steps=max_steps)
+
+    for passo in range(1, guard.max_steps + 1):
         expressao_anterior = str(arvore)
         print(f"\nIteração {passo}: tentando simplificar {expressao_anterior}")
-        arvore = aplicar_leis_recursivo(arvore)
-        expressao_atual = str(arvore)
-        
-        if expressao_anterior == expressao_atual:
+        candidate, changed, law_name = _aplicar_primeira_reducao(copy.deepcopy(arvore))
+
+        if not changed:
             print("\nNenhuma outra simplificação foi possível.")
-            break
-        
-        print(f"Árvore intermediária: {expressao_atual}")
-        passo += 1
-        time.sleep(1) #tempo pra ver
-        
+            logger.info(
+                "no further simplification: expression=%s steps=%s",
+                arvore,
+                guard.accepted_steps,
+            )
+            return arvore
+
+        decision = guard.consider(candidate)
+        if not decision.accepted:
+            if decision.reason == "repeated_state":
+                print("\nEstado equivalente já visitado; simplificação encerrada.")
+                logger.warning(
+                    "repeated state detected: expression=%s step=%s",
+                    candidate,
+                    passo,
+                )
+            elif decision.reason == "maximum_steps":
+                print("\nLimite de segurança atingido; mantendo a última expressão válida.")
+                logger.warning(
+                    "maximum steps reached: expression=%s limit=%s",
+                    arvore,
+                    guard.max_steps,
+                )
+            else:
+                print("\nA transformação não reduziu a complexidade; simplificação encerrada.")
+                logger.warning(
+                    "simplification stopped without progress: before=%s candidate=%s",
+                    arvore,
+                    candidate,
+                )
+            return arvore
+
+        arvore = candidate
+        logger.info(
+            "rule applied: rule=%s step=%s complexity=%s expression=%s",
+            law_name,
+            passo,
+            calcular_complexidade(arvore),
+            arvore,
+        )
+        print(f"Árvore intermediária: {arvore}")
+
+        if not arvore.esquerda and not arvore.direita:
+            logger.info(
+                "simplification completed: expression=%s steps=%s",
+                arvore,
+                guard.accepted_steps,
+            )
+            return arvore
+
+    logger.warning(
+        "maximum steps reached: expression=%s limit=%s",
+        arvore,
+        guard.max_steps,
+    )
+    print("\nLimite de segurança atingido; mantendo a última expressão válida.")
+
     return arvore
 
 # ------------------ Laço Principal de Execução -------------------
@@ -261,10 +369,13 @@ def principal_simplificar(expressao_usuario):
         print(f"Expressão Original    : {expressao_usuario}")
         print(f"Expressão Simplificada: {arvore_simplificada}")
         print("------------------------------------------------------\n")
+        return arvore_simplificada
 
     except Exception as e:
+        logger.exception("simplification exception: expression=%s", expressao_usuario)
         print(f"Ocorreu um erro ao processar a expressão: {e}")
         print("Por favor, verifique se a sintaxe está correta (ex: 'P & (Q | !R)').")
+        return None
         
 '''
 -------------------------casos testes------------------
