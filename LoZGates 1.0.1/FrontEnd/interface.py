@@ -237,87 +237,16 @@ def inicializar_interface():
             
     #Detecta mudança de aba e recria o circuito se necessário
     def on_tab_change():
-        global does_it_have_interaction
         try:
             atual_tab = abas.get()
             if navigation is not None:
                 navigation.sync_tab(atual_tab)
             user_logger.log_tab_changed("tab_navigation", atual_tab)
             if atual_tab == INTERACTIVE_CIRCUIT_TAB:
-                #Garante que a expressão existe antes de criar qualquer coisa
-                if not expressao_global:
-                    logger.warning("Expressao global ausente ao abrir circuito")
-                    return
-                    
-                #Atualiza display da expressão se a instância existir
-                if (circuito_interativo_instance and 
-                    hasattr(circuito_interativo_instance, 'update_expression_display')):
-                    circuito_interativo_instance.update_expression_display()
-                    
-                #Só cria se realmente necessário
-                if_necessary_create_a_circuit()
+                frame_circuito_interativo.initialize_if_needed()
         except Exception:
             logger.exception("Erro ao detectar mudanca de aba")
-           
-    def if_necessary_create_a_circuit():
-        global circuito_interativo_instance, does_it_have_interaction
-        
-        #Verifica se o frame está vazio ou se a instância não existe
-        frame_vazio = len(frame_circuito_interativo.winfo_children()) == 0
-        instancia_inexistente = circuito_interativo_instance is None
-        
-        #Só cria se não existir
-        if frame_vazio or instancia_inexistente:
-            logger.debug("Criando interface de selecao de modo")
-            #Usa a expressão atual da entrada, não uma vazia
-            expressao_atual = entrada.get().strip().upper().replace(" ", "") if entrada.get().strip() else expressao_global
-            if expressao_atual:
-                create_interactive_circuit(expressao_atual)
-            else:
-                logger.warning("Nenhuma expressao disponivel para criar circuito")
-        else:
-            logger.debug("Interface de circuito existente sera preservada")
 
-    def create_interactive_circuit(expressao):
-        global circuito_interativo_instance, does_it_have_interaction
-        
-        #LOG INÍCIO DO CIRCUITO INTERATIVO
-        user_logger.log_circuit_interaction_start()
-        
-        def get_global_expression():
-            return expressao_global if expressao_global else expressao
-        
-        if circuito_interativo_instance:
-            try:
-                circuito_interativo_instance.cleanup()
-            except Exception:
-                logger.exception("Erro ao limpar instancia anterior do circuito")
-        
-        for widget in frame_circuito_interativo.winfo_children():
-            widget.destroy()
-        
-        try:
-            circuito_interativo_instance = CircuitModeSelector(
-                frame_circuito_interativo, 
-                CircuitModeManager(),
-                Button,
-                get_global_expression,
-                logger=user_logger 
-            )
-            does_it_have_interaction = False
-            logger.info("Interface de circuito com modos criada")
-            
-        except Exception as error:
-            logger.exception("Erro ao criar interface de circuito")
-            does_it_have_interaction = False
-            
-            error_label = ctk.CTkLabel(
-                frame_circuito_interativo,
-                text=f"Erro ao criar circuito interativo: {error}",
-                text_color="red"
-            )
-            error_label.pack(expand=True)
-            
     def confirmar_expressao():
         global botao_ver_circuito
         if botao_ver_circuito:  
@@ -481,64 +410,21 @@ def inicializar_interface():
             popup_erro(f"Erro ao gerar tabela verdade: {e}")
             logger.exception("Erro ao gerar tabela verdade")
 
-    def comparar():
-            try:
-                expressao2 = entrada2.get().strip().upper()
-                expressao3 = entrada3.get().strip().upper()
-                
-                if not expressao2 or not expressao3:
-                    popup_erro("As expressões não podem estar vazias.")
-                    return
-                
-                logger.debug("Comparando expressoes %s e %s", expressao2, expressao3)
-                
-                # VERIFICAÇÃO: Equivalência lógica semântica via Tabela Verdade Universal
-                from BackEnd.equivalencia import check_universal_equivalence
-                resultado = check_universal_equivalence(expressao2, expressao3, debug=False)
-                
-                if resultado:
-                    logger.info("Expressoes logicamente equivalentes")
-                else:
-                    logger.info("Expressoes nao equivalentes")
-
-                #LOG DETALHADO COM EXPRESSÕES REAIS
-                user_logger.log_equivalence_check_with_expressions(
-                    expressao2, expressao3, resultado
-                )
-                
-                if resultado:
-                    equivalente.pack(padx=Spacing.XL, pady=Spacing.XS)
-                    nao_equivalente.pack_forget()
-                else:
-                    nao_equivalente.pack(padx=Spacing.XL, pady=Spacing.XS)
-                    equivalente.pack_forget()
-                    
-            except Exception as e:
-                user_logger.log_error("equivalence_check_error", str(e), "comparar_function")
-                popup_erro(f"Erro ao comparar expressões: {e}")
-              
     def go_back_to(frame):
         try:
-            global botao_ver_circuito, circuito_interativo_instance, does_it_have_interaction
+            global botao_ver_circuito
             
             if botao_ver_circuito:
                 botao_ver_circuito.destroy()
                 botao_ver_circuito = None
 
             #Lógica melhorada para parar o circuito
-            if circuito_interativo_instance:
-                #Se voltando para frame_abas, NÃO para o circuito
-                if frame == frame_abas:
-                    logger.debug("Voltando para abas com circuito ativo")
-                else:
-                    #Para qualquer outro destino, para o circuito
-                    try:
-                        circuito_interativo_instance.cleanup()
-                        circuito_interativo_instance = None
-                        does_it_have_interaction = False
-                        logger.info("Circuito interativo limpo")
-                    except Exception:
-                        logger.exception("Erro ao limpar circuito interativo")
+            #Se voltando para frame_abas, NÃO para o circuito
+            if frame == frame_abas:
+                logger.debug("Voltando para abas com circuito ativo")
+            else:
+                #Para qualquer outro destino, para o circuito
+                frame_circuito_interativo.cleanup()
 
             #Limpa as entradas apenas se não for para certas telas
             if frame not in [frame_abas, frame_resolucao_direta, frame_interativo]:
@@ -549,15 +435,7 @@ def inicializar_interface():
                 except (NameError, AttributeError):
                     logger.debug("Botoes de simplificacao indisponiveis durante limpeza")
 
-            entrada2.delete(0, tk.END)  
-            entrada3.delete(0, tk.END) 
-            
             entrada.configure(placeholder_text="Digite aqui")
-            entrada2.configure(placeholder_text="Digite aqui")
-            entrada3.configure(placeholder_text="Digite aqui")
-            
-            equivalente.place_forget()
-            nao_equivalente.place_forget()
             
             #Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para frame_abas
             if frame != frame_abas:
@@ -637,8 +515,11 @@ def inicializar_interface():
     principal = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     principal.grid(row=0, column=0, sticky="nsew")
 
-    frame_equivalencia = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
-    frame_equivalencia.grid(row=0, column=0, sticky="nsew")
+    from FrontEnd.screens.equivalence.equivalence_controller import EquivalenceController
+    from FrontEnd.screens.equivalence.equivalence_screen import EquivalenceScreen
+    
+    equivalence_controller = EquivalenceController(user_logger)
+    frame_equivalencia = EquivalenceScreen(janela, navigation, equivalence_controller)
 
     frame_abas = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_abas.grid(row=0, column=0, sticky="nsew")
@@ -827,7 +708,14 @@ def inicializar_interface():
     botao_salvar.pack(pady=Spacing.LG)
  #------------------------------------------------ ABA DO CIRCUITO INTERATIVO  ----------------------------------------------
     aba_circuito_interativo = abas.add(INTERACTIVE_CIRCUIT_TAB)
-    frame_circuito_interativo = tk.Frame(aba_circuito_interativo, bg=Colors.PRIMARY_BG)
+    from FrontEnd.screens.circuit.circuit_controller import CircuitController
+    from FrontEnd.screens.circuit.circuit_screen import CircuitScreen
+    
+    circuit_controller = CircuitController(user_logger)
+    def get_circuit_expr():
+        return expressao_global if expressao_global else entrada.get().strip().upper().replace(" ", "")
+
+    frame_circuito_interativo = CircuitScreen(aba_circuito_interativo, navigation, circuit_controller, get_circuit_expr)
     frame_circuito_interativo.pack(expand=True, fill="both", padx=Spacing.SM, pady=Spacing.SM)
     
  #------------------------------------------------ ABA DE EXPRESSÃO  ----------------------------------------------
@@ -1837,81 +1725,7 @@ def inicializar_interface():
     botao_voltar_info.configure(command=lambda: go_back_to(frame_inicio))
     botao_voltar_info.pack(pady=Spacing.LG)
 
-    #---------------- FRAME DE EQUIVALÊNCIA ----------------
 
-    equivalencia_card = ctk.CTkFrame(
-        frame_equivalencia,
-        fg_color=Colors.SURFACE_DARK,
-        border_width=Dimensions.BORDER_WIDTH_STANDARD,
-        border_color=Colors.BORDER_DEFAULT,
-        corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-    )
-    equivalencia_card.place(relx=0.5, rely=0.5, anchor="center")
-
-    titulo = ctk.CTkLabel(
-        equivalencia_card,
-        text="Digite as expressões que deseja comparar:", 
-        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
-        text_color=Colors.TEXT_PRIMARY, 
-        fg_color=None
-    )
-    titulo.pack(padx=Spacing.XL, pady=(Spacing.XXL, Spacing.SM))
-
-    equivalencia_hint = ctk.CTkLabel(
-        equivalencia_card,
-        text="A comparação considera equivalência lógica e estrutural.",
-        font=get_font(Typography.SIZE_CAPTION),
-        text_color=Colors.TEXT_SECONDARY,
-        wraplength=460,
-    )
-    equivalencia_hint.pack(padx=Spacing.XL, pady=(0, Spacing.MD))
-
-    entrada2 = ctk.CTkEntry(
-        equivalencia_card,
-        width=350, 
-        placeholder_text="Primeira expressão", 
-        font=get_font(Typography.SIZE_BODY_SMALL),
-        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
-    )
-    entrada2.pack(fill="x", padx=Spacing.XL, pady=Spacing.XS)
-
-    entrada3 = ctk.CTkEntry(
-        equivalencia_card,
-        width=350, 
-        placeholder_text="Segunda expressão", 
-        font=get_font(Typography.SIZE_BODY_SMALL),
-        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
-    )
-    entrada3.pack(fill="x", padx=Spacing.XL, pady=Spacing.XS)
-
-    botao_comparar = Button.botao_padrao("✅ Comparar", equivalencia_card, style="success")
-    botao_comparar.configure(command=comparar)
-    botao_comparar.pack(fill="x", padx=Spacing.XL, pady=(Spacing.MD, Spacing.SM))
-
-    resultado_equivalencia_frame = ctk.CTkFrame(
-        equivalencia_card, fg_color="transparent", height=40
-    )
-    resultado_equivalencia_frame.pack(fill="x", padx=Spacing.XL)
-    resultado_equivalencia_frame.pack_propagate(False)
-
-    botao_voltar_equivalencia = Button.botao_voltar("Voltar", equivalencia_card)
-    botao_voltar_equivalencia.configure(command=lambda: go_back_to(frame_inicio))
-    botao_voltar_equivalencia.pack(fill="x", padx=Spacing.XL, pady=(Spacing.SM, Spacing.XXL))
-
-    equivalente = ctk.CTkLabel(
-        resultado_equivalencia_frame,
-        text="✅ São equivalentes!", 
-        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
-        text_color=Colors.SUCCESS, 
-        fg_color=None
-    )
-    nao_equivalente = ctk.CTkLabel(
-        resultado_equivalencia_frame,
-        text="❌ Não são equivalentes", 
-        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
-        text_color=Colors.ERROR, 
-        fg_color=None
-    )
     
     def on_closing(): #Função chamada quando a aplicação é fechada.
         user_logger.end_session()
