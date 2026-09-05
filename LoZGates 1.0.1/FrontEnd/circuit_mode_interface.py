@@ -29,13 +29,13 @@ class CircuitModeSelector:
         self.main_container.pack(fill="both", expand=True, padx=Spacing.SM, pady=Spacing.SM)
         
         #Título
-        title_label = ctk.CTkLabel(
+        self.title_label = ctk.CTkLabel(
             self.main_container,
             text="🔌 Circuito Interativo - Escolha o Desafio",
             font=get_title_font(Typography.SIZE_TITLE_SMALL),
             text_color=Colors.TEXT_PRIMARY
         )
-        title_label.pack(pady=Spacing.MD)
+        self.title_label.pack(pady=Spacing.MD)
         
         #Mostra expressão atual
         self.expression_display = ctk.CTkLabel(
@@ -50,15 +50,15 @@ class CircuitModeSelector:
         self.update_expression_display()
         
         #Frame para seleção de modos
-        modes_frame = ctk.CTkFrame(
+        self.modes_frame = ctk.CTkFrame(
             self.main_container, 
             fg_color=Colors.SURFACE_DARK,
             corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
         )
-        modes_frame.pack(fill="x", padx=Spacing.LG, pady=Spacing.LG)
+        self.modes_frame.pack(fill="x", padx=Spacing.LG, pady=Spacing.LG)
         
         modes_title = ctk.CTkLabel(
-            modes_frame,
+            self.modes_frame,
             text="Selecione o Modo de Desafio:",
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
             text_color=Colors.TEXT_PRIMARY
@@ -66,7 +66,7 @@ class CircuitModeSelector:
         modes_title.pack(pady=Spacing.MD)
         
         #Grid de botões de modo (2 colunas)
-        self.create_mode_buttons(modes_frame)
+        self.create_mode_buttons(self.modes_frame)
         
         #Frame de controles
         self.create_control_panel()
@@ -124,14 +124,14 @@ class CircuitModeSelector:
         self.mode_description.pack(pady=Spacing.MD)
     
     def create_control_panel(self): #Cria o painel de controles.
-        control_frame = ctk.CTkFrame(
+        self.control_frame = ctk.CTkFrame(
             self.main_container, 
             fg_color=Colors.SURFACE_DARK,
             corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
         )
-        control_frame.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
+        self.control_frame.pack(fill="x", padx=Spacing.LG, pady=Spacing.MD)
         
-        buttons_frame = ctk.CTkFrame(control_frame, fg_color="transparent")
+        buttons_frame = ctk.CTkFrame(self.control_frame, fg_color="transparent")
         buttons_frame.pack(pady=Spacing.MD)
         
         self.start_btn = ctk.CTkButton(
@@ -200,7 +200,7 @@ class CircuitModeSelector:
         
         #Status
         self.status_label = ctk.CTkLabel(
-            control_frame,
+            self.control_frame,
             text="Escolha um modo e clique em 'Iniciar Desafio'",
             font=get_font(Typography.SIZE_CAPTION),
             text_color=Colors.TEXT_SECONDARY
@@ -354,6 +354,11 @@ class CircuitModeSelector:
                     "restrictions": self.circuit_manager.get_mode_info(self.current_mode).get('restrictions')
                 })
             
+            # Oculta painéis superiores para o pygame ter espaço e não bugar com scroll no Windows
+            self.title_label.pack_forget()
+            self.expression_display.pack_forget()
+            self.modes_frame.pack_forget()
+
             self.circuit_container.pack(fill="both", expand=True, pady=Spacing.MD, padx=Spacing.LG)
             
             circuit = self.circuit_manager.create_circuit(self.circuit_frame, expression, logger=self.logger)
@@ -403,6 +408,11 @@ class CircuitModeSelector:
             
             #Esconde área do circuito
             self.circuit_container.pack_forget()
+
+            # Restaura os painéis superiores
+            self.title_label.pack(pady=Spacing.MD, before=self.control_frame)
+            self.expression_display.pack(pady=Spacing.MD, before=self.control_frame)
+            self.modes_frame.pack(fill="x", padx=Spacing.LG, pady=Spacing.LG, before=self.control_frame)
 
             #Esconde painel de informações
             self.info_container.pack_forget()
