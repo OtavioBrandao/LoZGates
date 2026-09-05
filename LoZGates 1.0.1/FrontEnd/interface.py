@@ -20,8 +20,8 @@ from config import (
     duvida_circuitos,
     informacoes,
 )
-from FrontEnd.design_tokens import Colors, Typography, Dimensions, Spacing, TabConfig, get_font, get_title_font
-from FrontEnd.responsive import (
+from FrontEnd.styles.design_tokens import Colors, Typography, Dimensions, Spacing, TabConfig, get_font, get_title_font
+from FrontEnd.utils.responsive import (
     calculate_window_layout,
     calculate_wraplength,
     responsive_columns,
@@ -49,10 +49,13 @@ from FrontEnd.interactive_help import show_interactive_help
 
 from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
 from FrontEnd.circuit_mode_interface import CircuitModeSelector
-from FrontEnd.ai_chat_popup import AIChatPopup
+from FrontEnd.dialogs.ai_chat_popup import AIChatPopup
+from FrontEnd.dialogs.custom_popups import popup_erro, popup_duvida
 from FrontEnd.problems_interface import IntegratedProblemsInterface
 
-from FrontEnd.logging_system import DetailedUserLogger, DetailedDataSharingDialog, ImprovedGoogleFormsSubmitter
+from FrontEnd.services.logging_service import DetailedUserLogger
+from FrontEnd.services.google_forms_service import ImprovedGoogleFormsSubmitter
+from FrontEnd.dialogs.data_sharing_dialog import DetailedDataSharingDialog
 
 logger = logging.getLogger(__name__)
 user_logger = DetailedUserLogger("1.0-beta")
@@ -169,63 +172,7 @@ def inicializar_interface():
 
         janela.after(100, poll_generation)
 
-    def popup_erro(mensagem):
-        popup = tk.Toplevel(janela)  #<- tk.Toplevel ao invés de ctk.CTkToplevel
-        popup.attributes('-topmost', True)
-        popup.after(10, lambda: popup.attributes('-topmost', False))
-        popup.title("Erro")
-        apply_window_icon(popup)
 
-        popup_layout = calculate_window_layout(
-            popup.winfo_screenwidth(),
-            popup.winfo_screenheight(),
-            preferred=(460, 180),
-            minimum=(320, 160),
-            margin=24,
-        )
-        popup.geometry(popup_layout.geometry)
-
-        #Cor de fundo
-        popup.configure(bg="#1a1a1a")  #como é Tk puro, use 'bg' e não 'fg_color'
-
-        #Conteúdo
-        label = tk.Label(
-            popup,
-            text=mensagem,
-            font=("Segoe UI", 11),
-            fg="white",
-            bg="#1a1a1a",
-            wraplength=max(260, popup_layout.width - 50),
-        )
-        label.pack(pady=(20, 10))
-
-        botao_ok = tk.Button(popup, text="OK", bg="#7A2020", fg="white", command=popup.destroy)
-        botao_ok.configure(width=8, height=1)
-        botao_ok.pack(pady=(0, 10))
-
-    def popup_duvida(mensagem):
-        popup = tk.Toplevel(janela)  #<- tk.Toplevel ao invés de ctk.CTkToplevel
-        popup.attributes('-topmost', True)
-        popup.after(10, lambda: popup.attributes('-topmost', False))
-        popup.title("Ajuda")
-        apply_window_icon(popup)
-        popup.configure(bg="#1a1a1a")
-        #Cria o textbox e insere a mensagem de ajuda/informação
-        textbox = tk.Text(popup, wrap="word", font=("Trebuchet MS", 12), fg="white", bg="#1a1a1a", borderwidth=0)
-        textbox.pack(padx=10, pady=10, fill="both", expand=True)
-        #Escreve a mensagem recebida + informações extras
-        info_extra = "\n\nLoZ Gates - Ajuda\nEste aplicativo permite criar, visualizar e simplificar expressões de lógica proposicional.\nUse as abas para acessar circuitos, expressões e problemas reais."
-        textbox.insert("1.0", info_extra + mensagem)
-        textbox.configure(state="disabled")
-
-        popup_layout = calculate_window_layout(
-            popup.winfo_screenwidth(),
-            popup.winfo_screenheight(),
-            preferred=(520, 520),
-            minimum=(340, 320),
-            margin=24,
-        )
-        popup.geometry(popup_layout.geometry)
 
     def trocar_para_abas(target_view="circuit"):
         nonlocal circuit_generation_in_progress

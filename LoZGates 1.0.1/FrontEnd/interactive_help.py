@@ -1,8 +1,8 @@
 import customtkinter as ctk
 import webbrowser
-from FrontEnd.design_tokens import Colors, Typography, Dimensions, get_font, get_title_font
+from FrontEnd.styles.design_tokens import Colors, Typography, Dimensions, get_font, get_title_font
 from config import make_window_visible_robust
-from FrontEnd.responsive import calculate_window_layout
+from FrontEnd.utils.responsive import calculate_window_layout
 
 class InteractiveHelpSystem:
     def __init__(self, parent_window):

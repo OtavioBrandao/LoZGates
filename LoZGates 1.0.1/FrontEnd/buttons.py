@@ -2,7 +2,7 @@
 # Atualizado para usar sistema de design consistente
 
 import customtkinter as ctk
-from .design_tokens import Colors, Typography, Dimensions, get_font
+from .styles.design_tokens import Colors, Typography, Dimensions, get_font
 
 class Button:
     def __init__(self, nome, comando, botao):

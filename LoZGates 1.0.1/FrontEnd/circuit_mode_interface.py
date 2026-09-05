@@ -1,7 +1,7 @@
 import customtkinter as ctk
 import tkinter as tk
 import logging
-from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
+from .styles.design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
 
 
 logger = logging.getLogger(__name__)

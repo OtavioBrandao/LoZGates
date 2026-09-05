@@ -1,6 +1,6 @@
 import unittest
 
-from FrontEnd.responsive import (
+from FrontEnd.utils.responsive import (
     calculate_window_layout,
     calculate_wraplength,
     responsive_columns,

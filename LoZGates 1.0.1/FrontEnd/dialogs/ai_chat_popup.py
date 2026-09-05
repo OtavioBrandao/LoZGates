@@ -2,7 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 from BackEnd.ai_assistant import AIAssistant
 from config import make_window_visible_robust
-from FrontEnd.responsive import calculate_window_layout
+from FrontEnd.utils.responsive import calculate_window_layout
 
 class AIChatPopup:
     def __init__(self, parent, expression="", step_context=""):

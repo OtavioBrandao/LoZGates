@@ -3,7 +3,7 @@
 
 import customtkinter as ctk
 import re
-from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
+from .styles.design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
 
 class StepView(ctk.CTkFrame):
     def __init__(self, master):

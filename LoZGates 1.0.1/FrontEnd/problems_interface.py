@@ -1,7 +1,7 @@
 import customtkinter as ctk
 import logging
 from BackEnd.problems_bank import Problems_bank, ProblemsToFrame
-from .design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
+from .styles.design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
 from .buttons import Button
 
 
