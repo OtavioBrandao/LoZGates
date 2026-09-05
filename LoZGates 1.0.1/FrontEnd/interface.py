@@ -26,7 +26,7 @@ from FrontEnd.utils.responsive import (
     calculate_wraplength,
     responsive_columns,
 )
-from FrontEnd.navigation import (
+from FrontEnd.app.navigation import (
     CIRCUIT_TAB,
     EXPRESSION_TAB,
     INTERACTIVE_CIRCUIT_TAB,
@@ -106,7 +106,7 @@ def inicializar_interface():
         
     janela.resizable(True, True)
 
-    navigation = None
+    navigation = NavigationController()
     circuit_generation_in_progress = False
     simplification_in_progress = False
     circuit_image_source = None
@@ -631,8 +631,8 @@ def inicializar_interface():
     
     #------------- DEFININDO OS FRAMES DA INTERFACE -------------
     
-    frame_inicio = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
-    frame_inicio.grid(row=0, column=0, sticky="nsew")
+    from FrontEnd.screens.home.home_screen import HomeScreen
+    frame_inicio = HomeScreen(janela, navigation, janela)
 
     principal = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     principal.grid(row=0, column=0, sticky="nsew")
@@ -662,47 +662,7 @@ def inicializar_interface():
     frame_explicacao_problemas_reais = ctk.CTkFrame(janela, fg_color=Colors.PRIMARY_BG)
     frame_explicacao_problemas_reais.grid(row=0, column=0, sticky="nsew")
 
-    #---------------- FRAME DE INÍCIO ----------------
 
-    home_card = ctk.CTkFrame(
-        frame_inicio,
-        fg_color=Colors.SURFACE_DARK,
-        border_width=Dimensions.BORDER_WIDTH_STANDARD,
-        border_color=Colors.BORDER_DEFAULT,
-        corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-    )
-    home_card.place(relx=0.5, rely=0.5, anchor="center")
-
-    fonte_momentz = CTkFont(family="Momentz", size=Typography.SIZE_TITLE_LARGE + 2)
-    label_inicio = ctk.CTkLabel(
-        home_card,
-        text="<LoZ Gates>",
-        font=fonte_momentz,
-        text_color=Colors.TEXT_PRIMARY,
-        fg_color="transparent"
-    )
-    label_inicio.pack(padx=Spacing.XXL, pady=(Spacing.XXL, Spacing.XS))
-
-    home_subtitle = ctk.CTkLabel(
-        home_card,
-        text="Lógica proposicional e circuitos digitais, passo a passo.",
-        font=get_font(Typography.SIZE_BODY_SMALL),
-        text_color=Colors.TEXT_SECONDARY,
-        wraplength=420,
-    )
-    home_subtitle.pack(padx=Spacing.XL, pady=(0, Spacing.XL))
-
-    botao_circuitos = Button.botao_padrao("💡 Circuitos e Expressões", home_card)
-    botao_circuitos.configure(command=lambda: show_frame(principal))
-    botao_circuitos.pack(fill="x", padx=Spacing.XL, pady=Spacing.SM)
-
-    botao_equivalencia = Button.botao_padrao("🔄 Equivalência Lógica", home_card)
-    botao_equivalencia.configure(command=lambda: show_frame(frame_equivalencia))
-    botao_equivalencia.pack(fill="x", padx=Spacing.XL, pady=Spacing.SM)
-    
-    botao_info = Button.botao_padrao("❔ Ajuda e manual", home_card)
-    botao_info.configure(command=lambda: show_interactive_help(janela))
-    botao_info.pack(fill="x", padx=Spacing.XL, pady=(Spacing.SM, Spacing.XXL))
 
     #---------------- FRAME DOS CIRCUITOS E DAS EXPRESSÕES ----------------
 
@@ -1993,19 +1953,27 @@ def inicializar_interface():
         janela.destroy()
         
     janela.protocol("WM_DELETE_WINDOW", on_closing)
-    navigation = NavigationController(
-        frame_abas,
-        abas,
-        frame_names={
-            frame_inicio: "home",
-            principal: "expression_entry",
-            frame_equivalencia: "equivalence",
-            frame_problemas_reais: "problems",
-            frame_resolucao_direta: "simplification_result",
-            frame_interativo: "interactive_simplifier",
-            frame_info: "information",
-        },
-    )
+    navigation.tab_frame = frame_abas
+    navigation.tabview = abas
+    navigation.frame_names = {
+        frame_inicio: "home",
+        principal: "expression_entry",
+        frame_equivalencia: "equivalence",
+        frame_problemas_reais: "problems",
+        frame_resolucao_direta: "simplification_result",
+        frame_interativo: "interactive_simplifier",
+        frame_info: "information",
+    }
+    # Registra as telas para o novo sistema de navegação (show_screen)
+    navigation.register_screen("home", frame_inicio)
+    navigation.register_screen("principal", principal)
+    navigation.register_screen("equivalencia", frame_equivalencia)
+    navigation.register_screen("problemas_reais", frame_problemas_reais)
+    navigation.register_screen("resolucao", frame_resolucao_direta)
+    navigation.register_screen("interativo", frame_interativo)
+    navigation.register_screen("informacao", frame_info)
+    
     janela._lozgates_navigation = navigation
-    show_frame(frame_inicio, view_name="home")
+    # Como show_screen faz o grid_forget/tkraise e atualiza o estado
+    navigation.show_screen("home")
     janela.mainloop()
