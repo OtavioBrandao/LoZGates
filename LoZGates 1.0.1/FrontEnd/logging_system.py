@@ -495,7 +495,66 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
         if total_attempts > 0:
             self.current_session["session_stats"]["overall_success_rate"] = round(total_successes / total_attempts, 3)
     
-    def get_detailed_summary(self) -> Dict[str, Any]: #Retorna resumo detalhado do uso da aplicação.
+    def _calculate_summary_for_sessions(self, sessions: List[Dict]) -> Dict[str, Any]:
+        if not sessions:
+            return {}
+            
+        #Agregação de dados
+        summary = {
+            "overview": {
+                "total_sessions": len(sessions),
+                "total_time_minutes": round(sum(s.get("duration_seconds", 0) for s in sessions) / 60, 1),
+                "avg_session_duration": round(sum(s.get("duration_seconds", 0) for s in sessions) / max(len(sessions), 1) / 60, 1),
+                "total_events": sum(s.get("events_count", 0) for s in sessions)
+            },
+            
+            "interactive_simplification": {
+                "total_sessions": sum(s.get("interactive_simplification", {}).get("sessions_started", 0) for s in sessions),
+                "total_steps": sum(s.get("interactive_simplification", {}).get("total_steps", 0) for s in sessions),
+                "total_skips": sum(s.get("interactive_simplification", {}).get("skips_used", 0) for s in sessions),
+                "total_undos": sum(s.get("interactive_simplification", {}).get("undo_operations", 0) for s in sessions),
+                "completion_rate": 0,
+                "most_used_laws": {}
+            },
+            
+            "interactive_circuit": {
+                "total_sessions": sum(s.get("interactive_circuit", {}).get("sessions_started", 0) for s in sessions),
+                "components_usage": {},
+                "total_deletions": sum(s.get("interactive_circuit", {}).get("components_deleted", 0) for s in sessions),
+                "total_tests": sum(s.get("interactive_circuit", {}).get("test_attempts", 0) for s in sessions),
+                "success_rate": 0,
+                "total_undos": sum(s.get("interactive_circuit", {}).get("undo_operations", 0) for s in sessions)
+            },
+            
+            "equivalence_checks": {
+                "total_checks": sum(s.get("equivalence_analysis", {}).get("total_checks", 0) for s in sessions),
+                "equivalent_found": sum(s.get("equivalence_analysis", {}).get("equivalent_pairs", 0) for s in sessions),
+                "non_equivalent_found": sum(s.get("equivalence_analysis", {}).get("non_equivalent_pairs", 0) for s in sessions),
+                "recent_checks": []
+            },
+            
+            "expression_patterns": {
+                "common_variable_counts": {},
+                "operator_preferences": {"AND": 0, "OR": 0, "NOT": 0},
+                "complexity_distribution": {}
+            },
+            
+            "error_analysis": {
+                "total_errors": sum(s.get("session_stats", {}).get("errors_encountered", 0) for s in sessions),
+                "error_types": {},
+                "sessions_with_errors": 0
+            }
+        }
+        
+        #Calcula estatísticas agregadas
+        self._aggregate_detailed_stats(sessions, summary)
+        
+        # PRESERVAR 100% DOS DADOS: Adiciona as sessões brutas completas (raw data) ao resumo
+        summary["sessions"] = sessions
+        
+        return summary
+        
+    def get_detailed_summary(self) -> Dict[str, Any]: #Retorna resumo detalhado de TODAS as sessões (histórico).
         try:
             if not os.path.exists(self.log_file):
                 return {}
@@ -504,63 +563,23 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
                 data = json.load(f)
             
             sessions = data.get("sessions", [])
-            if not sessions:
-                return {}
-            
-            #Agregação de dados
-            summary = {
-                "overview": {
-                    "total_sessions": len(sessions),
-                    "total_time_minutes": round(sum(s.get("duration_seconds", 0) for s in sessions) / 60, 1),
-                    "avg_session_duration": round(sum(s.get("duration_seconds", 0) for s in sessions) / len(sessions) / 60, 1),
-                    "total_events": sum(s.get("events_count", 0) for s in sessions)
-                },
-                
-                "interactive_simplification": {
-                    "total_sessions": sum(s.get("interactive_simplification", {}).get("sessions_started", 0) for s in sessions),
-                    "total_steps": sum(s.get("interactive_simplification", {}).get("total_steps", 0) for s in sessions),
-                    "total_skips": sum(s.get("interactive_simplification", {}).get("skips_used", 0) for s in sessions),
-                    "total_undos": sum(s.get("interactive_simplification", {}).get("undo_operations", 0) for s in sessions),
-                    "completion_rate": 0,
-                    "most_used_laws": {}
-                },
-                
-                "interactive_circuit": {
-                    "total_sessions": sum(s.get("interactive_circuit", {}).get("sessions_started", 0) for s in sessions),
-                    "components_usage": {},
-                    "total_deletions": sum(s.get("interactive_circuit", {}).get("components_deleted", 0) for s in sessions),
-                    "total_tests": sum(s.get("interactive_circuit", {}).get("test_attempts", 0) for s in sessions),
-                    "success_rate": 0,
-                    "total_undos": sum(s.get("interactive_circuit", {}).get("undo_operations", 0) for s in sessions)
-                },
-                
-                "equivalence_checks": {
-                    "total_checks": sum(s.get("equivalence_analysis", {}).get("total_checks", 0) for s in sessions),
-                    "equivalent_found": sum(s.get("equivalence_analysis", {}).get("equivalent_pairs", 0) for s in sessions),
-                    "non_equivalent_found": sum(s.get("equivalence_analysis", {}).get("non_equivalent_pairs", 0) for s in sessions),
-                    "recent_checks": []
-                },
-                
-                "expression_patterns": {
-                    "common_variable_counts": {},
-                    "operator_preferences": {"AND": 0, "OR": 0, "NOT": 0},
-                    "complexity_distribution": {}
-                },
-                
-                "error_analysis": {
-                    "total_errors": sum(s.get("session_stats", {}).get("errors_encountered", 0) for s in sessions),
-                    "error_types": {},
-                    "sessions_with_errors": 0
-                }
-            }
-            
-            #Calcula estatísticas agregadas
-            self._aggregate_detailed_stats(sessions, summary)
-            
-            return summary
+            return self._calculate_summary_for_sessions(sessions)
             
         except Exception:
-            logger.exception("Erro ao gerar resumo detalhado de atividade")
+            logger.exception("Erro ao gerar resumo detalhado de atividade do histórico")
+            return {}
+
+    def get_current_session_summary(self) -> Dict[str, Any]: #Retorna resumo APENAS da sessão atual.
+        try:
+            #Garante propriedades de fim de sessão se ainda não tiverem sido geradas
+            if "duration_seconds" not in self.current_session:
+                self.current_session["duration_seconds"] = round(time.time() - self.session_start, 2)
+            if "events_count" not in self.current_session:
+                self.current_session["events_count"] = len(self.current_session["events"])
+                
+            return self._calculate_summary_for_sessions([self.current_session])
+        except Exception:
+            logger.exception("Erro ao gerar resumo da sessão atual")
             return {}
     
     def _aggregate_detailed_stats(self, sessions: List[Dict], summary: Dict):
@@ -640,13 +659,29 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
             
             #Uso de operadores
             ops = patterns.get("operator_usage", {})
-            for op in all_operators:
-                all_operators[op] += ops.get(op, 0)
+            for op, freq in ops.items():
+                all_operators[op] = all_operators.get(op, 0) + freq
         
-        summary["expression_patterns"]["common_variable_counts"] = dict(
-            sorted(all_var_counts.items(), key=lambda x: int(x[0]))
-        )
+        summary["expression_patterns"]["common_variable_counts"] = all_var_counts
         summary["expression_patterns"]["operator_preferences"] = all_operators
+        
+        #Agrega análise de erros
+        all_errors = {}
+        sessions_with_errors = 0
+        
+        for session in sessions:
+            has_error = False
+            for event in session.get("events", []):
+                if event.get("type") == "error_occurred":
+                    has_error = True
+                    err_type = event.get("data", {}).get("error_type", "unknown")
+                    all_errors[err_type] = all_errors.get(err_type, 0) + 1
+            
+            if has_error:
+                sessions_with_errors += 1
+                
+        summary["error_analysis"]["error_types"] = all_errors
+        summary["error_analysis"]["sessions_with_errors"] = sessions_with_errors
         
         #Agrega tentativas falhadas
         all_failed_attempts = {}
@@ -665,16 +700,22 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
     def should_prompt_data_sharing(self) -> bool: #Verifica se deve mostrar prompt para compartilhar dados.
         return True  #Para testes, sempre mostra
         
+    @staticmethod
     def create_formatted_shareable_data(logger) -> Dict[str, Any]:
+        import platform
+        import json
+        import os
+        from datetime import datetime
         try:
-            detailed_summary = logger.get_detailed_summary()
+            #Usa APENAS a sessão atual para o relatório e Google Forms
+            current_session_summary = logger.get_current_session_summary()
             
             return {
-                "app_version": logger.app_version,
-                "platform": logger.platform.system() if hasattr(logger, 'platform') else 'Unknown',
+                "app_version": "1.0",
+                "platform": platform.system(),
                 "submission_date": datetime.now().isoformat(),
-                "formatted_report": ImprovedDataFormatter.format_for_forms(detailed_summary),
-                "raw_data": detailed_summary  #Mantém dados brutos para análise automática
+                "formatted_report": ImprovedDataFormatter.format_for_forms(current_session_summary),
+                "raw_data": current_session_summary
             }
         except Exception:
             logger.exception("Erro ao criar dados de atividade compartilháveis")
@@ -748,8 +789,8 @@ class DetailedDataSharingDialog:
         explanation.insert("1.0", explanation_text)
         explanation.configure(state="disabled")
         
-        #Preview dos dados
-        summary = self.logger.get_detailed_summary()
+        #Preview dos dados - SOMENTE SESSÃO ATUAL
+        summary = self.logger.get_current_session_summary()
         if summary:
             data_frame = ctk.CTkFrame(main_frame)
             data_frame.pack(fill="x", pady=(0, 20))
@@ -959,17 +1000,32 @@ class ImprovedGoogleFormsSubmitter:
     def submit_data(self, data: Dict[str, Any]) -> bool: #Envia os dados formatados para o Google Forms.
         try:
             import requests
+            import json
             
-            #Usa o relatório formatado ao invés do JSON bruto
-            formatted_report = data.get("formatted_report", "")
+            raw_data_content = data.get("raw_data", {})
+            summary_json_str = json.dumps(raw_data_content)
+            
+            # VALIDAÇÃO CONFORME SOLICITADO
+            sessoes_no_payload = raw_data_content.get('sessions', [])
+            sessao_atual = sessoes_no_payload[0] if sessoes_no_payload else {}
+            session_id = sessao_atual.get('session_id', 'N/A')
+            eventos_count = len(sessao_atual.get('events', []))
+            
+            print(f"[FORMS] Session ID: {session_id}")
+            print(f"[FORMS] Sessões no payload: {len(sessoes_no_payload)}")
+            print(f"[FORMS] Eventos da sessão: {eventos_count}")
+            print(f"[FORMS] JSON serializado: {len(summary_json_str)} caracteres")
+            print(f"[FORMS] Enviando sessão atual: True")
             
             #Prepara os dados para o formulário
             form_data = {
                 self.entry_mapping['app_version']: data.get('app_version', ''),
                 self.entry_mapping['platform']: data.get('platform', ''),
                 self.entry_mapping['submission_date']: data.get('submission_date', ''),
-                self.entry_mapping['summary_json']: formatted_report  
+                self.entry_mapping['summary_json']: summary_json_str
             }
+            
+            print(f"[FORMS] Campos mapeados para envio (entry keys): {list(form_data.keys())}")
             
             #Envia a requisição POST
             response = requests.post(self.form_url, data=form_data, timeout=10)

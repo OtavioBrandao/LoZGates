@@ -545,38 +545,14 @@ def inicializar_interface():
                 
                 logger.debug("Comparando expressoes %s e %s", expressao2, expressao3)
                 
-                #PRIMEIRA VERIFICAÇÃO: Equivalência lógica direta
+                # VERIFICAÇÃO: Equivalência lógica semântica via Tabela Verdade Universal
                 from BackEnd.equivalencia import check_universal_equivalence
-                is_logically_equivalent = check_universal_equivalence(expressao2, expressao3, debug=False)
+                resultado = check_universal_equivalence(expressao2, expressao3, debug=False)
                 
-                if is_logically_equivalent:
+                if resultado:
                     logger.info("Expressoes logicamente equivalentes")
-                    resultado = True
                 else:
-                    #SEGUNDA VERIFICAÇÃO: Equivalência estrutural (variáveis diferentes)
-                    logger.debug("Verificando equivalencia estrutural")
-                    from BackEnd.normalizer import normalize_for_comparison, expressions_are_structurally_equivalent
-                    
-                    is_structurally_equivalent = expressions_are_structurally_equivalent(expressao2, expressao3)
-                    
-                    if is_structurally_equivalent:
-                        #Normaliza e testa novamente
-                        norm1 = normalize_for_comparison(expressao2)
-                        norm2 = normalize_for_comparison(expressao3)
-                        
-                        logger.debug("Expressoes normalizadas: %s / %s", norm1, norm2)
-                        
-                        is_equiv_normalized = check_universal_equivalence(norm1, norm2, debug=False)
-                        
-                        if is_equiv_normalized:
-                            logger.info("Expressoes estruturalmente equivalentes")
-                            resultado = True
-                        else:
-                            logger.info("Expressoes nao equivalentes")
-                            resultado = False
-                    else:
-                        logger.info("Expressoes nao equivalentes")
-                        resultado = False
+                    logger.info("Expressoes nao equivalentes")
 
                 #LOG DETALHADO COM EXPRESSÕES REAIS
                 user_logger.log_equivalence_check_with_expressions(
@@ -1251,11 +1227,14 @@ def inicializar_interface():
 
 #------------------ MODO INTERATIVO LÓGICA E FUNÇÕES MODIFICADAS ----------------------
     def salvar_estado_atual():
-        global historico_de_estados, arvore_interativa, historico_interativo
+        global historico_de_estados, arvore_interativa, historico_interativo, nos_ignorados
+        
+        arvore_copiada, ignorados_copiados = copy.deepcopy((arvore_interativa, nos_ignorados))
         
         estado = {
-            'arvore': copy.deepcopy(arvore_interativa),
+            'arvore': arvore_copiada,
             'historico': list(historico_interativo),
+            'ignorados': ignorados_copiados,
         }
         historico_de_estados.append(estado)
 
@@ -1274,7 +1253,7 @@ def inicializar_interface():
         estado_anterior = historico_de_estados.pop()
         arvore_interativa = estado_anterior['arvore']
         historico_interativo = estado_anterior['historico']
-        nos_ignorados = set()
+        nos_ignorados = estado_anterior.get('ignorados', set())
         passo_atual_info = None
         sessao_simplificacao_concluida = False
         motivo_parada_interativo = None
@@ -1459,25 +1438,25 @@ def inicializar_interface():
                 i += 1
 
     def on_lei_selecionada(indice_lei):
-        global arvore_interativa, passo_atual_info, historico_interativo, nos_ignorados, botao_desfazer
-        global expressao_global, contador_passos, sessao_simplificacao_concluida
-        global simplification_guard, motivo_parada_interativo
-
+        global arvore_interativa, passo_atual_info, historico_interativo
+        global nos_ignorados, contador_passos, historico_de_estados, botao_desfazer
+        global sessao_simplificacao_concluida, motivo_parada_interativo
+        
         if not passo_atual_info:
             return
-
-        for botao in botoes_leis:
-            botao.configure(state="disabled")
-        if botao_pular:
-            botao_pular.configure(state="disabled")
-
+            
         try:
-            salvar_estado_atual()
-            botao_desfazer.configure(state="normal")
-
             lei_usada = simpli.LEIS_LOGICAS[indice_lei]['nome']
             subexpressao_antes = str(passo_atual_info['no_atual'])
+            
+            # Validação Pedagógica: se não for aplicável, mostra popup e interrompe sem logar falha profunda
+            if not simpli.LEIS_LOGICAS[indice_lei]['verifica'](passo_atual_info['no_atual']):
+                popup_erro("Esta lei não pode ser aplicada à subexpressão atual.")
+                return
 
+            salvar_estado_atual()
+            botao_desfazer.configure(state="normal")
+            
             nova_arvore, sucesso = simpli.aplicar_lei_e_substituir(
                 arvore_interativa, passo_atual_info, indice_lei
             )
@@ -1577,29 +1556,16 @@ def inicializar_interface():
         #Atualiza análise atual
         if passo_atual_info:
             sub_expr = str(passo_atual_info['no_atual'])
-            aplicabilidade = [
-                bool(lei['verifica'](passo_atual_info['no_atual']))
-                for lei in simpli.LEIS_LOGICAS
-            ]
-            leis_disponiveis = [
-                simpli.LEIS_LOGICAS[index]['nome'].split(' (', 1)[0]
-                for index, aplicavel in enumerate(aplicabilidade)
-                if aplicavel
-            ]
-            orientacao = (
-                "Leis disponíveis: " + ", ".join(leis_disponiveis)
-                if leis_disponiveis
-                else "Nenhuma lei se aplica aqui; use Pular para avançar."
-            )
+            orientacao = "Selecione uma lei para tentar transformar a subexpressão."
             label_analise_atual.configure(
                 text=f"🔍 Analisando subexpressão: '{sub_expr}'\n📚 {orientacao}",
                 text_color=Colors.TEXT_PRIMARY
             )
             
-            #Habilita somente as leis válidas para o nó atual.
+            #Mantém todos os botões habilitados (Abordagem Pedagógica)
             if botoes_leis:
-                for index, botao in enumerate(botoes_leis):
-                    botao.configure(state="normal" if aplicabilidade[index] else "disabled")
+                for botao in botoes_leis:
+                    botao.configure(state="normal")
             if botao_pular:
                 botao_pular.configure(state="normal")
         else:
