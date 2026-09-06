@@ -4,6 +4,7 @@ from typing import Dict, Any
 # Ajuste dos imports
 from config import make_window_visible_robust
 from FrontEnd.utils.responsive import calculate_window_layout
+from FrontEnd.styles.design_tokens import Colors, Typography, Dimensions, get_font, get_title_font
 
 class DetailedDataSharingDialog:
     """
@@ -34,11 +35,19 @@ class DetailedDataSharingDialog:
         title = ctk.CTkLabel(
             main_frame, 
             text="📊 Dados detalhados de uso - LoZ Gates Beta",
-            font=ctk.CTkFont(size=20, weight="bold")
+            font=get_title_font(Typography.SIZE_TITLE_SMALL),
+            text_color=Colors.TEXT_PRIMARY
         )
         title.pack(pady=(0, 20))
         
-        explanation = ctk.CTkTextbox(main_frame, height=100, wrap="word")
+        explanation = ctk.CTkTextbox(
+            main_frame, 
+            height=100, 
+            wrap="word",
+            font=get_font(Typography.SIZE_BODY_SMALL),
+            fg_color=Colors.SURFACE_DARK,
+            text_color=Colors.TEXT_SECONDARY
+        )
         explanation.pack(fill="x", pady=(0, 20))
         
         explanation_text = """Seus dados de uso detalhados nos ajudam a entender melhor como melhorar o LoZ Gates. 
@@ -57,14 +66,22 @@ class DetailedDataSharingDialog:
             data_title = ctk.CTkLabel(
                 data_frame,
                 text="📈 Preview dos Dados que Serão Enviados:",
-                font=ctk.CTkFont(weight="bold")
+                font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+                text_color=Colors.TEXT_PRIMARY
             )
             data_title.pack(pady=10)
             
             #Cria preview estruturado dos dados
             preview_text = self._create_data_preview(summary)
             
-            preview_box = ctk.CTkTextbox(data_frame, height=300, wrap="word")
+            preview_box = ctk.CTkTextbox(
+                data_frame, 
+                height=300, 
+                wrap="word",
+                font=get_font(Typography.SIZE_CAPTION),
+                fg_color=Colors.SURFACE_DARK,
+                text_color=Colors.TEXT_MUTED
+            )
             preview_box.pack(fill="x", padx=10, pady=10)
             preview_box.insert("1.0", preview_text)
             preview_box.configure(state="disabled")
@@ -87,25 +104,40 @@ class DetailedDataSharingDialog:
         
         send_btn = ctk.CTkButton(
             button_frame,
-            text="✅ Enviar Dados Detalhados (Ajudar)",
+            text="✓  Enviar Dados Detalhados (Ajudar)",
             command=on_send,
-            fg_color="#4CAF50"
+            fg_color=Colors.SUCCESS,
+            hover_color=Colors.SUCCESS_HOVER,
+            text_color="#FFFFFF",
+            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
+            height=Dimensions.BUTTON_HEIGHT_STANDARD,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
         )
         send_btn.pack(side="left", padx=5, pady=10)
         
         cancel_btn = ctk.CTkButton(
             button_frame,
-            text="❌ Não Agora",
+            text="✕  Não Agora",
             command=on_cancel,
-            fg_color="#FF9800"
+            fg_color=Colors.WARNING,
+            hover_color=Colors.WARNING_HOVER,
+            text_color="#000000",
+            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
+            height=Dimensions.BUTTON_HEIGHT_STANDARD,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
         )
         cancel_btn.pack(side="left", padx=5, pady=10)
         
         never_btn = ctk.CTkButton(
             button_frame,
-            text="🚫 Nunca Perguntar",
+            text="🚫  Nunca Perguntar",
             command=on_never,
-            fg_color="#F44336"
+            fg_color=Colors.ERROR,
+            hover_color=Colors.ERROR_HOVER,
+            text_color="#FFFFFF",
+            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
+            height=Dimensions.BUTTON_HEIGHT_STANDARD,
+            corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
         )
         never_btn.pack(side="left", padx=5, pady=10)
         
@@ -116,7 +148,14 @@ class DetailedDataSharingDialog:
                     • Melhorar a detecção de erros comuns
                     • Personalizar a experiência de aprendizado"""
         
-        info_label = ctk.CTkLabel(main_frame, text=info_text, wraplength=750, justify="left")
+        info_label = ctk.CTkLabel(
+            main_frame, 
+            text=info_text, 
+            wraplength=750, 
+            justify="left",
+            font=get_font(Typography.SIZE_BODY_SMALL),
+            text_color=Colors.TEXT_SECONDARY
+        )
         info_label.pack(pady=(10, 0))
         
         #Aguarda resposta

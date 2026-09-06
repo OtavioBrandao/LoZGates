@@ -3,6 +3,7 @@ import tkinter as tk
 from BackEnd.ai_assistant import AIAssistant
 from config import make_window_visible_robust
 from FrontEnd.utils.responsive import calculate_window_layout
+from FrontEnd.styles.design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
 
 class AIChatPopup:
     def __init__(self, parent, expression="", step_context=""):
@@ -35,93 +36,98 @@ class AIChatPopup:
     
     def setup_ui(self):
         # Frame principal
-        main_frame = ctk.CTkFrame(self.popup)
-        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        main_frame = ctk.CTkFrame(self.popup, fg_color=Colors.PRIMARY_BG)
+        main_frame.pack(fill="both", expand=True, padx=Spacing.MD, pady=Spacing.MD)
         
         # Título
         title_label = ctk.CTkLabel(
             main_frame, 
             text="Assistente de IA para Lógica Proposicional",
-            font=ctk.CTkFont(size=16, weight="bold")
+            font=get_title_font(Typography.SIZE_TITLE_SMALL),
+            text_color=Colors.TEXT_PRIMARY
         )
-        title_label.pack(pady=(10, 5))
+        title_label.pack(pady=(Spacing.MD, Spacing.SM))
         
         # Expressão atual
         if self.expression:
             expr_label = ctk.CTkLabel(
                 main_frame,
                 text=f"Expressão: {self.expression}",
-                font=ctk.CTkFont(size=12),
+                font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+                text_color=Colors.TEXT_CODE,
                 wraplength=450
             )
-            expr_label.pack(pady=(0, 10))
+            expr_label.pack(pady=(0, Spacing.MD))
         
         # Área de chat
-        self.chat_frame = ctk.CTkScrollableFrame(main_frame, height=350)
-        self.chat_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        self.chat_frame = ctk.CTkScrollableFrame(main_frame, height=350, fg_color=Colors.SURFACE_DARK)
+        self.chat_frame.pack(fill="both", expand=True, padx=Spacing.XS, pady=Spacing.XS)
         
         # Frame de entrada
-        input_frame = ctk.CTkFrame(main_frame)
-        input_frame.pack(fill="x", padx=5, pady=(5, 10))
+        input_frame = ctk.CTkFrame(main_frame, fg_color=Colors.SURFACE_MEDIUM)
+        input_frame.pack(fill="x", padx=Spacing.XS, pady=(Spacing.XS, Spacing.MD))
         
         # Campo de entrada
         self.entry = ctk.CTkEntry(
             input_frame,
-            placeholder_text="Digite sua pergunta sobre a simplificação..."
+            placeholder_text="Digite sua pergunta sobre a simplificação...",
+            font=get_font(Typography.SIZE_BODY),
+            text_color=Colors.TEXT_PRIMARY,
+            fg_color=Colors.SURFACE_LIGHT,
+            border_width=Dimensions.BORDER_WIDTH_STANDARD,
+            border_color=Colors.BORDER_DEFAULT
         )
-        self.entry.pack(side="left", fill="x", expand=True, padx=(10, 5), pady=10)
+        self.entry.pack(side="left", fill="x", expand=True, padx=(Spacing.MD, Spacing.XS), pady=Spacing.MD)
         
         # Botão enviar
-        send_button = ctk.CTkButton(
+        from FrontEnd.components.buttons import Button
+        
+        send_button = Button.botao_primario(
+            "Enviar",
             input_frame,
-            text="Enviar",
-            width=80,
-            command=self.send_message
         )
-        send_button.pack(side="right", padx=(5, 10), pady=10)
+        send_button.configure(command=self.send_message, width=80)
+        send_button.pack(side="right", padx=(Spacing.XS, Spacing.MD), pady=Spacing.MD)
         
         # Botões de ação rápida
-        action_frame = ctk.CTkFrame(main_frame)
-        action_frame.pack(fill="x", padx=5, pady=(0, 10))
+        action_frame = ctk.CTkFrame(main_frame, fg_color=Colors.PRIMARY_BG)
+        action_frame.pack(fill="x", padx=Spacing.XS, pady=(0, Spacing.MD))
         
-        suggest_button = ctk.CTkButton(
-            action_frame,
-            text="Nova Sugestão",
-            command=self.get_suggestion,
-            width=120
+        suggest_button = Button.botao_secundario(
+            "Nova Sugestão",
+            action_frame
         )
-        suggest_button.pack(side="left", padx=10, pady=5)
+        suggest_button.configure(command=self.get_suggestion, width=120)
+        suggest_button.pack(side="left", padx=Spacing.MD, pady=Spacing.XS)
         
-        explain_button = ctk.CTkButton(
-            action_frame,
-            text="Explicar Leis",
-            command=self.explain_laws,
-            width=120
+        explain_button = Button.botao_secundario(
+            "Explicar Leis",
+            action_frame
         )
-        explain_button.pack(side="left", padx=5, pady=5)
+        explain_button.configure(command=self.explain_laws, width=120)
+        explain_button.pack(side="left", padx=Spacing.XS, pady=Spacing.XS)
         
-        close_button = ctk.CTkButton(
-            action_frame,
-            text="Fechar",
-            command=self.popup.destroy,
-            width=80
+        close_button = Button.botao_secundario(
+            "Fechar",
+            action_frame
         )
-        close_button.pack(side="right", padx=10, pady=5)
+        close_button.configure(command=self.popup.destroy, width=80)
+        close_button.pack(side="right", padx=Spacing.MD, pady=Spacing.XS)
         
         # Bind Enter key
         self.entry.bind("<Return>", lambda e: self.send_message())
     
     def add_message(self, sender, message, is_error=False):
-        message_frame = ctk.CTkFrame(self.chat_frame)
-        message_frame.pack(fill="x", padx=5, pady=2)
+        message_frame = ctk.CTkFrame(self.chat_frame, corner_radius=Dimensions.CORNER_RADIUS_MEDIUM)
+        message_frame.pack(fill="x", padx=Spacing.XS, pady=2)
         
         # Cor baseada no remetente
         if sender == "Você":
-            bg_color = "#2b2b2b"
+            bg_color = Colors.SURFACE_LIGHT
         elif is_error:
-            bg_color = "#4a1a1a"
+            bg_color = Colors.ERROR_MUTED
         else:
-            bg_color = "#1a3a1a"
+            bg_color = Colors.SURFACE_MEDIUM
         
         message_frame.configure(fg_color=bg_color)
         
@@ -129,9 +135,10 @@ class AIChatPopup:
         sender_label = ctk.CTkLabel(
             message_frame,
             text=f"{sender}:",
-            font=ctk.CTkFont(weight="bold", size=11)
+            font=get_font(Typography.SIZE_CAPTION, Typography.WEIGHT_BOLD),
+            text_color=Colors.TEXT_ACCENT if sender != "Você" and not is_error else (Colors.TEXT_ERROR if is_error else Colors.TEXT_SECONDARY)
         )
-        sender_label.pack(anchor="w", padx=10, pady=(5, 0))
+        sender_label.pack(anchor="w", padx=Spacing.MD, pady=(Spacing.SM, 0))
         
         # Mensagem
         msg_label = ctk.CTkLabel(
@@ -139,9 +146,10 @@ class AIChatPopup:
             text=message,
             wraplength=450,
             justify="left",
-            font=ctk.CTkFont(size=11)
+            font=get_font(Typography.SIZE_BODY_SMALL),
+            text_color=Colors.TEXT_PRIMARY
         )
-        msg_label.pack(anchor="w", padx=10, pady=(0, 5))
+        msg_label.pack(anchor="w", padx=Spacing.MD, pady=(0, Spacing.SM))
         
         # Scroll para baixo
         self.popup.after(100, self._scroll_to_bottom)
@@ -181,16 +189,17 @@ class AIChatPopup:
         self.entry.delete(0, "end")
         
         # Mostrar indicador de carregamento
-        loading_frame = ctk.CTkFrame(self.chat_frame)
-        loading_frame.pack(fill="x", padx=5, pady=2)
-        loading_frame.configure(fg_color="#1a3a1a")
+        loading_frame = ctk.CTkFrame(self.chat_frame, corner_radius=Dimensions.CORNER_RADIUS_MEDIUM)
+        loading_frame.pack(fill="x", padx=Spacing.XS, pady=2)
+        loading_frame.configure(fg_color=Colors.SURFACE_MEDIUM)
         
         loading_label = ctk.CTkLabel(
             loading_frame,
             text="IA está pensando...",
-            font=ctk.CTkFont(slant="italic")
+            font=get_font(Typography.SIZE_CAPTION, italic=True),
+            text_color=Colors.TEXT_MUTED
         )
-        loading_label.pack(padx=10, pady=5)
+        loading_label.pack(padx=Spacing.MD, pady=Spacing.SM)
         
         def callback(response, error):
             self._run_on_ui_thread(
@@ -212,16 +221,17 @@ class AIChatPopup:
         self.add_message("Você", "Solicitar nova sugestão")
         
         # Indicador de carregamento
-        loading_frame = ctk.CTkFrame(self.chat_frame)
-        loading_frame.pack(fill="x", padx=5, pady=2)
-        loading_frame.configure(fg_color="#1a3a1a")
+        loading_frame = ctk.CTkFrame(self.chat_frame, corner_radius=Dimensions.CORNER_RADIUS_MEDIUM)
+        loading_frame.pack(fill="x", padx=Spacing.XS, pady=2)
+        loading_frame.configure(fg_color=Colors.SURFACE_MEDIUM)
         
         loading_label = ctk.CTkLabel(
             loading_frame,
             text="IA analisando expressão...",
-            font=ctk.CTkFont(slant="italic")
+            font=get_font(Typography.SIZE_CAPTION, italic=True),
+            text_color=Colors.TEXT_MUTED
         )
-        loading_label.pack(padx=10, pady=5)
+        loading_label.pack(padx=Spacing.MD, pady=Spacing.SM)
         
         def callback(response, error):
             self._run_on_ui_thread(
