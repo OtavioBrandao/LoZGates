@@ -1,15 +1,15 @@
 import time
 import logging
 
-import BackEnd.simplificacao as simpli
-from FrontEnd.services.logging_service import user_logger
+import BackEnd.simplificador_interativo as simpli
 
 logger = logging.getLogger(__name__)
 
 class ResolverController:
-    def __init__(self, state, view=None):
+    def __init__(self, state, user_logger, on_step_callback=None, on_skip_callback=None):
         self.state = state
-        self.view = view
+        self.user_logger = user_logger
+        self.view = None
 
     def set_view(self, view):
         self.view = view
@@ -22,7 +22,7 @@ class ResolverController:
         # LOG DA EXPRESSÃO INSERIDA (A ser mantido aqui ou na entrada?)
         # Aqui consideramos que a simplificação começou
         
-        arvore = simpli.parser.parse_expression(expressao_str)
+        arvore = simpli.construir_arvore(expressao_str)
         if not arvore:
             raise ValueError(f"Não foi possível parsear a expressão: {expressao_str}")
             
@@ -70,7 +70,7 @@ class ResolverController:
                 self.state.arvore_interativa, self.state.passo_atual_info, indice_lei
             )
 
-            user_logger.log_law_applied(lei_usada, sucesso, self.state.contador_passos + 1)
+            self.user_logger.log_law_applied(lei_usada, sucesso, self.state.contador_passos + 1)
 
             if sucesso:
                 decision = self.state.simplification_guard.consider(nova_arvore)
@@ -117,7 +117,7 @@ class ResolverController:
             else:
                 full_expression_state = str(self.state.arvore_interativa)
                 reason_for_failure = f"Lei não aplicável à subexpressão '{subexpressao_antes}' no contexto de '{full_expression_state}'"
-                user_logger.log_simplification_step_failed(
+                self.user_logger.log_simplification_step_failed(
                     lei_usada,
                     self.state.contador_passos + 1,
                     reason_for_failure,
@@ -144,7 +144,7 @@ class ResolverController:
             subexpressao_ignorada = str(self.state.passo_atual_info['no_atual'])
             
             # LOG DO PULAR
-            user_logger.log_simplification_skip(self.state.contador_passos)
+            self.user_logger.log_simplification_skip(self.state.contador_passos)
             
             self.state.nos_ignorados.add(self.state.passo_atual_info['no_atual'])
             self.state.sessao_simplificacao_concluida = False
@@ -161,7 +161,7 @@ class ResolverController:
             return
 
         # LOG DO UNDO
-        user_logger.log_simplification_undo()
+        self.user_logger.log_simplification_undo()
 
         sucesso = self.state.restore_snapshot()
         if sucesso:
@@ -182,11 +182,4 @@ class ResolverController:
         if self.state.simplification_start_time:
             elapsed_time = time.time() - self.state.simplification_start_time
             
-        user_logger.log_simplification_completed(self.state.contador_passos, elapsed_time)
-        
-        # O backend salva no arquivo app_data.json:
-        try:
-            from BackEnd.data_collection import data_collector
-            data_collector.end_session()
-        except Exception:
-            logger.exception("Failed to end data collection session")
+        self.user_logger.log_simplification_completed(self.state.contador_passos, elapsed_time)

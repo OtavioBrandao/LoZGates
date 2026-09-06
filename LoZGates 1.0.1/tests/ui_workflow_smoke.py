@@ -45,7 +45,7 @@ def has_label(window, expected_text):
 
 
 def simplification_view(window):
-    from FrontEnd.step_view import StepView
+    from FrontEnd.components.step_view import StepView
 
     for widget in descendants(window):
         if isinstance(widget, StepView):

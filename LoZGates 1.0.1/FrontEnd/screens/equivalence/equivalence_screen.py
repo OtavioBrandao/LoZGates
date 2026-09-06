@@ -2,7 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 
 from FrontEnd.styles.design_tokens import Colors, Dimensions, Spacing, Typography, get_font, get_title_font
-from FrontEnd.buttons import Button
+from FrontEnd.components.buttons import Button
 from FrontEnd.dialogs.custom_popups import popup_erro
 
 class EquivalenceScreen(ctk.CTkFrame):

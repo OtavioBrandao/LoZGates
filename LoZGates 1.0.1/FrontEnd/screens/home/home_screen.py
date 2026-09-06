@@ -3,8 +3,8 @@ from customtkinter import CTkFont
 
 from FrontEnd.utils.responsive import calculate_window_layout
 from FrontEnd.styles.design_tokens import Colors, Dimensions, Spacing, Typography, get_font
-from FrontEnd.buttons import Button
-from FrontEnd.interactive_help import show_interactive_help
+from FrontEnd.components.buttons import Button
+from FrontEnd.dialogs.interactive_help import show_interactive_help
 
 class HomeScreen(ctk.CTkFrame):
     def __init__(self, parent, navigation_controller, root_window):

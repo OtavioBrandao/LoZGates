@@ -1,22 +1,22 @@
 import customtkinter as ctk
 import logging
 
-from FrontEnd.styles.design_tokens import Colors, Typography, Dimensions, Spacing
-from FrontEnd.styles.fonts import get_font, get_title_font
-from FrontEnd.buttons import Button
+from FrontEnd.styles.design_tokens import Colors, Typography, Dimensions, Spacing, get_font, get_title_font
+from FrontEnd.components.buttons import Button
 from FrontEnd.utils.responsive import calculate_wraplength, responsive_columns
 from FrontEnd.dialogs.custom_popups import popup_erro
-from FrontEnd.dialogs.ai_chat_dialog import AIChatPopup
+from FrontEnd.dialogs.ai_chat_popup import AIChatPopup
 
 logger = logging.getLogger(__name__)
 
 class ResolverScreen(ctk.CTkFrame):
-    def __init__(self, parent, navigation_controller, controller, get_global_expression_cb):
+    def __init__(self, parent, navigation_controller, controller, get_global_expression_cb, on_close_cb=None):
         super().__init__(parent, fg_color=Colors.PRIMARY_BG)
         
         self.navigation = navigation_controller
         self.controller = controller
         self.get_global_expression_cb = get_global_expression_cb
+        self.on_close_cb = on_close_cb
         
         self.grid(row=0, column=0, sticky="nsew")
         self.is_initialized = False
@@ -359,7 +359,10 @@ class ResolverScreen(ctk.CTkFrame):
     def voltar_tela(self):
         self.controller.concluir_sessao()
         self.is_initialized = False
-        self.navigation.show_screen("home")
+        if self.on_close_cb:
+            self.on_close_cb()
+        else:
+            self.navigation.show_screen("home")
 
     def reflow_interactive_layout(self, event=None):
         container_width = event.width if event is not None else self.main_container.winfo_width()

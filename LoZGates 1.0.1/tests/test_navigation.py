@@ -1,9 +1,10 @@
 import unittest
 
-from FrontEnd.navigation import (
+from FrontEnd.app.navigation import (
+    NavigationController,
     CIRCUIT_TAB,
     EXPRESSION_TAB,
-    NavigationController,
+    INTERACTIVE_CIRCUIT_TAB,
 )
 
 
@@ -34,7 +35,7 @@ class NavigationControllerTests(unittest.TestCase):
         navigation.show_tab("circuit")
 
         self.assertEqual(tabview.selected, CIRCUIT_TAB)
-        self.assertEqual(navigation.current_view, "circuit")
+        self.assertEqual(navigation.current_screen_name, "circuit")
         self.assertEqual(tabs_frame.raise_count, 2)
 
     def test_normal_navigation_remains_available_after_circuit(self):
@@ -51,7 +52,7 @@ class NavigationControllerTests(unittest.TestCase):
         navigation.show_tab("expression")
         navigation.show_frame(other_frame)
 
-        self.assertEqual(navigation.current_view, "home")
+        self.assertEqual(navigation.current_screen_name, "home")
         self.assertEqual(other_frame.raise_count, 1)
 
 

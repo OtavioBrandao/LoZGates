@@ -2,7 +2,7 @@ import customtkinter as ctk
 import logging
 
 from FrontEnd.styles.design_tokens import Colors
-from FrontEnd.buttons import Button
+from FrontEnd.components.buttons import Button
 
 logger = logging.getLogger(__name__)
 

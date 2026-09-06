@@ -1,7 +1,7 @@
 import logging
 import customtkinter as ctk
 
-from FrontEnd.circuit_mode_interface import CircuitModeSelector
+from FrontEnd.screens.circuit.circuit_mode_interface import CircuitModeSelector
 from BackEnd.circuito_logico.circuit_mode_selector import CircuitModeManager
 
 logger = logging.getLogger(__name__)
