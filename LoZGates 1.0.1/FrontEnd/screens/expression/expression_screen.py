@@ -551,37 +551,50 @@ def setup_legacy_screens(janela):
 
     label_tarefas = ctk.CTkLabel(
         principal_card,
-        text="Digite a expressão em Lógica Proposicional:", 
-        font=get_title_font(Typography.SIZE_TITLE_SMALL), 
-        text_color=Colors.TEXT_PRIMARY, 
+        text="Expressão Lógica Proposicional",
+        font=get_title_font(Typography.SIZE_TITLE_SMALL),
+        text_color=Colors.TEXT_PRIMARY,
         fg_color=None
     )
-    label_tarefas.pack(padx=Spacing.XL, pady=(Spacing.XXL, Spacing.SM))
+    label_tarefas.pack(padx=Spacing.XL, pady=(Spacing.XXL, Spacing.XS))
+
+    # Sintaxe hint num frame sutil (mais visível que só texto pequeno)
+    syntax_frame = ctk.CTkFrame(
+        principal_card,
+        fg_color=Colors.SURFACE_MEDIUM,
+        corner_radius=Dimensions.CORNER_RADIUS_SMALL,
+    )
+    syntax_frame.pack(fill="x", padx=Spacing.XL, pady=(0, Spacing.MD))
 
     syntax_hint = ctk.CTkLabel(
-        principal_card,
-        text="Use & para E, | para OU, ! para NÃO e parênteses para prioridade.",
-        font=get_font(Typography.SIZE_CAPTION),
-        text_color=Colors.TEXT_SECONDARY,
+        syntax_frame,
+        text="  &  = E (AND)    |  = OU (OR)    !  = NÃO (NOT)    >  = Implica    ( ) = grupos",
+        font=get_font(Typography.SIZE_BODY_SMALL),
+        text_color=Colors.TEXT_MUTED,
         wraplength=460,
+        justify="left",
     )
-    syntax_hint.pack(padx=Spacing.XL, pady=(0, Spacing.MD))
+    syntax_hint.pack(padx=Spacing.MD, pady=Spacing.SM)
 
+    from FrontEnd.styles.design_tokens import get_code_font
     entrada = ctk.CTkEntry(
         principal_card,
-        width=350, 
+        width=380,
+        height=44,
         placeholder_text="Ex.: (A & B) | !C",
-        font=get_font(Typography.SIZE_BODY_SMALL),
-        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM
+        font=get_code_font(Typography.SIZE_CODE),
+        corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
+        border_color=Colors.BORDER_DEFAULT,
+        border_width=Dimensions.BORDER_WIDTH_STANDARD,
     )
     entrada.pack(fill="x", padx=Spacing.XL, pady=(0, Spacing.MD))
     entrada.bind("<Return>", lambda event: confirmar_expressao())
 
-    botao_confirmar_expressao = Button.botao_padrao("✅ Confirmar", principal_card, style="success")
-    botao_confirmar_expressao.configure(command=confirmar_expressao, hover_color="#16723D")
+    botao_confirmar_expressao = Button.botao_padrao("✓  Confirmar Expressão", principal_card, style="success")
+    botao_confirmar_expressao.configure(command=confirmar_expressao)
     botao_confirmar_expressao.pack(fill="x", padx=Spacing.XL, pady=Spacing.SM)
-    
-    botao_problemas_reais = Button.botao_padrao("🔬 Banco de problemas", principal_card)
+
+    botao_problemas_reais = Button.botao_padrao("⚑  Banco de Problemas", principal_card)
     botao_problemas_reais.configure(command=lambda: show_frame(frame_problemas_reais))
     botao_problemas_reais.pack(fill="x", padx=Spacing.XL, pady=Spacing.SM)
 
@@ -633,17 +646,18 @@ def setup_legacy_screens(janela):
         
     #---------------- FRAME DE ABAS ----------------
 
+    # CIRCUIT_TAB / EXPRESSION_TAB sem espaços hardcoded — labels limpos
     abas = ctk.CTkTabview(
-        master=frame_abas, 
-        fg_color=Colors.PRIMARY_BG, 
-        segmented_button_fg_color=TabConfig.BACKGROUND_COLOR, 
+        master=frame_abas,
+        fg_color=Colors.PRIMARY_BG,
+        segmented_button_fg_color=TabConfig.BACKGROUND_COLOR,
         segmented_button_selected_color=TabConfig.SELECTED_COLOR,
-        segmented_button_selected_hover_color=TabConfig.SELECTED_HOVER, 
+        segmented_button_selected_hover_color=TabConfig.SELECTED_HOVER,
         segmented_button_unselected_color=TabConfig.UNSELECTED_COLOR,
-        segmented_button_unselected_hover_color=TabConfig.UNSELECTED_HOVER, 
+        segmented_button_unselected_hover_color=TabConfig.UNSELECTED_HOVER,
         command=on_tab_change
     )
-    abas.pack(expand=True, fill="both", padx=Spacing.SM, pady=Spacing.SM)
+    abas.pack(expand=True, fill="both", padx=Spacing.XS, pady=Spacing.XS)
 
     #---------------------- ABA DO CIRCUITO ----------------------
 
