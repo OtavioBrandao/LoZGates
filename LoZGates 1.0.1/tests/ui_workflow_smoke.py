@@ -92,15 +92,15 @@ def run():
         )
         button_with_text(window, "Confirmar").invoke()
         window.update()
-        navigation = window._lozgates_navigation
+        navigation = window.navigation
         for _iteration in range(2):
             circuit_button = button_with_text(window, "Ver Circuito")
             circuit_button.invoke()
-            wait_until(window, lambda: navigation.current_view == "circuit")
+            wait_until(window, lambda: navigation.current_screen_name == "mode_selection")
             wait_until(window, CIRCUIT_IMAGE_PATH.exists)
             wait_until(window, lambda: circuit_button.cget("state") == "normal")
 
-            navigation.show_tab("expression")
+            navigation.show_screen("expression")
             button_with_text(window, "Realizar conversão").invoke()
             window.update()
             step_view = simplification_view(window)
@@ -113,11 +113,11 @@ def run():
             if not has_label(window, "Expressão Resultante") or not has_label(window, "A"):
                 raise AssertionError("Resultado simplificado A não foi exibido")
 
-        navigation.show_tab("circuit")
+        navigation.show_screen("circuit")
         window.update()
-        navigation.show_tab("expression")
+        navigation.show_screen("expression")
         window.update()
-        if navigation.current_view != "expression":
+        if navigation.current_screen_name != "expression":
             raise AssertionError("Navegação não permaneceu disponível")
         window.destroy()
 

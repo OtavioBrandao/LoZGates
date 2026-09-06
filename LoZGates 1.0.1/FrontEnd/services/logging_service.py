@@ -205,7 +205,6 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
         }
         
         self.current_session["events"].append(event)
-    
     def log_expression_entered(self, expression: str, is_valid: bool): #Registra entrada de uma expressão com análise detalhada.
         if not self.logging_enabled:
             return
@@ -307,10 +306,14 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
         if interactive_data["sessions_started"] > 0:
             interactive_data["average_steps_per_session"] = interactive_data["total_steps"] / interactive_data["sessions_started"]
         
+        completion_rate = 0.0
+        if interactive_data["sessions_started"] > 0:
+            completion_rate = interactive_data["expressions_completed"] / interactive_data["sessions_started"]
+            
         self.log_event("simplification_completed", {
             "steps_taken": total_steps,
             "laws_sequence": laws_used,
-            "completion_rate": interactive_data["expressions_completed"] / interactive_data["sessions_started"]
+            "completion_rate": completion_rate
         })
     
     def log_circuit_interaction_start(self): #Inicia uma sessão de circuito interativo.
@@ -715,8 +718,8 @@ class DetailedUserLogger: #Sistema de logging detalhado para coleta de dados gra
                 "app_version": "1.0",
                 "platform": platform.system(),
                 "submission_date": datetime.now().isoformat(),
-                "formatted_report": ImprovedDataFormatter.format_for_forms(current_session_summary),
-                "raw_data": current_session_summary
+                "summary_json": current_session_summary,
+                "formatted_report": ImprovedDataFormatter.format_for_forms(current_session_summary)
             }
         except Exception:
             logger.exception("Erro ao criar dados de atividade compartilháveis")

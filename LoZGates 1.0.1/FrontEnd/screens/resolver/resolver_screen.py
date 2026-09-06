@@ -307,7 +307,7 @@ class ResolverScreen(ctk.CTkFrame):
         lbl_depois = ctk.CTkLabel(
             content_frame,
             text=f"Depois: {expr_depois}",
-            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_MEDIUM),
+            font=get_font(Typography.SIZE_BODY_SMALL, Typography.WEIGHT_BOLD),
             text_color=Colors.TEXT_PRIMARY
         )
         lbl_depois.pack(anchor="w")

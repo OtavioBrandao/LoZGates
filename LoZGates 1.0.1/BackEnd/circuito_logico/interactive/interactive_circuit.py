@@ -23,6 +23,7 @@ class CircuitoInterativoManual:
         self.parent_frame = parent_frame
         self.expressao = expressao
         self.gate_restrictions = gate_restrictions  #Lista de portas permitidas ou None
+        self.logger = logger # Add logger
         self.mode_key = mode_key
         self.running = False
         self.interactive_mode = True
@@ -563,6 +564,8 @@ class CircuitoInterativoManual:
         self.save_state(f"Place {self.ghost_component_type} component")
         
         logger.info("Componente %s colocado", self.ghost_component_type)
+        if hasattr(self, 'logger') and self.logger:
+            self.logger.log_component_action("add", self.ghost_component_type)
         
         #Limpa referências
         self.ghost_component = None

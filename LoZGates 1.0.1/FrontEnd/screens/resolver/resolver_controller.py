@@ -19,8 +19,9 @@ class ResolverController:
         self.state.expressao_global = expressao_str
         self.state.simplification_start_time = time.time()
         
-        # LOG DA EXPRESSÃO INSERIDA (A ser mantido aqui ou na entrada?)
-        # Aqui consideramos que a simplificação começou
+        # Log the start of the interactive session to avoid ZeroDivisionError
+        if self.user_logger:
+            self.user_logger.log_interactive_simplification_start(expressao_str)
         
         arvore = simpli.construir_arvore(expressao_str)
         if not arvore:

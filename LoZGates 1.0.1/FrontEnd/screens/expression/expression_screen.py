@@ -58,7 +58,7 @@ from FrontEnd.services.google_forms_service import ImprovedGoogleFormsSubmitter
 from FrontEnd.dialogs.data_sharing_dialog import DetailedDataSharingDialog
 
 logger = logging.getLogger(__name__)
-user_logger = DetailedUserLogger("1.0-beta")
+user_logger = None # Will be initialized in setup_legacy_screens
 
 expressao_global = ""
 botao_ver_circuito = None
@@ -85,6 +85,9 @@ simplification_guard = None
 motivo_parada_interativo = None
 
 def setup_legacy_screens(janela):
+
+    global user_logger
+    user_logger = janela.user_logger
 
     navigation = janela.navigation
 
@@ -436,7 +439,7 @@ def setup_legacy_screens(janela):
             
             #Se voltando para frame_abas, garante que a interface esteja disponível
             if frame == frame_abas and expressao_global:
-                janela.after(200, if_necessary_create_a_circuit)
+                janela.after(200, on_tab_change)
             
         except Exception as e:
             popup_erro(f"Erro ao voltar: {e}")
