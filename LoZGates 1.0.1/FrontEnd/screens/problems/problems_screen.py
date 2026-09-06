@@ -56,53 +56,77 @@ class IntegratedProblemsInterface:
             problems_frame.grid_columnconfigure(i, weight=1)
         
         self.create_problem_buttons(problems_frame, scroll_problemas_reais, voltar_para, principal)
-        
-        back_button = ctk.CTkButton(
-            scroll_problemas_reais,
-            text="← Voltar ao Menu Principal",
-            command=lambda: voltar_para(principal),
-            font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
-            fg_color=Colors.ACCENT_GOLD,
-            text_color=Colors.BUTTON_TEXT,
-            border_color=Colors.BORDER_DEFAULT,
-            hover_color=Colors.ACCENT_GOLD_HOVER,
-            corner_radius=Dimensions.CORNER_RADIUS_LARGE,
-            height=Dimensions.BUTTON_HEIGHT_STANDARD,
-            width=Dimensions.BUTTON_WIDTH_LARGE,
-            border_width=Dimensions.BORDER_WIDTH_STANDARD
-        )
+
+        back_button = Button.botao_voltar("← Voltar ao Menu Principal", scroll_problemas_reais)
+        back_button.configure(command=lambda: voltar_para(principal))
         back_button.pack(pady=Spacing.XXL)
-    
-    def create_problem_buttons(self, container, scroll_problemas_reais, voltar_para, principal):        
-        difficulty_colors = {
-            "Fácil": (Colors.SUCCESS, "#09BB62"),
-            "Médio": (Colors.WARNING, "#F38D08"),
-            "Difícil": (Colors.ERROR, "#D32F2F"),
-            "Supremo": (Colors.HEHEHE, "#B019AB")
+
+    def create_problem_buttons(self, container, parent_container, voltar_para, principal):
+        # Badge de cor por dificuldade (apenas o badge, não o card inteiro colorido)
+        difficulty_badge_colors = {
+            "Fácil":  Colors.SUCCESS,
+            "Médio":  Colors.WARNING,
+            "Difícil": Colors.ERROR,
+            "Supremo": Colors.ACCENT_PURPLE,
         }
-        
+        difficulty_text_colors = {
+            "Fácil":  "#000000",
+            "Médio":  "#000000",
+            "Difícil": "#FFFFFF",
+            "Supremo": "#FFFFFF",
+        }
+
         for idx, problem in enumerate(Problems_bank):
             difficulty = getattr(problem, 'difficulty', 'Fácil')
-            fg_color, hover_color = difficulty_colors.get(difficulty, difficulty_colors["Fácil"])
-            
-            problem_button = ctk.CTkButton(
+            badge_color = difficulty_badge_colors.get(difficulty, Colors.SUCCESS)
+            badge_txt_color = difficulty_text_colors.get(difficulty, "#000000")
+
+            # Card horizontal: nome do problema + badge de dificuldade no lado direito
+            card = ctk.CTkFrame(
                 container,
-                text=f"{problem.name}\n({difficulty})",
-                command=lambda i=idx: self.show_problem_detail(i, scroll_problemas_reais, voltar_para, principal),
-                font=get_font(Typography.SIZE_CAPTION, Typography.WEIGHT_BOLD),
-                fg_color=fg_color,
-                hover_color=hover_color,
-                corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
-                height=80,
-                width=180,
-                text_color=Colors.TEXT_PRIMARY,
+                fg_color=Colors.SURFACE_DARK,
                 border_width=Dimensions.BORDER_WIDTH_STANDARD,
-                border_color=Colors.BORDER_DEFAULT
+                border_color=Colors.BORDER_DEFAULT,
+                corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
             )
-            
-            row = idx // 4
-            col = idx % 4
-            problem_button.grid(row=row, column=col, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
+            card.pack(fill="x", padx=Spacing.XS, pady=Spacing.XS)
+            card.grid_columnconfigure(0, weight=1)
+
+            # Hover: destaca borda ao passar o mouse
+            def _on_enter(e, c=card):
+                c.configure(border_color=Colors.BORDER_ACTIVE)
+            def _on_leave(e, c=card):
+                c.configure(border_color=Colors.BORDER_DEFAULT)
+            card.bind("<Enter>", _on_enter)
+            card.bind("<Leave>", _on_leave)
+
+            name_label = ctk.CTkLabel(
+                card,
+                text=problem.name,
+                font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
+                text_color=Colors.TEXT_PRIMARY,
+                anchor="w",
+            )
+            name_label.grid(row=0, column=0, padx=Spacing.LG, pady=Spacing.MD, sticky="w")
+
+            badge = ctk.CTkLabel(
+                card,
+                text=difficulty,
+                font=get_font(Typography.SIZE_CAPTION, Typography.WEIGHT_BOLD),
+                text_color=badge_txt_color,
+                fg_color=badge_color,
+                corner_radius=Dimensions.CORNER_RADIUS_SMALL,
+            )
+            badge.grid(row=0, column=1, padx=(0, Spacing.LG), pady=Spacing.MD, sticky="e")
+
+            # Clique em qualquer parte do card abre o detalhe do problema
+            for widget in (card, name_label, badge):
+                widget.bind(
+                    "<Button-1>",
+                    lambda e, i=idx: self.show_problem_detail(
+                        i, parent_container, voltar_para, principal
+                    )
+                )
     
     def toggle_answer(self, answer_frame, button):
         if self.answer_visible:
@@ -330,29 +354,41 @@ class IntegratedProblemsInterface:
                 voltar_para(principal)
                 self.fill_main_expression_and_navigate(user_answer, "table")
         
-        verify_button = Button.botao_padrao("🔍 Verificar Resposta", buttons_frame)
+        # LINHA 1 de botões (3 botões)
+        row1_frame = ctk.CTkFrame(buttons_frame, fg_color="transparent")
+        row1_frame.pack(fill="x", pady=(0, Spacing.XS))
+        for i in range(3):
+            row1_frame.grid_columnconfigure(i, weight=1, uniform="btn1")
+
+        verify_button = Button.botao_padrao("✓  Verificar Resposta", row1_frame, style="success")
         verify_button.configure(command=verify_answer)
         verify_button.grid(row=0, column=0, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
-        
-        analyze_circuit_btn = Button.botao_padrao("🔌 Analisar no Circuito", buttons_frame)
-        analyze_circuit_btn.configure(command=analyze_in_circuit, state="disabled")
-        analyze_circuit_btn.grid(row=0, column=1, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
-        
-        analyze_simplify_btn = Button.botao_padrao("🔎 Simplificar", buttons_frame)
-        analyze_simplify_btn.configure(command=analyze_in_simplifier, state="disabled")
-        analyze_simplify_btn.grid(row=0, column=2, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
-        
-        analyze_table_btn = Button.botao_padrao("📊 Tabela Verdade", buttons_frame)
-        analyze_table_btn.configure(command=analyze_in_table, state="disabled")
-        analyze_table_btn.grid(row=0, column=3, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
-        
-        show_answer_button = Button.botao_padrao("👁️ Mostrar Resposta", buttons_frame)
-        show_answer_button.configure(command=lambda: self.toggle_answer(answer_frame, show_answer_button), state="disabled")
-        show_answer_button.grid(row=0, column=4, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
-        
-        back_to_list_button = Button.botao_voltar("📋 Voltar à Lista", buttons_frame)
+
+        back_to_list_button = Button.botao_voltar("Voltar à Lista", row1_frame)
         back_to_list_button.configure(command=lambda: self.back_to_problems_list(parent_container, voltar_para, principal))
-        back_to_list_button.grid(row=0, column=5, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
+        back_to_list_button.grid(row=0, column=1, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
+
+        show_answer_button = Button.botao_ghost("👁  Ver Resposta", row1_frame)
+        show_answer_button.configure(command=lambda: self.toggle_answer(answer_frame, show_answer_button), state="disabled")
+        show_answer_button.grid(row=0, column=2, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
+
+        # LINHA 2 de botões (3 botões de análise — habilitados após resposta correta)
+        row2_frame = ctk.CTkFrame(buttons_frame, fg_color="transparent")
+        row2_frame.pack(fill="x", pady=(0, Spacing.SM))
+        for i in range(3):
+            row2_frame.grid_columnconfigure(i, weight=1, uniform="btn2")
+
+        analyze_circuit_btn = Button.botao_ghost("⚡  Circuito", row2_frame)
+        analyze_circuit_btn.configure(command=analyze_in_circuit, state="disabled")
+        analyze_circuit_btn.grid(row=0, column=0, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
+
+        analyze_simplify_btn = Button.botao_ghost("↗  Simplificar", row2_frame)
+        analyze_simplify_btn.configure(command=analyze_in_simplifier, state="disabled")
+        analyze_simplify_btn.grid(row=0, column=1, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
+
+        analyze_table_btn = Button.botao_ghost("⊤  Tabela Verdade", row2_frame)
+        analyze_table_btn.configure(command=analyze_in_table, state="disabled")
+        analyze_table_btn.grid(row=0, column=2, padx=Spacing.XS, pady=Spacing.XS, sticky="ew")
         
         self.answer_frame = answer_frame
         self.show_answer_button = show_answer_button
