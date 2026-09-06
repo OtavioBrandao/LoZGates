@@ -31,9 +31,9 @@ class CircuitModeSelector:
         #Título
         self.title_label = ctk.CTkLabel(
             self.main_container,
-            text="🔌 Circuito Interativo - Escolha o Desafio",
+            text="⚡  Circuito Interativo",
             font=get_title_font(Typography.SIZE_TITLE_SMALL),
-            text_color=Colors.TEXT_PRIMARY
+            text_color=Colors.TEXT_ACCENT
         )
         self.title_label.pack(pady=Spacing.MD)
         
@@ -167,12 +167,13 @@ class CircuitModeSelector:
         
         self.tips_btn = ctk.CTkButton(
             buttons_frame,
-            text="💡 Dicas",
+            text="i  Dicas",
             width=Dimensions.BUTTON_WIDTH_SMALL,
             height=Dimensions.BUTTON_HEIGHT_STANDARD,
             font=get_font(Typography.SIZE_BODY, Typography.WEIGHT_BOLD),
-            fg_color="#070BDB",
-            hover_color="#0A0D97",
+            fg_color=Colors.PRIMARY,
+            hover_color=Colors.PRIMARY_HOVER,
+            text_color="#000000",
             corner_radius=Dimensions.CORNER_RADIUS_MEDIUM,
             border_width=Dimensions.BORDER_WIDTH_STANDARD,
             border_color=Colors.BORDER_DEFAULT,
@@ -202,7 +203,7 @@ class CircuitModeSelector:
         self.status_label = ctk.CTkLabel(
             self.control_frame,
             text="Escolha um modo e clique em 'Iniciar Desafio'",
-            font=get_font(Typography.SIZE_CAPTION),
+            font=get_font(Typography.SIZE_BODY_SMALL),
             text_color=Colors.TEXT_SECONDARY
         )
         self.status_label.pack(pady=(0, Spacing.MD))
