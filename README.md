@@ -43,6 +43,8 @@ A desktop application developed to assist in the study of Propositional Logic, B
 
 ## 🚀 How to Run the Project
 
+> 🌐 **Web version:** LoZ Gates 1.0.1 also runs in the browser (React + the original Python code via Pyodide/WebAssembly, including the pygame interactive circuit). See [`LoZGates 1.0.1/web/README.md`](LoZGates%201.0.1/web/README.md).
+
 Follow the steps below to run the application on your local machine.
 
 ### Prerequisites
