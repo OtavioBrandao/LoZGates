@@ -26,8 +26,8 @@ def desenhar_circuito_dinamico(layout, x_pos, bus_positions, drawer):
         gate_center_y = layout['y_pos']
         gate_top_y = gate_center_y - drawer.GATE_HEIGHT / 2
         
-        # Mapeia operadores para nomes de portas
-        op_map = {'*': 'AND', '+': 'OR', '~': 'NOT'}
+        # Mapeia operadores (símbolos canônicos) para nomes de portas
+        op_map = {'&': 'AND', '|': 'OR', '!': 'NOT'}
         output_pos = drawer.draw_gate_shape(op_map[layout['op']], x_pos, gate_top_y)
         
         num_inputs = len(layout['children'])
