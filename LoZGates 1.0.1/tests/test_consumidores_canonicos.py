@@ -321,3 +321,39 @@ class TestConversor:
         lote = Conversorlogical().convert_batch(["A & B", "(A | B"])
         assert lote["A & B"] == "A*B"
         assert lote["(A | B"].startswith("ERRO:")
+
+
+# ------------------------------ tabela ------------------------------
+
+class TestTabela:
+    modulo = "BackEnd.tabela"
+
+    def test_usa_o_parse_canonico(self):
+        from BackEnd import tabela
+        assert tabela.parse is expression_ast.parse
+        assert tabela.avaliar is expression_ast.avaliar
+
+    def test_sem_parser_proprio(self):
+        assert_sem_parser_proprio(self.modulo)
+
+    def test_cabecalhos_sao_o_texto_digitado(self):
+        from BackEnd.tabela import gerar_tabela_verdade
+        resultado = gerar_tabela_verdade("(A & B) | !C")
+        assert resultado["colunas"] == ["A", "B", "C", "(A & B)", "(A & B) | !C"]
+        assert resultado["tabela"][0] == [0, 0, 0, 0, 1]
+        assert resultado["resultados_finais"] == [1, 0, 1, 0, 1, 0, 1, 1]
+
+    def test_ordem_estavel_no_empate_e_sem_variavel_isolada(self):
+        from BackEnd.tabela import gerar_tabela_verdade
+        # Os três grupos têm 5 caracteres: o empate é decidido pela posição; "(A)" sozinho não vira coluna
+        resultado = gerar_tabela_verdade("((A))&(C|D)&(A|B)")
+        assert resultado["colunas"] == ["A", "B", "C", "D", "((A))", "(C|D)", "(A|B)", "((A))&(C|D)&(A|B)"]
+
+    def test_expressao_inteira_entre_parenteses_nao_repete_coluna(self):
+        from BackEnd.tabela import gerar_tabela_verdade
+        assert gerar_tabela_verdade("(A>B)")["colunas"] == ["A", "B", "(A>B)"]
+
+    def test_entrada_invalida_gera_erro_e_nao_coluna_de_zeros(self):
+        from BackEnd.tabela import gerar_tabela_verdade
+        with pytest.raises(expression_ast.ExpressaoInvalida):
+            gerar_tabela_verdade("A&")
