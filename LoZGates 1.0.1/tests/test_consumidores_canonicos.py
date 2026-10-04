@@ -149,3 +149,37 @@ class TestSimplificadorInterativo:
         # Mesmo tamanho (3 nós): vence o menor texto booleano, "(A*B)" < "(A+B)"
         arvore = si.construir_arvore("(A+B)+(A*B)")
         assert si.formatar(si.encontrar_proximo_passo(arvore)["no_atual"]) == "(A*B)"
+
+
+# ------------------------------ equivalencia ------------------------------
+
+class TestEquivalencia:
+    modulo = "BackEnd.equivalencia"
+
+    def test_usa_o_parse_canonico(self):
+        from BackEnd import equivalencia
+        assert equivalencia.parse is expression_ast.parse
+        assert equivalencia.avaliar is expression_ast.avaliar
+
+    def test_sem_parser_nem_avaliador_proprios(self):
+        from BackEnd.equivalencia import UniversalLogicAnalyzer
+        assert_sem_parser_proprio(self.modulo)
+        for metodo in ("tokenize", "evaluate_expression", "evaluate_token"):
+            assert not hasattr(UniversalLogicAnalyzer, metodo), metodo
+
+    def test_equivalencia_so_por_tabela_verdade(self):
+        from BackEnd.equivalencia import check_universal_equivalence, comparar_expressoes
+        assert check_universal_equivalence("A&B", "B&A")
+        # Sem renomear variáveis: A&B e X&Y NÃO são equivalentes (decisão D3d)
+        assert not check_universal_equivalence("A&B", "X&Y")
+        resultado = comparar_expressoes("P>Q", "Q>P")
+        assert not resultado.equivalentes
+        assert resultado.contraexemplo == {"P": False, "Q": True}
+        assert (resultado.valor_1, resultado.valor_2) == (True, False)
+
+    def test_entrada_invalida(self):
+        from BackEnd.core.expression_ast import ExpressaoInvalida
+        from BackEnd.equivalencia import check_universal_equivalence, comparar_expressoes
+        assert check_universal_equivalence("A&", "A") is False
+        with pytest.raises(ExpressaoInvalida):
+            comparar_expressoes("A&", "A")

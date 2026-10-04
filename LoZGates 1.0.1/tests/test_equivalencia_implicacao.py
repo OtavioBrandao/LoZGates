@@ -28,28 +28,27 @@ class TestEquivalenceFinal(unittest.TestCase):
         self.assertFalse(check_universal_equivalence("P > Q", "P | Q"))
 
 if __name__ == '__main__':
+    from BackEnd.core.expression_ast import parse, to_string
+
     analyzer = UniversalLogicAnalyzer()
-    
-    print("--- PARSER (TOKENIZATION) ---")
-    tokens_pq = analyzer.tokenize("P > Q")
-    tokens_qp = analyzer.tokenize("Q > P")
-    print("P > Q  ->", tokens_pq)
-    print("Q > P  ->", tokens_qp)
-    
+
+    print("--- PARSER (ÁRVORE CANÔNICA) ---")
+    print("P > Q  ->", to_string(parse("P > Q")))
+    print("Q > P  ->", to_string(parse("Q > P")))
+
     print("\n--- AVALIAÇÃO (TODAS AS COMBINAÇÕES) ---")
-    variables = ['P', 'Q']
     combinations = [(False, False), (False, True), (True, False), (True, True)]
-    
+
     res_pq = []
     res_qp = []
     for c in combinations:
         val = {'P': c[0], 'Q': c[1]}
-        r1 = analyzer.evaluate_expression(list(tokens_pq), val)
-        r2 = analyzer.evaluate_expression(list(tokens_qp), val)
+        r1 = analyzer.analyze_expression("P > Q", val)
+        r2 = analyzer.analyze_expression("Q > P", val)
         res_pq.append(int(r1))
         res_qp.append(int(r2))
         print(f"P={int(c[0])}, Q={int(c[1])} | P>Q = {int(r1)} | Q>P = {int(r2)}")
-        
+
     print(f"\nResultados P>Q: {res_pq}")
     print(f"Resultados Q>P: {res_qp}")
     
