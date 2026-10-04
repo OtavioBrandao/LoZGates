@@ -1,5 +1,3 @@
-import customtkinter as ctk
-
 class Problems:
     def __init__(self, name, question, answer, difficulty ):
         self.name = name 
@@ -24,6 +22,9 @@ class ProblemsToFrame:
         return Problems_bank[index]
 
     def create_frame_from_problem(self, question_number, window):
+        #Import local: os dados do banco não devem depender da interface desktop
+        import customtkinter as ctk
+
         current_problem = self.get_frame_from_number(question_number)
         frame = ctk.CTkFrame(window, fg_color="#082347")
         frame.grid(row=0, column=0, sticky="nsew")
@@ -525,7 +526,7 @@ Problems_bank = [
         acionado se o protocolo diplomático com criaturas inteligentes (D) estiver 
         desativado.
         """,
-        answer = "X&P&R&(!S|E))&(M>!D)",
+        answer = "(X&P&R&(!S|E))&(M>!D)",
         difficulty = "Difícil"
     ),
         Problems(
