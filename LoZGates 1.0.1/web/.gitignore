@@ -1,0 +1,7 @@
+node_modules/
+dist/
+# Arquivos do Pyodide baixados por `npm run pyodide:baixar` (hospedagem própria/offline)
+public/pyodide/
+*.tsbuildinfo
+__pycache__/
+testes/capturas/
