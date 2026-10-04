@@ -9,6 +9,7 @@ from BackEnd.simplificador_interativo import (
     calcular_complexidade,
     construir_arvore,
     encontrar_proximo_passo,
+    formatar,
     reiniciar_busca,
 )
 
@@ -28,14 +29,14 @@ class InteractiveSimplifierTests(unittest.TestCase):
     def assert_equivalent(self, before, after):
         self.assertTrue(
             check_universal_equivalence(
-                propositional(str(before)), propositional(str(after)), debug=False
+                propositional(formatar(before)), propositional(formatar(after)), debug=False
             )
         )
 
     def test_parser_preserves_precedence_and_nested_negation(self):
-        self.assertEqual(str(construir_arvore("~(A+B)*C")), "(~(A+B)*C)")
-        self.assertEqual(str(construir_arvore("A+B*C")), "(A+(B*C))")
-        self.assertEqual(str(construir_arvore("~~A")), "~~A")
+        self.assertEqual(formatar(construir_arvore("~(A+B)*C")), "(~(A+B)*C)")
+        self.assertEqual(formatar(construir_arvore("A+B*C")), "(A+(B*C))")
+        self.assertEqual(formatar(construir_arvore("~~A")), "~~A")
 
     def test_parser_rejects_malformed_expressions(self):
         for expression in ("", "A+", "(A+B", "A+B)", "A**B"):
@@ -64,7 +65,7 @@ class InteractiveSimplifierTests(unittest.TestCase):
                     tree, root_step(tree), law_index
                 )
                 self.assertTrue(success)
-                self.assertEqual(str(result), expected)
+                self.assertEqual(formatar(result), expected)
                 self.assert_equivalent(original, result)
 
     def test_distributive_common_factor_simplifies(self):
@@ -72,7 +73,7 @@ class InteractiveSimplifierTests(unittest.TestCase):
         original = copy.deepcopy(tree)
         result, success = aplicar_lei_e_substituir(tree, root_step(tree), 6)
         self.assertTrue(success)
-        self.assertEqual(str(result), "(A+(B*C))")
+        self.assertEqual(formatar(result), "(A+(B*C))")
         self.assert_equivalent(original, result)
 
     def test_distributive_expansion_is_not_offered_as_simplification(self):
@@ -126,13 +127,13 @@ class InteractiveSimplifierTests(unittest.TestCase):
     def test_child_change_invalidates_traversal_cache(self):
         tree = construir_arvore("(A*1)+C")
         first_step = encontrar_proximo_passo(tree)
-        self.assertEqual(str(first_step["no_atual"]), "(A*1)")
+        self.assertEqual(formatar(first_step["no_atual"]), "(A*1)")
         result, success = aplicar_lei_e_substituir(tree, first_step, 2)
         self.assertTrue(success)
 
         next_step = encontrar_proximo_passo(result)
         self.assertIs(next_step["no_atual"], result)
-        self.assertEqual(str(next_step["no_atual"]), "(A+C)")
+        self.assertEqual(formatar(next_step["no_atual"]), "(A+C)")
 
     def test_detached_undo_reference_cannot_report_false_success(self):
         tree = construir_arvore("(A*1)+C")
@@ -141,7 +142,7 @@ class InteractiveSimplifierTests(unittest.TestCase):
         result, success = aplicar_lei_e_substituir(tree, detached_step, 2)
         self.assertFalse(success)
         self.assertIs(result, tree)
-        self.assertEqual(str(result), "((A*1)+C)")
+        self.assertEqual(formatar(result), "((A*1)+C)")
 
 
 if __name__ == "__main__":

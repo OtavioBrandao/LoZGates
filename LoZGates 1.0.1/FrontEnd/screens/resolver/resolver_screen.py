@@ -9,6 +9,8 @@
 import customtkinter as ctk
 import logging
 
+import BackEnd.simplificador_interativo as simpli
+
 from FrontEnd.styles.design_tokens import (
     Colors, Typography, Dimensions, Spacing,
     get_font, get_title_font, get_code_font
@@ -282,11 +284,11 @@ class ResolverScreen(ctk.CTkFrame):
 
     def abrir_chat_ia(self):
         try:
-            expressao_atual = str(self.controller.state.arvore_interativa) if self.controller.state.arvore_interativa else self.controller.state.expressao_global
+            expressao_atual = simpli.formatar(self.controller.state.arvore_interativa) if self.controller.state.arvore_interativa else self.controller.state.expressao_global
             contexto_passo = ""
 
             if self.controller.state.passo_atual_info:
-                subexpr = str(self.controller.state.passo_atual_info['no_atual'])
+                subexpr = simpli.formatar(self.controller.state.passo_atual_info['no_atual'])
                 contexto_passo = f"Analisando subexpressão: {subexpr}"
 
             AIChatPopup(self, expressao_atual, contexto_passo)
@@ -321,7 +323,7 @@ class ResolverScreen(ctk.CTkFrame):
         # Atualiza expressão atual
         if self.controller.state.arvore_interativa:
             self.label_expressao_inicial.configure(
-                text=str(self.controller.state.arvore_interativa)
+                text=simpli.formatar(self.controller.state.arvore_interativa)
             )
 
         # Atualiza subexpressão em análise (zona de maior destaque)
@@ -347,7 +349,7 @@ class ResolverScreen(ctk.CTkFrame):
             self.frame_analise_bg.configure(border_color=Colors.WARNING)
             self.controller.concluir_sessao()
         elif self.controller.state.passo_atual_info and self.controller.state.passo_atual_info['no_atual']:
-            subexpr = str(self.controller.state.passo_atual_info['no_atual'])
+            subexpr = simpli.formatar(self.controller.state.passo_atual_info['no_atual'])
             self.label_analise_atual.configure(
                 text=subexpr,
                 text_color=Colors.TEXT_PRIMARY,

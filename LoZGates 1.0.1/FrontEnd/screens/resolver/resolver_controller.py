@@ -30,7 +30,7 @@ class ResolverController:
         self.state.arvore_interativa = arvore
         self.state.simplification_guard = simpli.SimplificationGuard(self.state.arvore_interativa)
         
-        self.state.historico_interativo.append(f"Expressão inicial: {str(arvore)}")
+        self.state.historico_interativo.append(f"Expressão inicial: {simpli.formatar(arvore)}")
         self.iniciar_rodada_interativa()
 
     def iniciar_rodada_interativa(self):
@@ -57,7 +57,7 @@ class ResolverController:
             lei = simpli.LEIS_LOGICAS[indice_lei]
             lei_usada = lei['nome']
             no_atual = self.state.passo_atual_info['no_atual']
-            subexpressao_antes = str(no_atual)
+            subexpressao_antes = simpli.formatar(no_atual)
             
             # Validação Pedagógica: se não for aplicável, mostra popup
             if not lei['verifica'](no_atual):
@@ -98,7 +98,7 @@ class ResolverController:
                 self.state.contador_passos += 1
 
                 self.state.historico_interativo.append(f"✓ Lei '{lei_usada}' aplicada com sucesso.")
-                self.state.historico_interativo.append(f"   Nova Expressão: {str(self.state.arvore_interativa)}")
+                self.state.historico_interativo.append(f"   Nova Expressão: {simpli.formatar(self.state.arvore_interativa)}")
                 self.state.nos_ignorados = set()
 
                 logger.info(
@@ -111,12 +111,12 @@ class ResolverController:
                 if self.view:
                     self.view.adicionar_passo_sucesso(
                         lei_usada, subexpressao_antes, subexpressao_antes,
-                        "(simplificada)", str(self.state.arvore_interativa)
+                        "(simplificada)", simpli.formatar(self.state.arvore_interativa)
                     )
                     
                 self.iniciar_rodada_interativa()
             else:
-                full_expression_state = str(self.state.arvore_interativa)
+                full_expression_state = simpli.formatar(self.state.arvore_interativa)
                 reason_for_failure = f"Lei não aplicável à subexpressão '{subexpressao_antes}' no contexto de '{full_expression_state}'"
                 self.user_logger.log_simplification_step_failed(
                     lei_usada,
@@ -142,12 +142,13 @@ class ResolverController:
         if self.state.passo_atual_info and self.state.passo_atual_info['no_atual']:
             self.state.save_snapshot()
             
-            subexpressao_ignorada = str(self.state.passo_atual_info['no_atual'])
+            subexpressao_ignorada = simpli.formatar(self.state.passo_atual_info['no_atual'])
             
             # LOG DO PULAR
             self.user_logger.log_simplification_skip(self.state.contador_passos)
             
-            self.state.nos_ignorados.add(self.state.passo_atual_info['no_atual'])
+            # id(): o nó canônico tem igualdade estrutural e não pode ser chave de set
+            self.state.nos_ignorados.add(id(self.state.passo_atual_info['no_atual']))
             self.state.sessao_simplificacao_concluida = False
             self.state.historico_interativo.append(f"⏭ Sub-expressão '{subexpressao_ignorada}' ignorada.")
             

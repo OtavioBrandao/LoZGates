@@ -29,8 +29,12 @@ class ResolverState:
 
     def save_snapshot(self):
         """Salva um snapshot do estado atual para permitir Undo correto."""
-        arvore_copiada, ignorados_copiados = copy.deepcopy((self.arvore_interativa, self.nos_ignorados))
-        
+        # nos_ignorados guarda id() dos nós; o memo do deepcopy diz qual cópia
+        # corresponde a cada nó original, para os ids apontarem para a árvore copiada.
+        memo = {}
+        arvore_copiada = copy.deepcopy(self.arvore_interativa, memo)
+        ignorados_copiados = {id(memo[i]) for i in self.nos_ignorados if i in memo}
+
         estado = {
             'arvore': arvore_copiada,
             'historico': list(self.historico_interativo),

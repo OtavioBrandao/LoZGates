@@ -107,3 +107,45 @@ class TestIdentificarLei:
         assert_sem_parser_proprio(self.modulo)
         # redirect_stdout troca o sys.stdout do processo inteiro: inseguro num servidor com threads
         assert "redirect_stdout" not in inspect.getsource(identificar_lei)
+
+
+# ------------------------------ simplificador_interativo ------------------------------
+
+class TestSimplificadorInterativo:
+    modulo = "BackEnd.simplificador_interativo"
+
+    def test_usa_o_parse_canonico(self):
+        from BackEnd import simplificador_interativo as si
+        assert si.parse is expression_ast.parse
+        assert si.construir_arvore is expression_ast.parse
+
+    def test_todas_as_leis_produzem_nos_canonicos(self):
+        from BackEnd import simplificador_interativo as si
+        exemplos = ["A*~A", "A*0", "A*1", "A*A", "A*(A+B)", "~(A*B)", "(A*B)+(A*C)", "(A*B)*C", "B+A"]
+        for lei, expr in zip(si.LEIS_LOGICAS, exemplos):
+            arvore = si.construir_arvore(expr)
+            assert lei["verifica"](arvore), lei["nome"]
+            assert_arvore_canonica(lei["aplica"](arvore))
+
+    def test_sem_parser_nem_nos_proprios(self):
+        assert_sem_parser_proprio(self.modulo)
+
+    def test_sem_estado_global_mutavel(self):
+        from BackEnd import simplificador_interativo as si
+        for nome in ("_todos_os_nos_ordenados", "_indice_no_atual", "_chave_busca_atual", "passar_pro_front"):
+            assert not hasattr(si, nome), nome
+
+    def test_ignorar_usa_identidade_e_nao_estrutura(self):
+        from BackEnd import simplificador_interativo as si
+        arvore = si.construir_arvore("(A*B)+(A*B)")
+        primeiro = si.encontrar_proximo_passo(arvore)["no_atual"]
+        gemeo = arvore.direita if primeiro is arvore.esquerda else arvore.esquerda
+        assert primeiro == gemeo and primeiro is not gemeo
+        proximo = si.encontrar_proximo_passo(arvore, nos_a_ignorar={id(primeiro)})["no_atual"]
+        assert proximo is gemeo  # o gêmeo estruturalmente igual NÃO foi ignorado junto
+
+    def test_desempate_entre_candidatas_do_mesmo_tamanho_pelo_texto(self):
+        from BackEnd import simplificador_interativo as si
+        # Mesmo tamanho (3 nós): vence o menor texto booleano, "(A*B)" < "(A+B)"
+        arvore = si.construir_arvore("(A+B)+(A*B)")
+        assert si.formatar(si.encontrar_proximo_passo(arvore)["no_atual"]) == "(A*B)"
