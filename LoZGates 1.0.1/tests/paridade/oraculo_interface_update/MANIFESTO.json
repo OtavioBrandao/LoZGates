@@ -1,7 +1,7 @@
 {
   "origem": "origin/interface_update",
   "commit": "51bcfb78cfbc0c5866f05318ec63497ca7aa1d08",
-  "reescrita": "'BackEnd'/'FrontEnd' nos imports -> 'tests.paridade.oraculo_interface_update.BackEnd'/'tests.paridade.oraculo_interface_update.FrontEnd'",
+  "reescrita": "'BackEnd'/'FrontEnd'/'config' nos imports -> 'tests.paridade.oraculo_interface_update.BackEnd'/'tests.paridade.oraculo_interface_update.FrontEnd'/'tests.paridade.oraculo_interface_update.config'",
   "arquivos": {
     "BackEnd/__init__.py": {
       "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -118,6 +118,22 @@
     "FrontEnd/screens/problems/problems_screen.py": {
       "sha256_original": "e7d4043e4f4274fa48546f3d5056105ffc983c45d4157cb82ccf4b6af46d9b26",
       "imports_reescritos": 5
+    },
+    "FrontEnd/utils/responsive.py": {
+      "sha256_original": "24809974309078a910540ad6aa137031add26324faeca165ac5ad1990ecf42f7",
+      "imports_reescritos": 0
+    },
+    "FrontEnd/services/logging_service.py": {
+      "sha256_original": "2788dcc9ecdd1016e0f369d70980b6d75a458b3b4c149f465ef8c422c4ed4630",
+      "imports_reescritos": 4
+    },
+    "FrontEnd/services/google_forms_service.py": {
+      "sha256_original": "d44231c1f9723fe25f055b2bfdf5443eb9131d113a2d5c9602f59911dedd5c89",
+      "imports_reescritos": 0
+    },
+    "config.py": {
+      "sha256_original": "79797f4d0b7090b1aae094b0596037c528f59d932e8051bdf6f3e6652332de54",
+      "imports_reescritos": 0
     }
   }
 }
