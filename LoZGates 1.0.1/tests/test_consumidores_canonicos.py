@@ -183,3 +183,64 @@ class TestEquivalencia:
         assert check_universal_equivalence("A&", "A") is False
         with pytest.raises(ExpressaoInvalida):
             comparar_expressoes("A&", "A")
+
+
+# ------------------------------ normalizer ------------------------------
+
+class TestNormalizer:
+    modulo = "BackEnd.normalizer"
+
+    def test_usa_o_parse_canonico(self):
+        from BackEnd import normalizer
+        assert normalizer.parse is expression_ast.parse
+
+    def test_sem_parser_nem_nos_proprios(self):
+        from BackEnd import normalizer
+        assert_sem_parser_proprio(self.modulo)
+        assert not hasattr(normalizer, "ExprNode")
+        assert not hasattr(normalizer, "build_expression_tree")
+
+    def test_renomeacao_produz_nos_canonicos(self):
+        from BackEnd.normalizer import normalize_tree_variables
+        renomeada = normalize_tree_variables(expression_ast.parse("(X>Y)&!Z|1"))
+        assert_arvore_canonica(renomeada)
+        assert expression_ast.collect_variables(renomeada) == {"A", "B", "C"}
+
+    @pytest.mark.parametrize("entrada, esperado", [
+        ("(A&B)&C", "A&B&C"),
+        ("A&(B&C)", "A&B&C"),
+        ("(A>B)|C", "(A>B)|C"),
+        ("X&Y", "A&B"),
+        ("(P>Q)>R", "(A>B)>C"),
+        ("P>(Q>R)", "A>B>C"),
+        ("P>Q>R", "A>B>C"),
+        ("!(P|Q)", "!(A|B)"),
+        ("Q&P&1", "A&B&1"),
+    ])
+    def test_forma_normalizada(self, entrada, esperado):
+        from BackEnd.normalizer import normalize_for_comparison
+        assert normalize_for_comparison(entrada) == esperado
+
+    @pytest.mark.parametrize("expr", [
+        "(A>B)>C", "A>(B>C)", "A>B>C", "(A<>B)<>C", "A<>(B>C)", "!(A>B)|C&D",
+        "(A|B)>(C&!D)", "A>(B|C)>D", "((A>B)>C)>D",
+    ])
+    def test_texto_normalizado_relido_tem_o_mesmo_significado(self, expr):
+        import itertools
+        from BackEnd.normalizer import normalize_tree_variables, tree_to_canonical_string
+        normalizada = normalize_tree_variables(expression_ast.parse(expr))
+        relida = expression_ast.parse(tree_to_canonical_string(normalizada))
+        variaveis = sorted(expression_ast.collect_variables(normalizada))
+        for combo in itertools.product([False, True], repeat=len(variaveis)):
+            valores = dict(zip(variaveis, combo))
+            assert expression_ast.avaliar(relida, valores) == expression_ast.avaliar(normalizada, valores)
+
+    def test_estrutura_igual_com_variaveis_diferentes(self):
+        from BackEnd.normalizer import expressions_are_structurally_equivalent
+        assert expressions_are_structurally_equivalent("X&Y", "P&Q")
+        assert expressions_are_structurally_equivalent("A&B&C", "(A&B)&C")
+        assert not expressions_are_structurally_equivalent("(A>B)|C", "A>(B|C)")
+
+    def test_entrada_invalida_usa_normalizacao_simples(self):
+        from BackEnd.normalizer import normalize_for_comparison
+        assert normalize_for_comparison("x y z &") == "ABC&"
