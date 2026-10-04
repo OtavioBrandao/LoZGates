@@ -244,3 +244,80 @@ class TestNormalizer:
     def test_entrada_invalida_usa_normalizacao_simples(self):
         from BackEnd.normalizer import normalize_for_comparison
         assert normalize_for_comparison("x y z &") == "ABC&"
+
+
+# ------------------------------ converter ------------------------------
+
+def gerar_expressoes(quantidade, semente=2026):
+    """Expressões aleatórias (determinísticas) com todos os operadores e parênteses."""
+    import random
+    sorteio = random.Random(semente)
+
+    def gerar(profundidade):
+        if profundidade == 0 or sorteio.random() < 0.25:
+            return sorteio.choice("ABC01")
+        escolha = sorteio.random()
+        if escolha < 0.15:
+            return "!" + gerar(profundidade - 1)
+        if escolha < 0.3:
+            return "(" + gerar(profundidade - 1) + ")"
+        return gerar(profundidade - 1) + sorteio.choice(["&", "|", ">", "<>", "*", "+", "->"]) + gerar(profundidade - 1)
+
+    return [gerar(4) for _ in range(quantidade)]
+
+
+class TestConversor:
+    modulo = "BackEnd.converter"
+
+    def test_usa_o_parse_canonico(self):
+        from BackEnd import converter
+        assert converter.parse is expression_ast.parse
+
+    def test_sem_parser_proprio(self):
+        assert_sem_parser_proprio(self.modulo)
+
+    @pytest.mark.parametrize("entrada, esperado", [
+        ("A>B", "(~A+B)"),
+        ("A -> B", "(~A+B)"),
+        ("!A | B", "~A+B"),
+        ("A & B", "A*B"),
+        ("A <-> B", "((~A+B)*(~B+A))"),
+        ("(A>B)>C", "(~((~A+B))+C)"),
+        ("!(A>B)", "~((~A+B))"),
+        ("!A>B", "(~~A+B)"),
+        ("(A&B)|C", "(A*B)+C"),
+        ("(A>B)&C", "((~A+B))*C"),
+    ])
+    def test_saida_identica_a_antiga_onde_ela_estava_certa(self, entrada, esperado):
+        from BackEnd.converter import converter_para_algebra_booleana
+        assert converter_para_algebra_booleana(entrada) == esperado
+
+    @pytest.mark.parametrize("entrada, esperado", [
+        ("A&B>C", "(~(A*B)+C)"),          # antes: A*(~B+C)
+        ("A|B>C", "(~(A+B)+C)"),          # antes: A+(~B+C)
+        ("A>B&C", "(~A+B*C)"),            # antes: (~A+B)*C
+        ("A&B<>C", "((~(A*B)+C)*(~C+A*B))"),
+        ("A>B>C", "(~A+(~B+C))"),         # implicação associa à direita
+    ])
+    def test_casos_que_mudavam_o_significado(self, entrada, esperado):
+        from BackEnd.converter import converter_para_algebra_booleana
+        from BackEnd.equivalencia import check_universal_equivalence
+        convertida = converter_para_algebra_booleana(entrada)
+        assert convertida == esperado
+        assert check_universal_equivalence(entrada, convertida)
+
+    def test_conversao_nunca_muda_o_significado(self):
+        from BackEnd.converter import converter_para_algebra_booleana
+        from BackEnd.equivalencia import comparar_expressoes
+        for expr in gerar_expressoes(400):
+            convertida = converter_para_algebra_booleana(expr)
+            assert not set(convertida) & set("&|!><"), (expr, convertida)
+            assert comparar_expressoes(expr, convertida).equivalentes, (expr, convertida)
+
+    def test_entrada_invalida(self):
+        from BackEnd.converter import Conversorlogical, converter_para_algebra_booleana
+        with pytest.raises(expression_ast.ExpressaoInvalida):
+            converter_para_algebra_booleana("A&")
+        lote = Conversorlogical().convert_batch(["A & B", "(A | B"])
+        assert lote["A & B"] == "A*B"
+        assert lote["(A | B"].startswith("ERRO:")
