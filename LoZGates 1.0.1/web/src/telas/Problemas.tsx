@@ -1,36 +1,26 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { api, mensagemDe } from '../api/cliente';
+import type { ItemProblema, Problema } from '../api/tipos';
 import { Botao } from '../componentes/Botao';
-import { TopoTela } from '../componentes/TopoTela';
-import { useAplicacao } from '../estado/Aplicacao';
-import { chamar, type RespostaApi } from '../motor/pyodide';
+import { useAplicacao, type DestinoProblema } from '../estado/Aplicacao';
 
-interface ItemProblema {
-  indice: number;
-  nome: string;
-  dificuldade: string;
-}
+/** Cor do selo de dificuldade (IntegratedProblemsInterface.create_problem_buttons). */
+const DIFICULDADES = ['Fácil', 'Médio', 'Difícil', 'Supremo'];
+const classeDaDificuldade = (dificuldade: string) => `selo--${Math.max(0, DIFICULDADES.indexOf(dificuldade))}`;
 
-interface DetalheProblema extends RespostaApi {
-  nome: string;
-  dificuldade: string;
-  pergunta: string;
-  resposta: string;
-}
-
-/** Cores por dificuldade (IntegratedProblemsInterface.create_problem_buttons) */
-const CORES_DIFICULDADE: Record<string, [string, string]> = {
-  Fácil: ['#45A049', '#09BB62'],
-  Médio: ['#D17710', '#F38D08'],
-  Difícil: ['#961730', '#D32F2F'],
-  Supremo: ['#72076E', '#B019AB'],
-};
-const corDe = (dificuldade: string) => CORES_DIFICULDADE[dificuldade] ?? CORES_DIFICULDADE['Fácil'];
-
-/** frame_problemas_reais — IntegratedProblemsInterface (FrontEnd/problems_interface.py) */
+/** Banco de problemas (FrontEnd/screens/problems/problems_screen.py). */
 export function Problemas() {
   const app = useAplicacao();
   const [aberto, setAberto] = useState<number | null>(null);
-  const lista = useMemo(() => chamar<RespostaApi & { problemas: ItemProblema[] }>('problemas_lista').problemas ?? [], []);
+  const [lista, setLista] = useState<ItemProblema[] | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .problemas()
+      .then(setLista)
+      .catch((e: unknown) => setErro(mensagemDe(e)));
+  }, []);
 
   if (aberto !== null) {
     return (
@@ -47,30 +37,35 @@ export function Problemas() {
   }
 
   return (
-    <main className="tela tela--larga">
-      <TopoTela voltar={{ rotulo: 'Voltar ao Menu Principal', acao: () => app.voltarPara('principal') }} />
+    <main className="tela tela--media">
       <header className="problemas__cabecalho">
         <h1 className="problemas__titulo">🔬 Problemas do Mundo Real</h1>
         <p className="texto-secundario">Explore problemas reais que podem ser resolvidos com circuitos lógicos e lógica proposicional</p>
       </header>
-      <ul className="grade-problemas">
-        {lista.map((p) => {
-          const [cor, hover] = corDe(p.dificuldade);
-          return (
-            <li key={p.indice}>
-              <Botao estilo="cor" cor={cor} corHover={hover} corTexto="#FFFFFF" className="botao-problema" onClick={() => setAberto(p.indice)}>
-                <span>{p.nome}</span>
-                <small>({p.dificuldade})</small>
-              </Botao>
-            </li>
-          );
-        })}
+      {erro && (
+        <p className="cor-erro" role="alert">
+          {erro}
+        </p>
+      )}
+      {!lista && !erro && <p className="texto-secundario carregando-texto">Carregando…</p>}
+      <ul className="lista-problemas">
+        {lista?.map((p) => (
+          <li key={p.indice}>
+            <button type="button" className="cartao-problema" onClick={() => setAberto(p.indice)}>
+              <span className="cartao-problema__nome">{p.nome}</span>
+              <span className={`selo ${classeDaDificuldade(p.dificuldade)}`}>{p.dificuldade}</span>
+            </button>
+          </li>
+        ))}
       </ul>
+      <div className="pilha-botoes">
+        <Botao estilo="voltar" onClick={() => app.voltarPara('principal')}>
+          Voltar ao Menu Principal
+        </Botao>
+      </div>
     </main>
   );
 }
-
-type Destino = 'circuit' | 'simplifier' | 'table';
 
 function DetalheDoProblema({
   indice,
@@ -79,56 +74,86 @@ function DetalheDoProblema({
 }: {
   indice: number;
   voltarLista: () => void;
-  analisar: (resposta: string, destino: Destino) => void;
+  analisar: (resposta: string, destino: DestinoProblema) => void;
 }) {
-  const problema = useMemo(() => chamar<DetalheProblema>('problema_detalhe', indice), [indice]);
+  const [problema, setProblema] = useState<Problema | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
   const [resposta, setResposta] = useState('');
   const [feedback, setFeedback] = useState<{ texto: string; cor: 'aviso' | 'sucesso' | 'erro' } | null>(null);
   const [analiseHabilitada, setAnaliseHabilitada] = useState(false);
-  const [mostrarRespostaHabilitado, setMostrarRespostaHabilitado] = useState(false);
+  const [verRespostaHabilitado, setVerRespostaHabilitado] = useState(false);
   const [respostaVisivel, setRespostaVisivel] = useState(false);
-  const [rotuloMostrar, setRotuloMostrar] = useState('👁️ Mostrar Resposta');
-  const campo = useRef<HTMLInputElement>(null);
-  const [corFundo] = corDe(problema.dificuldade);
+  const [rotuloVerResposta, setRotuloVerResposta] = useState('👁  Ver Resposta');
+  const [verificando, setVerificando] = useState(false);
 
-  const verificar = () => {
-    const r = chamar<RespostaApi & { vazio?: boolean; correta?: boolean; mensagem?: string }>('problema_verificar', indice, resposta);
-    if (!r.ok) return;
-    if (r.vazio) {
+  useEffect(() => {
+    api
+      .problema(indice)
+      .then(setProblema)
+      .catch((e: unknown) => setErro(mensagemDe(e)));
+  }, [indice]);
+
+  const verificar = async () => {
+    if (!resposta.trim()) {
       setFeedback({ texto: '⚠️ Por favor, digite uma resposta', cor: 'aviso' });
       return;
     }
-    // Habilita "Mostrar Resposta" após a PRIMEIRA tentativa
-    setMostrarRespostaHabilitado(true);
-    setFeedback({ texto: r.mensagem ?? '', cor: r.correta ? 'sucesso' : 'erro' });
-    // Análise só fica disponível com a resposta correta
-    setAnaliseHabilitada(Boolean(r.correta));
+    // Habilita "Ver Resposta" depois da PRIMEIRA tentativa
+    setVerRespostaHabilitado(true);
+    setVerificando(true);
+    try {
+      const correcao = await api.verificarProblema(indice, resposta);
+      setFeedback({ texto: correcao.mensagem, cor: correcao.correta ? 'sucesso' : 'erro' });
+      // A análise só fica disponível com a resposta correta
+      setAnaliseHabilitada(correcao.correta);
+    } catch (e) {
+      setFeedback({ texto: `❌ Erro na validação: ${mensagemDe(e)}`, cor: 'erro' });
+      setAnaliseHabilitada(false);
+    } finally {
+      setVerificando(false);
+    }
   };
 
   const alternarResposta = () => {
     if (respostaVisivel) {
       setRespostaVisivel(false);
-      setRotuloMostrar('🔍 Mostrar Resposta');
+      setRotuloVerResposta('🔍 Mostrar Resposta');
     } else {
       setRespostaVisivel(true);
-      setRotuloMostrar('🙈 Ocultar Resposta');
+      setRotuloVerResposta('🙈 Ocultar Resposta');
     }
   };
 
-  const irPara = (destino: Destino) => {
+  const irPara = (destino: DestinoProblema) => {
     const texto = resposta.trim();
     if (texto) analisar(texto, destino);
   };
 
+  if (!problema) {
+    return (
+      <main className="tela tela--media">
+        {erro ? (
+          <p className="cor-erro" role="alert">
+            {erro}
+          </p>
+        ) : (
+          <p className="texto-secundario carregando-texto">Carregando…</p>
+        )}
+        <div className="pilha-botoes">
+          <Botao estilo="voltar" onClick={voltarLista}>
+            Voltar à Lista
+          </Botao>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="tela tela--media">
-      <TopoTela voltar={{ rotulo: '📋 Voltar à Lista', acao: voltarLista }} />
       <article className="problema">
         <header className="problema__cabecalho">
           <h1 className="problema__titulo">📋 {problema.nome}</h1>
-          <span className="pilula" style={{ background: corFundo }}>
-            Nível: {problema.dificuldade}
-          </span>
+          <span className={`selo selo--grande ${classeDaDificuldade(problema.dificuldade)}`}>Nível: {problema.dificuldade}</span>
         </header>
 
         <section className="painel" aria-labelledby="titulo-enunciado">
@@ -143,14 +168,12 @@ function DetalheDoProblema({
             ✍️ Sua Resposta:
           </h2>
           <form
-            className="problema__formulario"
             onSubmit={(e) => {
               e.preventDefault();
-              verificar();
+              void verificar();
             }}
           >
             <input
-              ref={campo}
               className="campo campo--expressao"
               placeholder="Digite sua expressão lógica aqui (ex: A & B | C)"
               aria-label="Sua resposta"
@@ -175,18 +198,25 @@ function DetalheDoProblema({
         )}
 
         <div className="grade-acoes-problema">
-          <Botao onClick={verificar}>🔍 Verificar Resposta</Botao>
-          <Botao onClick={() => irPara('circuit')} disabled={!analiseHabilitada}>
-            🔌 Analisar no Circuito
+          <Botao estilo="sucesso" onClick={() => void verificar()} disabled={verificando}>
+            ✓&nbsp;&nbsp;Verificar Resposta
           </Botao>
-          <Botao onClick={() => irPara('simplifier')} disabled={!analiseHabilitada}>
-            🔎 Simplificar
+          <Botao estilo="voltar" onClick={voltarLista}>
+            Voltar à Lista
           </Botao>
-          <Botao onClick={() => irPara('table')} disabled={!analiseHabilitada}>
-            📊 Tabela Verdade
+          <Botao estilo="fantasma" onClick={alternarResposta} disabled={!verRespostaHabilitado}>
+            {rotuloVerResposta}
           </Botao>
-          <Botao onClick={alternarResposta} disabled={!mostrarRespostaHabilitado}>
-            {rotuloMostrar}
+        </div>
+        <div className="grade-acoes-problema">
+          <Botao estilo="fantasma" onClick={() => irPara('circuit')} disabled={!analiseHabilitada}>
+            ⚡&nbsp;&nbsp;Circuito
+          </Botao>
+          <Botao estilo="fantasma" onClick={() => irPara('simplifier')} disabled={!analiseHabilitada}>
+            ↗&nbsp;&nbsp;Simplificar
+          </Botao>
+          <Botao estilo="fantasma" onClick={() => irPara('table')} disabled={!analiseHabilitada}>
+            ⊤&nbsp;&nbsp;Tabela Verdade
           </Botao>
         </div>
       </article>

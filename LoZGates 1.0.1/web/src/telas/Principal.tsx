@@ -1,22 +1,22 @@
 import { useEffect, useRef } from 'react';
 import { Botao } from '../componentes/Botao';
-import { TopoTela } from '../componentes/TopoTela';
 import { useAplicacao } from '../estado/Aplicacao';
 
-/** Legenda de operadores aceitos (mesma sintaxe do manual) */
+/** Dica de sintaxe do cartão principal (os mesmos operadores do manual). */
 export function LegendaOperadores() {
   return (
     <p className="legenda-operadores">
-      <span><kbd>&amp;</kbd> e</span>
-      <span><kbd>|</kbd> ou</span>
-      <span><kbd>!</kbd> não</span>
-      <span><kbd>&gt;</kbd> se… então</span>
-      <span><kbd>&lt;&gt;</kbd> se e somente se</span>
+      <span><kbd>&amp;</kbd> = E (AND)</span>
+      <span><kbd>|</kbd> = OU (OR)</span>
+      <span><kbd>!</kbd> = NÃO (NOT)</span>
+      <span><kbd>&gt;</kbd> = Implica</span>
+      <span><kbd>&lt;&gt;</kbd> = Se e somente se</span>
+      <span><kbd>( )</kbd> = grupos</span>
     </p>
   );
 }
 
-/** principal — "Circuitos e Expressões" */
+/** Tela "Expressões & Circuitos" (principal_card de expression_screen.py). */
 export function Principal() {
   const app = useAplicacao();
   const campo = useRef<HTMLInputElement>(null);
@@ -28,15 +28,15 @@ export function Principal() {
 
   return (
     <main className="tela tela--estreita">
-      <TopoTela voltar={{ acao: () => app.voltarPara('inicio') }} />
-      <section className="formulario-central" aria-labelledby="titulo-principal">
+      <section className="formulario-central cartao-formulario" aria-labelledby="titulo-principal">
         <h1 id="titulo-principal" className="titulo-formulario">
-          Digite a expressão em Lógica Proposicional:
+          Expressão Lógica Proposicional
         </h1>
+        <LegendaOperadores />
         <input
           ref={campo}
           className="campo campo--expressao"
-          placeholder="Digite aqui"
+          placeholder="Ex.: (A & B) | !C"
           aria-label="Expressão em lógica proposicional"
           value={app.entrada}
           spellCheck={false}
@@ -47,18 +47,20 @@ export function Principal() {
             if (e.key === 'Enter') app.confirmarExpressao();
           }}
         />
-        <LegendaOperadores />
 
         <div className="pilha-botoes">
           <Botao estilo="sucesso" onClick={app.confirmarExpressao}>
-            ✅Confirmar
+            ✓&nbsp;&nbsp;Confirmar Expressão
           </Botao>
           {app.verCircuito && (
-            <Botao onClick={() => void app.trocarParaAbas()} className="botao--surgir" disabled={app.ocupado}>
-              🔌Ver Circuito
+            <Botao onClick={() => void app.trocarParaAbas()} className="botao--surgir" disabled={app.gerandoCircuito || app.ocupado}>
+              {app.gerandoCircuito ? 'Processando...' : '🔌 Ver Circuito'}
             </Botao>
           )}
-          <Botao onClick={() => app.mostrarTela('problemas')}>🔬 Banco de problemas</Botao>
+          <Botao onClick={() => app.mostrarTela('problemas')}>⚑&nbsp;&nbsp;Banco de Problemas</Botao>
+          <Botao estilo="voltar" onClick={() => app.voltarPara('inicio')}>
+            Voltar
+          </Botao>
         </div>
       </section>
     </main>

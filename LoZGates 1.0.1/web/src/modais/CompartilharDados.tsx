@@ -13,7 +13,7 @@ const INFORMACOES = `💡 Seus dados detalhados nos permitem:
 • Melhorar a detecção de erros comuns
 • Personalizar a experiência de aprendizado`;
 
-/** DetailedDataSharingDialog.show_dialog() (FrontEnd/logging_system.py) */
+/** DetailedDataSharingDialog.show_dialog() (FrontEnd/dialogs/data_sharing_dialog.py) */
 export function CompartilharDados({ preview, aoEscolher }: { preview: string; aoEscolher: (e: EscolhaCompartilhamento) => void }) {
   return (
     <Modal
@@ -22,14 +22,14 @@ export function CompartilharDados({ preview, aoEscolher }: { preview: string; ao
       aoFechar={() => aoEscolher('agora')}
       rodape={
         <div className="linha-botoes linha-botoes--inicio">
-          <Botao estilo="cor" cor="#4CAF50" corHover="#3E9142" corTexto="#FFFFFF" onClick={() => aoEscolher('enviar')}>
-            ✅ Enviar Dados Detalhados (Ajudar)
+          <Botao estilo="sucesso" tamanho="pequeno" onClick={() => aoEscolher('enviar')}>
+            ✓&nbsp;&nbsp;Enviar Dados Detalhados (Ajudar)
           </Botao>
-          <Botao estilo="cor" cor="#FF9800" corHover="#D98200" corTexto="#FFFFFF" onClick={() => aoEscolher('agora')}>
-            ❌ Não Agora
+          <Botao estilo="aviso" tamanho="pequeno" onClick={() => aoEscolher('agora')}>
+            ✕&nbsp;&nbsp;Não Agora
           </Botao>
-          <Botao estilo="cor" cor="#F44336" corHover="#C9372C" corTexto="#FFFFFF" onClick={() => aoEscolher('nunca')}>
-            🚫 Nunca Perguntar
+          <Botao estilo="erro" tamanho="pequeno" onClick={() => aoEscolher('nunca')}>
+            🚫&nbsp;&nbsp;Nunca Perguntar
           </Botao>
         </div>
       }

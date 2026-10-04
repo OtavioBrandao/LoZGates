@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { api, mensagemDe } from '../api/cliente';
 import { Botao } from '../componentes/Botao';
 import { Modal } from '../componentes/Modal';
-import { chamar, type RespostaApi } from '../motor/pyodide';
-import { executarPedido, type PedidoHttp } from '../motor/rede';
 
 type Remetente = 'Você' | 'IA' | 'Sistema';
 
@@ -14,27 +13,22 @@ interface Mensagem {
   carregando?: boolean;
 }
 
-interface ResultadoCallback {
-  resposta: string | null;
-  erro: string | number | null;
-}
-
-interface RespostaIA extends RespostaApi {
-  pedido?: PedidoHttp | null;
-  resultados: ResultadoCallback[];
-}
-
 /**
- * Chama AIAssistant.get_ai_suggestion / ask_question (BackEnd/ai_assistant.py) e devolve o que
- * o callback original recebeu: (response, error).
+ * Pergunta à IA pela API (a chave fica no servidor, D7) e devolve o que o
+ * callback do AIAssistant recebia: (resposta, erro).
  */
-async function perguntarIA(tipo: 'sugestao' | 'pergunta', expressao: string, contexto: string, pergunta: string): Promise<ResultadoCallback> {
-  const fase1 = chamar<RespostaIA>('ia', tipo, expressao, contexto, pergunta);
-  if (!fase1.ok) return { resposta: null, erro: fase1.excecao ?? 'erro' };
-  if (!fase1.pedido) return fase1.resultados[0] ?? { resposta: null, erro: null };
-  const resposta = await executarPedido(fase1.pedido);
-  const fase2 = chamar<RespostaIA>('ia', tipo, expressao, contexto, pergunta, JSON.stringify(resposta));
-  return fase2.resultados[0] ?? { resposta: null, erro: fase2.excecao ?? null };
+async function perguntarIA(
+  tipo: 'sugestao' | 'pergunta',
+  expressao: string,
+  contexto: string,
+  pergunta: string,
+): Promise<{ resposta: string | null; erro: string | null }> {
+  try {
+    const { resposta } = tipo === 'sugestao' ? await api.sugestaoIa(expressao, contexto) : await api.perguntaIa(pergunta, expressao);
+    return { resposta, erro: null };
+  } catch (e) {
+    return { resposta: null, erro: mensagemDe(e) };
+  }
 }
 
 const EXPLICACAO_LEIS = `Principais leis da lógica proposicional:
@@ -49,7 +43,7 @@ const EXPLICACAO_LEIS = `Principais leis da lógica proposicional:
 
 Use essas leis para simplificar sua expressão passo a passo!`;
 
-/** AIChatPopup (FrontEnd/ai_chat_popup.py) */
+/** AIChatPopup (FrontEnd/dialogs/ai_chat_popup.py) */
 export function ChatIA({ expressao, contexto, aoFechar }: { expressao: string; contexto: string; aoFechar: () => void }) {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [entrada, setEntrada] = useState('');
@@ -66,10 +60,10 @@ export function ChatIA({ expressao, contexto, aoFechar }: { expressao: string; c
   const remover = (id: number) => setMensagens((m) => m.filter((x) => x.id !== id));
 
   useEffect(() => {
-    fim.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    fim.current?.scrollIntoView({ block: 'end' });
   }, [mensagens]);
 
-  // get_initial_suggestion(): solicitada automaticamente se houver expressão
+  // get_initial_suggestion(): pedida automaticamente se houver expressão
   useEffect(() => {
     aberto.current = true;
     if (expressao) {
@@ -86,8 +80,7 @@ export function ChatIA({ expressao, contexto, aoFechar }: { expressao: string; c
     return () => {
       aberto.current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // só ao abrir a janela
 
   const enviarMensagem = () => {
     const mensagem = entrada.trim();
@@ -131,20 +124,24 @@ export function ChatIA({ expressao, contexto, aoFechar }: { expressao: string; c
       classe="chat-ia"
       rodape={
         <div className="chat-ia__acoes">
-          <Botao tamanho="pequeno" onClick={novaSugestao}>
+          <Botao estilo="fantasma" tamanho="pequeno" onClick={novaSugestao}>
             Nova Sugestão
           </Botao>
-          <Botao tamanho="pequeno" onClick={explicarLeis}>
+          <Botao estilo="fantasma" tamanho="pequeno" onClick={explicarLeis}>
             Explicar Leis
           </Botao>
-          <Botao estilo="voltar" tamanho="pequeno" onClick={aoFechar} className="chat-ia__fechar">
+          <Botao estilo="fantasma" tamanho="pequeno" onClick={aoFechar} className="chat-ia__fechar">
             Fechar
           </Botao>
         </div>
       }
     >
       <p className="chat-ia__titulo">Assistente de IA para Lógica Proposicional</p>
-      {expressao && <p className="chat-ia__expressao">Expressão: <span className="mono">{expressao}</span></p>}
+      {expressao && (
+        <p className="chat-ia__expressao">
+          Expressão: <span className="mono">{expressao}</span>
+        </p>
+      )}
       <div className="chat-ia__mensagens" role="log" aria-live="polite" aria-label="Conversa com a IA">
         {mensagens.map((m) => (
           <div
@@ -170,6 +167,7 @@ export function ChatIA({ expressao, contexto, aoFechar }: { expressao: string; c
           onChange={(e) => setEntrada(e.target.value)}
           placeholder="Digite sua pergunta sobre a simplificação..."
           aria-label="Sua pergunta"
+          maxLength={1000}
         />
         <Botao tamanho="pequeno" type="submit">
           Enviar

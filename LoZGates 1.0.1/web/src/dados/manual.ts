@@ -1,6 +1,8 @@
 /**
- * Conteúdo do manual interativo — transcrito de FrontEnd/interactive_help.py
- * (InteractiveHelpSystem). Mantenha os dois arquivos em sincronia.
+ * Conteúdo do manual interativo — transcrito de FrontEnd/dialogs/interactive_help.py
+ * (InteractiveHelpSystem) do interface_update. Mudanças da web: as constantes 0 e 1
+ * e a leitura da implicação encadeada (D3), que o parser canônico passou a definir,
+ * e a lista de tecnologias dos créditos (sem CustomTkinter, pygame e Pillow).
  */
 
 export type Cor = 'sucesso' | 'aviso' | 'erro';
@@ -104,6 +106,8 @@ export const ABAS_MANUAL: AbaManual[] = [
     blocos: [
       { tipo: 'titulo', texto: '🔤 Variáveis aceitas' },
       { tipo: 'codigo', texto: 'Qualquer letra de A-Z (maiúscula ou minúscula)\nExemplo: A, B, C, p, Q, R, x, y, Z' },
+      { tipo: 'titulo', texto: '🔢 Constantes' },
+      { tipo: 'codigo', texto: '0 (falso) e 1 (verdadeiro)\nExemplo: A & 1, B | 0' },
       { tipo: 'titulo', texto: '🔣 Operadores lógicos' },
       { tipo: 'operador', nome: 'CONJUNÇÃO', simbolo: '&', exemplo: 'A & B', significado: '"A e B"' },
       { tipo: 'operador', nome: 'DISJUNÇÃO', simbolo: '|', exemplo: 'A | B', significado: '"A ou B"' },
@@ -120,6 +124,10 @@ export const ABAS_MANUAL: AbaManual[] = [
           '4. > (Implicação)',
           '5. <> (Bi-implicação) - MENOR precedência',
         ],
+      },
+      {
+        tipo: 'paragrafo',
+        texto: 'Implicações encadeadas são lidas da direita para a esquerda: A > B > C é o mesmo que A > (B > C).',
       },
     ],
   },
@@ -323,10 +331,10 @@ export const ABAS_MANUAL: AbaManual[] = [
       {
         tipo: 'lista',
         itens: [
-          '• Python 3.8+ (Linguagem principal)',
-          '• CustomTkinter (Interface moderna)',
-          '• Pygame (Circuitos interativos)',
-          '• PIL/Pillow (Processamento de imagens)',
+          '• Python 3.10+ (Linguagem principal)',
+          '• FastAPI (API web)',
+          '• React + TypeScript (Interface web)',
+          '• SVG (Circuitos e circuito interativo)',
           '• Requests (Comunicação web)',
         ],
       },

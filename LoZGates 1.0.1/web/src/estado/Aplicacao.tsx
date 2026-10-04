@@ -1,70 +1,62 @@
 /**
- * Controlador da aplicação — equivalente web das funções de navegação e estado de
- * FrontEnd/interface.py (show_frame, go_back_to, confirmar_expressao, trocar_para_abas,
- * on_tab_change, executar_conversao, handle_problem_answer, on_closing...).
+ * Controlador da aplicação — equivalente web da navegação e dos callbacks de
+ * FrontEnd/screens/expression/expression_screen.py do interface_update
+ * (go_back_to, confirmar_expressao, trocar_para_abas, on_tab_change,
+ * executar_conversao, expressao_simplificada, go_to_interactive,
+ * handle_problem_answer...) e do on_closing de FrontEnd/app/loz_app.py.
  *
- * As regras (o que é limpo ao voltar, quando o circuito interativo é criado/limpo,
- * quais mensagens aparecem) seguem o desktop; a lógica em si roda no Python.
+ * As regras (o que é limpo ao voltar, quando o circuito interativo é criado ou
+ * descartado, quais mensagens aparecem e o que vai para o registro de uso)
+ * seguem o desktop. A lógica em si roda no servidor (BackEnd/api).
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ponteCircuito } from '../motor/circuito';
-import { aguardarPintura, chamar, persistir, type RespostaApi } from '../motor/pyodide';
-import { executarPedido, type PedidoHttp } from '../motor/rede';
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
+import { api, mensagemDe } from '../api/cliente';
+import type { LayoutCircuito, ResultadoSimplificacao } from '../api/tipos';
+import {
+  envioConcluido,
+  nuncaPerguntar,
+  registrar,
+  registroAtivo,
+  reiniciarSessao,
+  sessaoEncerrada,
+} from '../telemetria/registro';
 import { useJanelas } from './Janelas';
-import type { DadosTabela } from '../modais/TabelaVerdade';
 
 export type Tela = 'inicio' | 'principal' | 'equivalencia' | 'abas' | 'resolucao' | 'interativo' | 'problemas' | 'encerrada';
 export type Aba = 'circuito' | 'interativo' | 'expressao';
+export type DestinoProblema = 'circuit' | 'simplifier' | 'table';
 
-/** Nomes das abas exatamente como no CTkTabview (usados no log de navegação). */
+/** Nomes das abas exatamente como no CTkTabview (FrontEnd/app/navigation.py); vão para o registro de uso. */
 export const NOMES_ABAS: Record<Aba, string> = {
   circuito: '      Circuito      ',
   interativo: '  Circuito Interativo  ',
   expressao: '      Expressão      ',
 };
 
-export interface ImagemCircuito {
-  src: string;
-  original: string;
-  largura: number;
-  altura: number;
-}
-
-export interface PassoResolucao {
-  iteration: number;
-  law: string;
-  subexpression?: string;
-  before: string;
-  after: string;
-  success: boolean;
-  note?: string | null;
-  result_expression?: string;
-  t: number;
-}
-
-export interface Resolucao {
-  expressao_inicial: string;
-  passos: PassoResolucao[];
-  final: { expressao: string; sucesso: boolean; iteracoes: number; t: number } | null;
-  popup?: string | null;
-  iniciadoEm: number;
-}
-
 interface Estado {
   tela: Tela;
+  /** Campo "Expressão Lógica Proposicional" da tela principal */
   entrada: string;
+  /** Botão "🔌 Ver Circuito" (criado por confirmar_expressao) */
   verCircuito: boolean;
+  /** circuit_generation_in_progress: o botão vira "Processando..." */
+  gerandoCircuito: boolean;
   aba: Aba;
   labelCircuito: string;
-  imagem: ImagemCircuito | null;
-  textoImagem: string;
+  layout: LayoutCircuito | null;
+  /** Texto no lugar do circuito quando não há o que mostrar */
+  textoCircuito: string;
+  /** expressao_global: a expressão em álgebra booleana usada pelo circuito e pelo modo interativo */
   expressaoGlobal: string;
   labelConvertida: string | null;
   expressaoBooleanaAtual: string;
   botoesSimplificar: boolean;
-  /** circuito_interativo_instance: 0 = não existe; >0 = identificador da instância */
+  /** Instância do CircuitModeSelector: 0 = não existe; > 0 = identificador */
   seletor: number;
-  resolucao: Resolucao | null;
+  resolucao: ResultadoSimplificacao | null;
+  /** simplification_in_progress */
+  simplificando: boolean;
+  /** Cada entrada na simplificação interativa começa uma sessão nova */
   sessaoInterativa: number;
   ocupado: boolean;
 }
@@ -73,239 +65,272 @@ const ESTADO_INICIAL: Estado = {
   tela: 'inicio',
   entrada: '',
   verCircuito: false,
+  gerandoCircuito: false,
   aba: 'circuito',
   labelCircuito: '',
-  imagem: null,
-  textoImagem: '',
+  layout: null,
+  textoCircuito: '',
   expressaoGlobal: '',
   labelConvertida: null,
   expressaoBooleanaAtual: '',
   botoesSimplificar: false,
   seletor: 0,
   resolucao: null,
+  simplificando: false,
   sessaoInterativa: 0,
   ocupado: false,
 };
 
-interface RespostaTrocarAbas extends RespostaApi {
-  label: string;
-  expressao_global: string;
-  imagem: string | null;
-  imagem_original: string | null;
-  largura?: number;
-  altura?: number;
-  texto_imagem?: string;
-}
+export const PREFIXO_LABEL_CIRCUITO = 'Expressão Lógica Proposicional: ';
+export const PREFIXO_LABEL_CONVERTIDA = 'Expressão em Álgebra Booleana: ';
+
+/** entrada.get().strip().upper().replace(" ", "") */
+export const normalizar = (texto: string) => texto.trim().toUpperCase().replaceAll(' ', '');
 
 export interface ApiAplicacao extends Estado {
+  /** Expressão que o circuito interativo usa (expressao_global ou o texto digitado) */
+  expressaoDoCircuito: string;
   mostrarTela: (tela: Tela) => void;
   voltarPara: (destino: Tela) => void;
   definirEntrada: (texto: string) => void;
   confirmarExpressao: () => void;
-  trocarParaAbas: () => Promise<void>;
+  trocarParaAbas: (alvo?: Aba) => Promise<boolean>;
   mudarAba: (aba: Aba) => void;
   garantirSeletor: () => void;
-  executarConversao: () => void;
+  executarConversao: () => Promise<void>;
   simplificarResultado: () => Promise<void>;
   voltarParaAbas: () => void;
   simplificarInterativo: () => void;
-  exibirTabelaVerdade: (expressao: string) => void;
+  exibirTabelaVerdade: (expressao: string) => Promise<void>;
   abrirDuvidaExpressao: (expressao: string) => void;
-  responderProblema: (expressao: string, destino: 'circuit' | 'simplifier' | 'table') => void;
+  responderProblema: (expressao: string, destino: DestinoProblema) => void;
   encerrarSessao: () => Promise<void>;
 }
 
 const Contexto = createContext<ApiAplicacao | null>(null);
 
 export function useAplicacao(): ApiAplicacao {
-  const api = useContext(Contexto);
-  if (!api) throw new Error('useAplicacao fora do ProvedorAplicacao');
-  return api;
+  const contexto = useContext(Contexto);
+  if (!contexto) throw new Error('useAplicacao fora do ProvedorAplicacao');
+  return contexto;
 }
-
-const pngParaUrl = (base64: string) => `data:image/png;base64,${base64}`;
 
 export function ProvedorAplicacao({ children }: { children: ReactNode }) {
   const janelas = useJanelas();
   const [estado, setEstado] = useState<Estado>(ESTADO_INICIAL);
   const ref = useRef<Estado>(ESTADO_INICIAL);
   const contadorSeletor = useRef(0);
-  const encerrada = useRef(false);
+  const pedidoDeCircuito = useRef(0);
 
   const atualizar = useCallback((mudancas: Partial<Estado>) => {
     ref.current = { ...ref.current, ...mudancas };
     setEstado(ref.current);
   }, []);
 
-  const executar = useCallback(
-    async (acao: () => void | Promise<void>) => {
-      atualizar({ ocupado: true });
-      await aguardarPintura();
-      try {
-        await acao();
-      } finally {
-        atualizar({ ocupado: false });
-      }
-    },
-    [atualizar],
-  );
-
-  // --- show_frame -------------------------------------------------------
+  // --- navigation.show_screen ------------------------------------------------
   const mostrarTela = useCallback((tela: Tela) => atualizar({ tela }), [atualizar]);
 
-  // --- if_necessary_create_a_circuit / create_interactive_circuit --------
+  // --- CircuitScreen.initialize_if_needed -------------------------------------
   const garantirSeletor = useCallback(() => {
-    if (ref.current.seletor !== 0 || !ref.current.expressaoGlobal) return;
-    console.log('Criando interface de seleção de modo...');
-    const r = chamar('circuito_novo_seletor', ponteCircuito);
-    if (r.ok) {
-      contadorSeletor.current += 1;
-      atualizar({ seletor: contadorSeletor.current });
-    }
+    const expressao = ref.current.expressaoGlobal || normalizar(ref.current.entrada);
+    if (!expressao) return; // "Nenhuma expressao disponivel para criar circuito"
+    if (ref.current.seletor) return; // já existe: o seletor mostra a expressão atual
+    registrar('log_circuit_interaction_start');
+    contadorSeletor.current += 1;
+    atualizar({ seletor: contadorSeletor.current });
   }, [atualizar]);
 
-  // --- go_back_to --------------------------------------------------------
+  // --- on_tab_change -----------------------------------------------------------
+  const aoMudarAba = useCallback(
+    (aba: Aba) => {
+      registrar('log_tab_changed', 'tab_navigation', NOMES_ABAS[aba]);
+      if (aba === 'interativo') garantirSeletor();
+    },
+    [garantirSeletor],
+  );
+
+  const mudarAba = useCallback(
+    (aba: Aba) => {
+      atualizar({ aba });
+      aoMudarAba(aba);
+    },
+    [atualizar, aoMudarAba],
+  );
+
+  // --- go_back_to --------------------------------------------------------------
   const voltarPara = useCallback(
     (destino: Tela) => {
-      const atual = ref.current;
-      const mudancas: Partial<Estado> = { verCircuito: false };
-
-      if (atual.seletor) {
-        if (destino === 'abas') {
-          console.log('Voltando para abas - mantendo circuito ativo');
-        } else {
-          chamar('circuito_limpar');
-          mudancas.seletor = 0;
-          console.log('Circuito interativo limpo');
-        }
-      }
+      const mudancas: Partial<Estado> = { verCircuito: false, tela: destino };
+      // Voltando para as abas o circuito interativo continua; para qualquer outro lugar, é limpo
+      if (destino !== 'abas') mudancas.seletor = 0;
       // Limpa a entrada apenas se não for para certas telas
       if (!['abas', 'resolucao', 'interativo'].includes(destino)) {
         mudancas.entrada = '';
         mudancas.botoesSimplificar = false;
       }
-      // Esconde os resultados da aba de expressão ao voltar apenas se NÃO for para as abas
+      // Esconde os resultados da aba de expressão se NÃO for para as abas
       if (destino !== 'abas') {
         mudancas.labelConvertida = null;
         mudancas.resolucao = null;
         mudancas.botoesSimplificar = false;
       }
-      mudancas.tela = destino;
       atualizar(mudancas);
-
-      if (destino === 'abas' && atual.expressaoGlobal) {
-        setTimeout(garantirSeletor, 200);
+      if (destino === 'abas' && ref.current.expressaoGlobal) {
+        window.setTimeout(() => aoMudarAba(ref.current.aba), 200);
       }
     },
-    [atualizar, garantirSeletor],
+    [atualizar, aoMudarAba],
   );
 
   const definirEntrada = useCallback((texto: string) => atualizar({ entrada: texto }), [atualizar]);
 
-  // --- confirmar_expressao ------------------------------------------------
+  // --- confirmar_expressao --------------------------------------------------------
   const confirmarExpressao = useCallback(() => {
     atualizar({ verCircuito: false });
-    const r = chamar('confirmar_expressao', ref.current.entrada);
-    if (!r.ok) {
-      if (r.popup) janelas.popupErro(r.popup);
+    const texto = ref.current.entrada.trim();
+    if (!texto) {
+      registrar('log_expression_entered', '', false);
+      janelas.popupErro('A expressão não pode estar vazia.');
       return;
     }
+    registrar('log_expression_entered', normalizar(texto), true);
     atualizar({ botoesSimplificar: false, verCircuito: true });
   }, [atualizar, janelas]);
 
-  // --- trocar_para_abas ---------------------------------------------------
-  const trocarParaAbas = useCallback(
-    () =>
-      executar(() => {
-        const r = chamar<RespostaTrocarAbas>('trocar_para_abas', ref.current.entrada);
-        if (!r.ok) {
-          if (r.popup) janelas.popupErro(r.popup);
-          return;
-        }
-        atualizar({
-          labelCircuito: r.label,
-          expressaoGlobal: r.expressao_global,
-          imagem:
-            r.imagem && r.imagem_original
-              ? { src: pngParaUrl(r.imagem), original: pngParaUrl(r.imagem_original), largura: r.largura ?? 0, altura: r.altura ?? 0 }
-              : null,
-          textoImagem: r.imagem ? '' : r.texto_imagem || 'Imagem do circuito não encontrada',
-          tela: 'abas',
-        });
-        if (r.popup) janelas.popupErro(r.popup);
-      }),
-    [atualizar, executar, janelas],
-  );
-
-  // --- on_tab_change ------------------------------------------------------
-  const mudarAba = useCallback(
-    (aba: Aba) => {
-      atualizar({ aba });
-      chamar('mudar_aba', NOMES_ABAS[aba]);
-      if (aba === 'interativo') {
-        if (!ref.current.expressaoGlobal) {
-          console.log('Expressão global não definida - não é possível criar circuito');
-          return;
-        }
-        garantirSeletor();
+  // --- ver_circuito_pygame (agora: layout em JSON desenhado em SVG) ---------------
+  const gerarCircuito = useCallback(
+    async (expressao: string) => {
+      const pedido = ++pedidoDeCircuito.current;
+      try {
+        const layout = await api.layoutCircuito(expressao);
+        if (pedido === pedidoDeCircuito.current) atualizar({ layout, textoCircuito: '' });
+      } catch (erro) {
+        if (pedido !== pedidoDeCircuito.current) return;
+        atualizar({ layout: null, textoCircuito: 'Imagem do circuito não encontrada' });
+        janelas.popupErro(`Erro ao gerar circuito: ${mensagemDe(erro)}`);
+      } finally {
+        if (pedido === pedidoDeCircuito.current) atualizar({ gerandoCircuito: false });
       }
     },
-    [atualizar, garantirSeletor],
+    [atualizar, janelas],
   );
 
-  // --- executar_conversao / mostrar_expressao_convertida -------------------
-  const executarConversao = useCallback(() => {
+  // --- trocar_para_abas ------------------------------------------------------------
+  const trocarParaAbas = useCallback(
+    async (alvo: Aba = 'circuito'): Promise<boolean> => {
+      if (ref.current.gerandoCircuito) return false; // já há uma geração em andamento
+      const inicio = performance.now();
+      const expressao = normalizar(ref.current.entrada);
+      registrar('log_expression_entered', expressao, Boolean(expressao));
+      if (!expressao) {
+        registrar('log_error', 'validation_error', 'Empty expression');
+        janelas.popupErro('A expressão não pode estar vazia.');
+        return false;
+      }
+      atualizar({ labelCircuito: `${PREFIXO_LABEL_CIRCUITO}${expressao}`, ocupado: true });
+      let saida: string;
+      try {
+        saida = (await api.converter(expressao)).expressao_booleana;
+      } catch (erro) {
+        janelas.popupErro(`Erro ao processar expressão: ${mensagemDe(erro)}`);
+        return false;
+      } finally {
+        atualizar({ ocupado: false });
+      }
+      atualizar({ expressaoGlobal: saida, gerandoCircuito: true, layout: null, textoCircuito: '' });
+      // No desktop o circuito é gerado em segundo plano e a tela troca na hora
+      void gerarCircuito(saida);
+      // Uma ação explícita escolhe sua aba (show_tab não passa por on_tab_change)
+      atualizar({ tela: 'abas', aba: alvo });
+      registrar('log_feature_used', 'circuit_generation', (performance.now() - inicio) / 1000);
+      return true;
+    },
+    [atualizar, gerarCircuito, janelas],
+  );
+
+  // --- executar_conversao / mostrar_expressao_convertida ------------------------------
+  const executarConversao = useCallback(async () => {
     atualizar({ botoesSimplificar: false });
-    const r = chamar<RespostaApi & { texto: string; expressao_booleana: string }>('expressao_convertida', ref.current.entrada);
-    if (r.ok) {
-      atualizar({ labelConvertida: r.texto, expressaoBooleanaAtual: r.expressao_booleana });
-    } else if (r.popup) {
-      janelas.popupErro(r.popup);
+    const texto = ref.current.entrada.trim().toUpperCase();
+    if (!texto) {
+      janelas.popupErro('Digite uma expressão primeiro.');
+    } else {
+      try {
+        const { expressao_booleana } = await api.converter(texto);
+        atualizar({
+          expressaoBooleanaAtual: expressao_booleana,
+          labelConvertida: `${PREFIXO_LABEL_CONVERTIDA}${expressao_booleana}`,
+        });
+      } catch (erro) {
+        janelas.popupErro(`Erro ao converter expressão: ${mensagemDe(erro)}`);
+      }
     }
+    // Como no desktop, os botões de simplificação aparecem depois da tentativa
     atualizar({ botoesSimplificar: true });
   }, [atualizar, janelas]);
 
-  // --- executar_simplificacao_resultado / expressao_simplificada ----------
-  const simplificarResultado = useCallback(
-    () =>
-      executar(() => {
-        atualizar({ botoesSimplificar: false, tela: 'resolucao', resolucao: null });
-        const r = chamar<RespostaApi & Omit<Resolucao, 'iniciadoEm'>>('simplificar_resultado', ref.current.entrada);
-        if (!r.ok) {
-          if (r.popup) janelas.popupErro(r.popup);
-          return;
-        }
-        atualizar({ resolucao: { ...r, iniciadoEm: performance.now() } });
-        if (r.popup) {
-          const atraso = (r.final?.t ?? r.passos.at(-1)?.t ?? 0) * 1000;
-          setTimeout(() => janelas.popupErro(r.popup as string), atraso);
-        }
-      }),
-    [atualizar, executar, janelas],
-  );
+  // --- executar_simplificacao_resultado / expressao_simplificada ------------------------
+  const simplificarResultado = useCallback(async () => {
+    if (ref.current.simplificando) return; // pedido duplicado
+    atualizar({ botoesSimplificar: false, tela: 'resolucao' });
+    const texto = ref.current.entrada.trim().toUpperCase();
+    if (!texto) {
+      janelas.popupErro('A expressão na tela principal está vazia.');
+      return;
+    }
+    atualizar({ simplificando: true, resolucao: null });
+    try {
+      atualizar({ resolucao: await api.simplificarAutomatico(texto) });
+    } catch (erro) {
+      janelas.popupErro(`Erro ao simplificar expressão: ${mensagemDe(erro)}`);
+    } finally {
+      atualizar({ simplificando: false });
+    }
+  }, [atualizar, janelas]);
 
-  // --- voltar_para_abas ----------------------------------------------------
+  // --- voltar_para_abas ---------------------------------------------------------------
   const voltarParaAbas = useCallback(() => {
     if (ref.current.expressaoBooleanaAtual) atualizar({ botoesSimplificar: true });
     voltarPara('abas');
   }, [atualizar, voltarPara]);
 
-  // --- executar_simplificacao_interativa / go_to_interactive --------------
+  // --- executar_simplificacao_interativa / go_to_interactive ---------------------------
   const simplificarInterativo = useCallback(() => {
-    atualizar({ botoesSimplificar: false, tela: 'interativo', sessaoInterativa: ref.current.sessaoInterativa + 1 });
-  }, [atualizar]);
+    atualizar({ botoesSimplificar: false, tela: 'interativo' });
+    if (!ref.current.expressaoGlobal) {
+      janelas.popupErro('Por favor, primeiro insira e converta uma expressão.');
+      voltarPara('abas');
+      mostrarTela('principal');
+      return;
+    }
+    atualizar({ sessaoInterativa: ref.current.sessaoInterativa + 1 });
+  }, [atualizar, janelas, mostrarTela, voltarPara]);
 
-  // --- exibir_tabela_verdade ----------------------------------------------
+  // --- exibir_tabela_verdade ----------------------------------------------------------
   const exibirTabelaVerdade = useCallback(
-    (expressao: string) => {
-      const r = chamar<RespostaApi & DadosTabela>('tabela_verdade', expressao);
-      if (r.ok) janelas.abrirTabela(r);
-      else if (r.popup) janelas.popupErro(r.popup);
+    async (expressao: string) => {
+      if (!expressao.trim()) {
+        janelas.popupErro('Erro ao gerar tabela verdade: A expressão está vazia.');
+        return;
+      }
+      try {
+        const tabela = await api.tabelaVerdade(expressao);
+        janelas.abrirTabela({
+          titulo: `Tabela Verdade: ${expressao}`,
+          colunas: tabela.colunas,
+          tabela: tabela.tabela,
+          conclusao: tabela.conclusao,
+          cor_conclusao:
+            tabela.tipo_conclusao === 'tautologia' ? 'sucesso' : tabela.tipo_conclusao === 'contradicao' ? 'erro' : 'info',
+        });
+      } catch (erro) {
+        janelas.popupErro(`Erro ao gerar tabela verdade: ${mensagemDe(erro)}`);
+      }
     },
     [janelas],
   );
 
-  // --- abrir_duvida_expressao ("❓Pedir ajuda à IA") ------------------------
+  // --- abrir_duvida_expressao ("❓Pedir ajuda à IA") -----------------------------------
   const abrirDuvidaExpressao = useCallback(
     (expressao: string) => {
       if (!expressao) {
@@ -318,78 +343,60 @@ export function ProvedorAplicacao({ children }: { children: ReactNode }) {
     [janelas],
   );
 
-  // --- handle_problem_answer ----------------------------------------------
+  // --- handle_problem_answer (depois de voltar_para(principal)) -------------------------
   const responderProblema = useCallback(
-    (expressao: string, destino: 'circuit' | 'simplifier' | 'table') => {
+    (expressao: string, destino: DestinoProblema) => {
       voltarPara('principal');
       // Preenche o campo de entrada principal
       atualizar({ entrada: expressao });
-      chamar('problema_analisar');
+      registrar('log_feature_used', 'problem_answer_analysis', 0);
 
       if (destino === 'circuit') {
         confirmarExpressao();
-        setTimeout(() => void trocarParaAbas(), 500);
+        window.setTimeout(() => void trocarParaAbas(), 500);
       } else if (destino === 'simplifier') {
         confirmarExpressao();
-        setTimeout(async () => {
-          await trocarParaAbas();
-          setTimeout(() => {
-            atualizar({ aba: 'expressao' });
-            setTimeout(executarConversao, 200);
-          }, 300);
+        window.setTimeout(async () => {
+          await trocarParaAbas('expressao');
+          window.setTimeout(() => void executarConversao(), 200);
         }, 500);
-      } else if (destino === 'table') {
-        exibirTabelaVerdade(expressao);
+      } else {
+        void exibirTabelaVerdade(expressao);
       }
     },
     [atualizar, confirmarExpressao, executarConversao, exibirTabelaVerdade, trocarParaAbas, voltarPara],
   );
 
-  // --- on_closing ---------------------------------------------------------
+  // --- on_closing (o navegador não deixa perguntar ao fechar a aba: há um botão) ----------
   const encerrarSessao = useCallback(async () => {
-    const r = chamar<RespostaApi & { mostrar_dialogo: boolean; preview: string }>('encerrar_sessao');
-    encerrada.current = true;
-    persistir();
-    if (r.ok && r.mostrar_dialogo) {
+    atualizar({ seletor: 0, ocupado: true });
+    const sessao = sessaoEncerrada();
+    // "Nunca Perguntar" desliga o registro; aí não há o que pedir nem enviar
+    if (registroAtivo()) {
       try {
-        const escolha = await janelas.perguntarCompartilhamento(r.preview);
+        const { previa } = await api.resumoDeUso(sessao);
+        atualizar({ ocupado: false });
+        const escolha = await janelas.perguntarCompartilhamento(previa);
         if (escolha === 'enviar') {
-          const fase1 = chamar<RespostaApi & { pedido: PedidoHttp | null }>('compartilhar_dados');
-          if (fase1.ok && fase1.pedido) {
-            const resposta = await executarPedido(fase1.pedido, { semCors: true });
-            chamar('compartilhar_dados', JSON.stringify(resposta));
-          }
+          atualizar({ ocupado: true });
+          const { enviado } = await api.enviarUso({ ...sessao, envio: Date.now() / 1000 });
+          if (enviado) envioConcluido();
+          else console.warn('O envio de dados de atividade falhou');
         } else if (escolha === 'nunca') {
-          chamar('nunca_perguntar');
+          nuncaPerguntar();
         }
       } catch (erro) {
-        console.log(`Erro no dialog de compartilhamento: ${erro}`);
+        console.warn('Erro no diálogo de compartilhamento', erro);
       }
-      persistir();
     }
-    // janela.destroy()
-    atualizar({ tela: 'encerrada', seletor: 0 });
+    reiniciarSessao();
+    atualizar({ ocupado: false, tela: 'encerrada' });
   }, [atualizar, janelas]);
 
-  // Fechar a aba sem "Encerrar sessão": salva a sessão (sem diálogo, o navegador não permite)
-  useEffect(() => {
-    const aoSair = () => {
-      if (encerrada.current) return;
-      try {
-        chamar('encerrar_sessao_silenciosa');
-        persistir();
-        encerrada.current = true;
-      } catch {
-        /* motor não carregado */
-      }
-    };
-    window.addEventListener('pagehide', aoSair);
-    return () => window.removeEventListener('pagehide', aoSair);
-  }, []);
-
-  const api = useMemo<ApiAplicacao>(
+  const valor = useMemo<ApiAplicacao>(
     () => ({
       ...estado,
+      expressaoDoCircuito: estado.expressaoGlobal || normalizar(estado.entrada),
       mostrarTela,
       voltarPara,
       definirEntrada,
@@ -426,5 +433,5 @@ export function ProvedorAplicacao({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <Contexto.Provider value={api}>{children}</Contexto.Provider>;
+  return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

@@ -1,93 +1,57 @@
+/// <reference types="vitest/config" />
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
-import { zipSync } from 'fflate';
 import { defineConfig, type Plugin } from 'vite';
 
 const PASTA_WEB = path.dirname(fileURLToPath(import.meta.url));
-// "LoZGates 1.0.1/" — onde estão BackEnd/, FrontEnd/, config.py e assets/
+// "LoZGates 1.0.1/" — onde ficam assets/ (ícone e fonte Momentz) e o BackEnd
 const PASTA_APP = path.resolve(PASTA_WEB, '..');
-const PASTA_LOZWEB = path.join(PASTA_WEB, 'python', 'lozweb');
+const ICONE = path.join(PASTA_APP, 'assets', 'icon.ico');
 
-const NOME_PACOTE_PYTHON = 'lozgates-python.zip';
+// Onde a API roda durante o desenvolvimento (uvicorn BackEnd.api.app:app)
+const API = process.env.LOZGATES_API ?? 'http://127.0.0.1:8000';
 
-function listarPython(pasta: string, prefixo: string, saida: Record<string, Uint8Array>) {
-  if (!fs.existsSync(pasta)) return;
-  for (const item of fs.readdirSync(pasta, { withFileTypes: true })) {
-    if (item.name === '__pycache__' || item.name.startsWith('.')) continue;
-    const caminho = path.join(pasta, item.name);
-    const nome = `${prefixo}/${item.name}`;
-    if (item.isDirectory()) listarPython(caminho, nome, saida);
-    else if (item.name.endsWith('.py')) saida[nome] = fs.readFileSync(caminho);
-  }
-}
-
-/**
- * Empacota o código Python ORIGINAL do LoZ Gates (sem cópias no repositório):
- *   ../BackEnd/**.py, ../FrontEnd/**.py, ../config.py  +  python/lozweb/**.py
- * O navegador baixa esse .zip e o descompacta no sistema de arquivos do Pyodide.
- */
-function empacotarPython(): Uint8Array {
-  const arquivos: Record<string, Uint8Array> = {};
-  listarPython(path.join(PASTA_APP, 'BackEnd'), 'BackEnd', arquivos);
-  listarPython(path.join(PASTA_APP, 'FrontEnd'), 'FrontEnd', arquivos);
-  listarPython(PASTA_LOZWEB, 'lozweb', arquivos);
-  arquivos['config.py'] = fs.readFileSync(path.join(PASTA_APP, 'config.py'));
-  // ASSETS_PATH (config.py): onde o desktop grava circuito.png e entrada.txt
-  arquivos['assets/.mantida'] = new Uint8Array();
-  return zipSync(arquivos, { level: 6 });
-}
-
-function pluginLozGates(): Plugin {
-  const icone = path.join(PASTA_APP, 'assets', 'icon.ico');
+/** Usa o mesmo ícone do desktop (assets/icon.ico) sem copiá-lo para dentro de web/. */
+function pluginIcone(): Plugin {
   return {
-    name: 'lozgates-python',
+    name: 'lozgates-icone',
     configureServer(server) {
-      server.watcher.add([
-        path.join(PASTA_APP, 'BackEnd'),
-        path.join(PASTA_APP, 'FrontEnd'),
-        path.join(PASTA_APP, 'config.py'),
-        PASTA_LOZWEB,
-      ]);
-      server.watcher.on('change', (arquivo) => {
-        if (arquivo.endsWith('.py')) server.ws.send({ type: 'full-reload' });
-      });
       server.middlewares.use((req, res, next) => {
-        const url = (req.url || '').split('?')[0];
-        if (url.endsWith(`/${NOME_PACOTE_PYTHON}`)) {
-          res.setHeader('Content-Type', 'application/zip');
-          res.setHeader('Cache-Control', 'no-store');
-          res.end(Buffer.from(empacotarPython()));
-          return;
-        }
-        if (url.endsWith('/favicon.ico') && fs.existsSync(icone)) {
+        if ((req.url || '').split('?')[0].endsWith('/favicon.ico') && fs.existsSync(ICONE)) {
           res.setHeader('Content-Type', 'image/x-icon');
-          res.end(fs.readFileSync(icone));
+          res.end(fs.readFileSync(ICONE));
           return;
         }
         next();
       });
     },
     generateBundle() {
-      this.emitFile({ type: 'asset', fileName: NOME_PACOTE_PYTHON, source: empacotarPython() });
-      if (fs.existsSync(icone)) {
-        this.emitFile({ type: 'asset', fileName: 'favicon.ico', source: fs.readFileSync(icone) });
+      if (fs.existsSync(ICONE)) {
+        this.emitFile({ type: 'asset', fileName: 'favicon.ico', source: fs.readFileSync(ICONE) });
       }
     },
   };
 }
 
 export default defineConfig({
-  // Caminhos relativos: o build funciona em qualquer subpasta (ex.: GitHub Pages /LoZGates/)
+  // Caminhos relativos: o build funciona servido pela API ("/") ou numa subpasta
   base: './',
-  plugins: [react(), pluginLozGates()],
+  plugins: [react(), pluginIcone()],
   server: {
-    // Permite usar a fonte Momentz de ../assets
+    // A fonte Momentz fica em ../assets
     fs: { allow: [PASTA_APP] },
+    proxy: { '/api': API },
+  },
+  preview: {
+    proxy: { '/api': API },
   },
   build: {
     target: 'es2022',
-    chunkSizeWarningLimit: 800,
+  },
+  test: {
+    include: ['src/**/*.test.ts'],
+    environment: 'node',
   },
 });

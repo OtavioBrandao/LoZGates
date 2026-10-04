@@ -1,7 +1,7 @@
 import { Botao } from '../componentes/Botao';
 import { Modal } from '../componentes/Modal';
 
-/** popup_erro() — também usado pelo desktop para avisos como "Imagem salva com sucesso!" */
+/** popup_erro() — o desktop também o usava para avisos como "Imagem salva com sucesso!" */
 export function PopupErro({ mensagem, aoFechar, titulo = 'Erro' }: { mensagem: string; aoFechar: () => void; titulo?: string }) {
   return (
     <Modal
@@ -10,24 +10,37 @@ export function PopupErro({ mensagem, aoFechar, titulo = 'Erro' }: { mensagem: s
       aoFechar={aoFechar}
       classe="popup-erro"
       rodape={
-        <Botao estilo="cor" tamanho="pequeno" cor="#7A2020" corHover="#9A2A2A" corTexto="#FFFFFF" onClick={aoFechar} autoFocus>
+        <Botao estilo="erro" tamanho="pequeno" onClick={aoFechar} autoFocus>
           OK
         </Botao>
       }
     >
+      {titulo === 'Erro' && (
+        <p className="popup-erro__icone" aria-hidden="true">
+          ✕
+        </p>
+      )}
       <p className="popup-erro__mensagem">{mensagem.trim()}</p>
     </Modal>
   );
 }
 
-const INFO_EXTRA =
-  '\n\nLoZ Gates - Ajuda\nEste aplicativo permite criar, visualizar e simplificar expressões de lógica proposicional.\nUse as abas para acessar circuitos, expressões e problemas reais.';
+const INFO_EXTRA = 'LoZ Gates — Ferramenta educacional para Lógica Proposicional e Circuitos Digitais.\n\n';
 
-/** popup_duvida() — botão ❓ da aba Circuito */
+/** popup_duvida() — botão "?" da aba Circuito */
 export function PopupDuvida({ mensagem, aoFechar }: { mensagem: string; aoFechar: () => void }) {
   return (
-    <Modal titulo="Ajuda" tamanho="medio" aoFechar={aoFechar}>
-      <pre className="texto-pre">{(INFO_EXTRA + mensagem).trim()}</pre>
+    <Modal
+      titulo="?   Ajuda"
+      tamanho="medio"
+      aoFechar={aoFechar}
+      rodape={
+        <Botao estilo="fantasma" tamanho="pequeno" onClick={aoFechar} autoFocus>
+          Fechar
+        </Botao>
+      }
+    >
+      <pre className="texto-pre">{INFO_EXTRA + mensagem.trim()}</pre>
     </Modal>
   );
 }

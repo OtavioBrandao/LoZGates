@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { api, dadosFixos, mensagemDe } from '../api/cliente';
+import type { DefinicoesComponentes, EditorInicial, ModoCircuito } from '../api/tipos';
 import { Botao, escurecer } from '../componentes/Botao';
+import { EditorInterativo } from '../circuito/editor/Editor';
 import { useAplicacao } from '../estado/Aplicacao';
-import { anexarCanvas, enviarTecla } from '../motor/circuito';
-import { chamar } from '../motor/pyodide';
-import { textos, type ModoCircuito } from '../motor/textos';
+import { registrar } from '../telemetria/registro';
 
 type Cor = 'destaque' | 'secundario' | 'sucesso' | 'aviso' | 'erro';
 
@@ -20,44 +21,42 @@ const TEXTO_CONTROLES =
   '  • Esc: Cancela conexão\n' +
   '  • R: Reset vista\n\n';
 
-/** Atalhos na tela: mandam exatamente as mesmas teclas do teclado físico (útil em tablets). */
-const ATALHOS: { rotulo: string; tecla: string; ctrl?: boolean; dica: string }[] = [
-  { rotulo: 'Testar', tecla: ' ', dica: 'Espaço' },
-  { rotulo: 'Desfazer', tecla: 'z', ctrl: true, dica: 'Ctrl+Z' },
-  { rotulo: 'Refazer', tecla: 'y', ctrl: true, dica: 'Ctrl+Y' },
-  { rotulo: 'Remover', tecla: 'Delete', dica: 'Delete' },
-  { rotulo: 'Cancelar', tecla: 'Escape', dica: 'Esc' },
-  { rotulo: 'Resetar vista', tecla: 'r', dica: 'R' },
-];
+interface Desafio {
+  modo: ModoCircuito;
+  definicoes: DefinicoesComponentes;
+  editor: EditorInicial;
+  expressao: string;
+  /** Muda a cada "Iniciar Desafio": o editor começa do zero */
+  rodada: number;
+}
 
-/** CircuitModeSelector (FrontEnd/circuit_mode_interface.py) */
+/** CircuitModeSelector (FrontEnd/screens/circuit/circuit_mode_interface.py). */
 export function AbaCircuitoInterativo() {
   const app = useAplicacao();
-  const expressao = app.expressaoGlobal; // get_global_expression()
-  const { modos, dicas_modos } = textos();
-  const infoModo = (chave: string) => modos.find((m) => m.chave === chave) ?? modos[0];
-
+  const expressao = app.expressaoDoCircuito; // get_global_expression()
+  const [modos, setModos] = useState<ModoCircuito[]>([]);
+  const [erroModos, setErroModos] = useState<string | null>(null);
   const [modoAtual, setModoAtual] = useState<string | null>(null);
-  const [ativo, setAtivo] = useState(false);
+  const [desafio, setDesafio] = useState<Desafio | null>(null);
+  const [iniciando, setIniciando] = useState(false);
   const [descricao, setDescricao] = useState('Escolha um modo para ver detalhes');
   const [status, setStatus] = useState<{ texto: string; cor: Cor }>({
     texto: "Escolha um modo e clique em 'Iniciar Desafio'",
     cor: 'secundario',
   });
   const [info, setInfo] = useState<string | null>(null);
-  const [mensagemPygame, setMensagemPygame] = useState<{ texto: string; cor: string } | null>(null);
-  const area = useRef<HTMLDivElement>(null);
-  const soltarCanvas = useRef<(() => void) | null>(null);
+  const ativo = desafio !== null;
 
+  useEffect(() => {
+    dadosFixos
+      .modos()
+      .then(setModos)
+      .catch((e: unknown) => setErroModos(mensagemDe(e)));
+  }, []);
+
+  const infoModo = (chave: string) => modos.find((m) => m.chave === chave) ?? modos[0];
   // create_circuit_area(): o título é montado quando a tela é criada
-  const tituloCircuito = useMemo(() => `🎯 Monte o Circuito ${expressao}`, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(
-    () => () => {
-      soltarCanvas.current?.();
-    },
-    [],
-  );
+  const tituloCircuito = useMemo(() => `🎯 Monte o Circuito ${expressao}`, []);
 
   const selecionarModo = (chave: string) => {
     // Só permite trocar de modo se o circuito não estiver ativo
@@ -66,21 +65,17 @@ export function AbaCircuitoInterativo() {
       return;
     }
     setModoAtual(chave);
-    chamar('circuito_selecionar_modo', chave);
     const modo = infoModo(chave);
-    setDescricao(`🎯 ${modo.name} - ${modo.difficulty}\n📝 ${modo.description}\n`);
+    setDescricao(`🎯 ${modo.name} - ${modo.difficulty}\n📝 ${modo.description}`);
     if (expressao) {
-      if (ativo) {
-        setStatus({ texto: `Status: Desafio ativo - ${modo.name} | Pressione ESPAÇO para testar`, cor: 'destaque' });
-      } else {
-        setStatus({ texto: `Modo selecionado: ${modo.name} | Pronto para iniciar!`, cor: 'sucesso' });
-      }
+      if (ativo) setStatus({ texto: `Status: Desafio ativo - ${modo.name} | Pressione ESPAÇO para testar`, cor: 'destaque' });
+      else setStatus({ texto: `Modo selecionado: ${modo.name} | Pronto para iniciar!`, cor: 'sucesso' });
     } else {
       setStatus({ texto: '⚠️ Defina uma expressão na tela principal primeiro', cor: 'aviso' });
     }
   };
 
-  const iniciar = () => {
+  const iniciar = async () => {
     if (!expressao) {
       setStatus({ texto: '❌ Erro: Defina uma expressão na tela principal primeiro', cor: 'erro' });
       return;
@@ -89,91 +84,94 @@ export function AbaCircuitoInterativo() {
       setStatus({ texto: '⚠️ Selecione um modo de desafio primeiro', cor: 'aviso' });
       return;
     }
-    setMensagemPygame(null);
-    if (area.current && !soltarCanvas.current) {
-      soltarCanvas.current = anexarCanvas(area.current, (texto, cor) => setMensagemPygame({ texto, cor }));
-    }
-    const r = chamar('circuito_iniciar', expressao, modoAtual);
-    if (!r.ok) {
-      setAtivo(false);
-      setStatus({ texto: `❌ Erro ao iniciar: ${String(r.mensagem ?? r.excecao ?? '')}`, cor: 'erro' });
-      console.log(`❌ Erro: ${r.excecao}`);
-      return;
-    }
-    setAtivo(true);
     const modo = infoModo(modoAtual);
-    setStatus({ texto: `Status: Desafio ativo - ${modo.name} | Pressione ESPAÇO para testar`, cor: 'destaque' });
-    console.log(`✅ Circuito iniciado - Expressão: ${expressao} | Modo: ${modo.name}`);
+    registrar('log_event', 'circuit_mode_selected', {
+      mode: modoAtual,
+      expression: expressao.slice(0, 30),
+      restrictions: modo.restrictions,
+    });
+    setIniciando(true);
+    try {
+      const [definicoes, editor] = await Promise.all([dadosFixos.componentes(), api.editor(expressao)]);
+      setDesafio({ modo, definicoes, editor, expressao, rodada: Date.now() });
+      setStatus({ texto: `Status: Desafio ativo - ${modo.name} | Pressione ESPAÇO para testar`, cor: 'destaque' });
+    } catch (erro) {
+      setDesafio(null);
+      setStatus({ texto: `❌ Erro ao iniciar: ${mensagemDe(erro)}`, cor: 'erro' });
+    } finally {
+      setIniciando(false);
+    }
   };
 
   const parar = () => {
-    chamar('circuito_parar');
+    setDesafio(null);
     setInfo(null);
-    setAtivo(false);
     setStatus({ texto: '⏹️ Circuito parado - Selecione um modo para reiniciar', cor: 'aviso' });
   };
 
   const mostrarDicas = () => {
-    if (modoAtual) {
-      chamar('registrar_evento', 'circuit_tips_viewed', JSON.stringify({ mode: modoAtual, circuit_active: ativo }));
-    }
+    if (modoAtual) registrar('log_event', 'circuit_tips_viewed', { mode: modoAtual, circuit_active: ativo });
     if (modoAtual === null) {
       setInfo('Primeiro selecione um modo de desafio para ver dicas específicas.');
       return;
     }
     const modo = infoModo(modoAtual);
-    const dicas = dicas_modos[modoAtual] ?? dicas_modos.livre;
-    setInfo(`💡 DICAS - ${modo.name} (${modo.difficulty})\n\n` + dicas.map((d, i) => `  ${i + 1}. ${d}\n\n`).join(''));
+    setInfo(`💡 DICAS - ${modo.name} (${modo.difficulty})\n\n` + modo.dicas.map((d, i) => `  ${i + 1}. ${d}\n\n`).join(''));
   };
 
   return (
     <div className="seletor-circuito">
-      <header className="seletor-circuito__cabecalho">
-        <h2 className="titulo-secao">🔌 Circuito Interativo - Escolha o Desafio</h2>
-        {expressao ? (
-          <p className="destaque mono">Expressão: {expressao}</p>
-        ) : (
-          <p className="cor-aviso">⚠️ Nenhuma expressão definida - Vá para a tela principal primeiro</p>
-        )}
-      </header>
+      {/* Enquanto o desafio está ativo, os painéis de cima saem para o circuito ter espaço */}
+      {!ativo && (
+        <>
+          <header className="seletor-circuito__cabecalho">
+            <h2 className="titulo-secao">⚡&nbsp;&nbsp;Circuito Interativo</h2>
+            {expressao ? (
+              <p className="destaque mono">Expressão: {expressao}</p>
+            ) : (
+              <p className="cor-aviso">⚠️ Nenhuma expressão definida - Vá para a tela principal primeiro</p>
+            )}
+          </header>
 
-      <section className="painel seletor-circuito__modos" aria-labelledby="titulo-modos">
-        <h3 id="titulo-modos" className="painel__titulo">
-          Selecione o Modo de Desafio:
-        </h3>
-        <div className="grade-modos">
-          {modos.map((modo: ModoCircuito) => (
-            <Botao
-              key={modo.chave}
-              estilo="cor"
-              cor={modo.color}
-              corHover={escurecer(modo.color)}
-              corTexto="#FFFFFF"
-              className={`botao-modo ${modoAtual === modo.chave ? 'botao-modo--atual' : ''}`}
-              aria-pressed={modoAtual === modo.chave}
-              disabled={ativo && modo.chave !== modoAtual}
-              onClick={() => selecionarModo(modo.chave)}
-            >
-              <span>
-                {modo.icon} {modo.name}
-              </span>
-              <small>{modo.difficulty}</small>
-            </Botao>
-          ))}
-        </div>
-        <p className="seletor-circuito__descricao texto-secundario">{descricao.trim()}</p>
-      </section>
+          <section className="painel seletor-circuito__modos" aria-labelledby="titulo-modos">
+            <h3 id="titulo-modos" className="painel__titulo">
+              Selecione o Modo de Desafio:
+            </h3>
+            {erroModos && <p className="cor-erro">{erroModos}</p>}
+            <div className="grade-modos">
+              {modos.map((modo) => (
+                <Botao
+                  key={modo.chave}
+                  estilo="cor"
+                  cor={modo.color}
+                  corHover={escurecer(modo.color)}
+                  corTexto="#FFFFFF"
+                  className={`botao-modo ${modoAtual === modo.chave ? 'botao-modo--atual' : ''}`}
+                  aria-pressed={modoAtual === modo.chave}
+                  onClick={() => selecionarModo(modo.chave)}
+                >
+                  <span>
+                    {modo.icon} {modo.name}
+                  </span>
+                  <small>{modo.difficulty}</small>
+                </Botao>
+              ))}
+            </div>
+            <p className="seletor-circuito__descricao texto-secundario">{descricao}</p>
+          </section>
+        </>
+      )}
 
       <section className="painel seletor-circuito__controles" aria-label="Controles do desafio">
         <div className="linha-botoes">
-          <Botao estilo="sucesso" tamanho="pequeno" onClick={iniciar} disabled={ativo}>
+          <Botao estilo="sucesso" tamanho="pequeno" onClick={() => void iniciar()} disabled={ativo || iniciando}>
             🚀 Iniciar Desafio
           </Botao>
           <Botao estilo="erro" tamanho="pequeno" onClick={parar} disabled={!ativo}>
             ⏹️ Parar
           </Botao>
-          <Botao estilo="cor" tamanho="pequeno" cor="#070BDB" corHover="#0A0D97" corTexto="#FFFFFF" onClick={mostrarDicas} disabled={!ativo}>
-            💡 Dicas
+          <Botao tamanho="pequeno" onClick={mostrarDicas} disabled={!ativo}>
+            i&nbsp;&nbsp;Dicas
           </Botao>
           <Botao estilo="aviso" tamanho="pequeno" onClick={() => setInfo(TEXTO_CONTROLES)} disabled={!ativo}>
             🎮 Controles
@@ -193,24 +191,21 @@ export function AbaCircuitoInterativo() {
         </section>
       )}
 
-      <section className="painel seletor-circuito__area" hidden={!ativo} aria-labelledby="titulo-area">
-        <h3 id="titulo-area" className="painel__titulo">
-          {tituloCircuito}
-        </h3>
-        <div ref={area} className="area-pygame" />
-        {mensagemPygame && (
-          <p className="area-pygame__mensagem" style={{ color: mensagemPygame.cor || undefined }}>
-            {mensagemPygame.texto}
-          </p>
-        )}
-        <div className="atalhos" aria-label="Atalhos do teclado">
-          {ATALHOS.map((a) => (
-            <button key={a.rotulo} type="button" className="atalho" onClick={() => enviarTecla(a.tecla, { ctrl: a.ctrl })} title={a.dica}>
-              {a.rotulo} <kbd>{a.dica}</kbd>
-            </button>
-          ))}
-        </div>
-      </section>
+      {desafio && (
+        <section className="painel seletor-circuito__area" aria-labelledby="titulo-area">
+          <h3 id="titulo-area" className="painel__titulo">
+            {tituloCircuito}
+          </h3>
+          <EditorInterativo
+            key={desafio.rodada}
+            definicoes={desafio.definicoes}
+            iniciais={desafio.editor.componentes}
+            permitidas={desafio.modo.restrictions}
+            expressao={desafio.expressao}
+            modo={desafio.modo.chave}
+          />
+        </section>
+      )}
     </div>
   );
 }

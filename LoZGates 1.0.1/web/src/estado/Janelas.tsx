@@ -32,6 +32,7 @@ export function useJanelas(): ApiJanelas {
   return api;
 }
 
+/** As janelas que o desktop abria como CTkToplevel (popups, tabela verdade, manual, chat, consentimento). */
 export function ProvedorJanelas({ children }: { children: ReactNode }) {
   const [janelas, setJanelas] = useState<Janela[]>([]);
   const sequencia = useRef(0);

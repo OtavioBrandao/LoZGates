@@ -1,8 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
 import { ProvedorAplicacao, useAplicacao } from './estado/Aplicacao';
 import { ProvedorJanelas } from './estado/Janelas';
-import { carregarMotor } from './motor/pyodide';
-import { Carregando } from './telas/Carregando';
 import { Equivalencia } from './telas/Equivalencia';
 import { Inicio } from './telas/Inicio';
 import { Principal } from './telas/Principal';
@@ -13,24 +10,6 @@ import { SimplificacaoInterativa } from './telas/SimplificacaoInterativa';
 import { TelaAbas } from './telas/TelaAbas';
 
 export function App() {
-  const [pronto, setPronto] = useState(false);
-  const [progresso, setProgresso] = useState({ etapa: 'Preparando…', fracao: 0 });
-  const [erro, setErro] = useState<string | null>(null);
-
-  const carregar = useCallback(() => {
-    setErro(null);
-    carregarMotor((etapa, fracao) => setProgresso({ etapa, fracao }))
-      .then(() => setPronto(true))
-      .catch((e: unknown) => {
-        console.error(e);
-        setErro(e instanceof Error ? e.message : String(e));
-      });
-  }, []);
-
-  useEffect(carregar, [carregar]);
-
-  if (!pronto) return <Carregando etapa={progresso.etapa} fracao={progresso.fracao} erro={erro} aoTentarDeNovo={carregar} />;
-
   return (
     <ProvedorJanelas>
       <ProvedorAplicacao>
@@ -40,7 +19,7 @@ export function App() {
   );
 }
 
-/** Troca de "frames" (show_frame). As abas ficam montadas enquanto o circuito interativo existir. */
+/** Troca de "frames" (tkraise). As abas ficam montadas enquanto o circuito interativo existir. */
 function Telas() {
   const app = useAplicacao();
   const abasMontadas = ['abas', 'resolucao', 'interativo'].includes(app.tela) || app.seletor > 0;
