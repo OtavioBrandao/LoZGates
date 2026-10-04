@@ -74,3 +74,36 @@ class TestParserDoCircuito:
         assert [filho['type'] for filho in layout['children']] == ['variable', 'constant']
         with pytest.raises(ValueError):
             criar_ast_de_expressao("A*B)")
+
+
+# ------------------------------ identificar_lei ------------------------------
+
+class TestIdentificarLei:
+    modulo = "BackEnd.identificar_lei"
+
+    def test_usa_o_parse_canonico(self):
+        from BackEnd import identificar_lei
+        assert identificar_lei.parse is expression_ast.parse
+        assert identificar_lei.construir_arvore is expression_ast.parse
+
+    def test_leis_produzem_nos_canonicos(self):
+        from BackEnd import identificar_lei as il
+        casos = [
+            (il.demorgan, "!(A&B)"), (il.identidade, "A&1"), (il.nula, "A|1"),
+            (il.idempotente, "B&B"), (il.inversa, "A&!A"), (il.absorcao, "A&(A|B)"),
+            (il.associativa, "(A&B)&C"), (il.comutativa, "B|A"), (il.distributiva, "(A|B)&(A|C)"),
+        ]
+        for lei, expr in casos:
+            assert_arvore_canonica(lei(il.construir_arvore(expr)))
+
+    def test_simplificacao_produz_nos_canonicos(self):
+        from BackEnd.identificar_lei import construir_arvore, simplificar
+        import contextlib, io
+        with contextlib.redirect_stdout(io.StringIO()):
+            assert_arvore_canonica(simplificar(construir_arvore("(A&B)|(A&!B)")))
+
+    def test_sem_parser_nem_nos_proprios_nem_troca_de_stdout(self):
+        from BackEnd import identificar_lei
+        assert_sem_parser_proprio(self.modulo)
+        # redirect_stdout troca o sys.stdout do processo inteiro: inseguro num servidor com threads
+        assert "redirect_stdout" not in inspect.getsource(identificar_lei)

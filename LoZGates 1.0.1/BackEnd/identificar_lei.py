@@ -1,8 +1,16 @@
 import copy
-import io
 import logging
-from contextlib import redirect_stdout
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
 
+from BackEnd.converter import converter_para_algebra_booleana
+from BackEnd.core.expression_ast import (
+    OperatorNode,
+    VariableNode,
+    no_no_caminho,
+    parse,
+    to_string_com_trechos,
+)
 from BackEnd.simplificador_interativo import (
     MAX_SIMPLIFICATION_STEPS,
     SimplificationGuard,
@@ -12,69 +20,13 @@ from BackEnd.simplificador_interativo import (
 
 logger = logging.getLogger(__name__)
 
-class Node:
-    """
-    Representa um nó na árvore de expressão
-    O valor pode ser um operador, uma variável ou uma constante
-    """
-    def __init__(self, valor, esquerda=None, direita=None):
-        self.valor = valor
-        self.esquerda = esquerda
-        self.direita = direita
+# Nome mantido por compatibilidade: é o próprio parser canônico.
+construir_arvore = parse
 
-    def __str__(self):
-        #Constroi a representação em string da expressão de forma recursiva
-        if self.valor in ('&', '|'):
-            #Adiciona parênteses para manter a precedência correta
-            return f"({self.esquerda}{self.valor}{self.direita})"
-        elif self.valor == '!':
-            #A negação é prefixa
-            return f"!{self.esquerda}"
-        else:
-            return str(self.valor)
+# ------------------ Leis Lógicas (retornam o nó modificado) -------------------
+# As leis são funções puras: não imprimem nada. Quem anuncia o passo aplicado
+# é o laço de simplificação, e só quando a redução é aceita.
 
-def construir_arvore(expr):
-    """
-    Analisa uma string de expressão lógica e a converte em uma árvore de expressão
-    Respeita a precedência: ! > & > |
-    """
-    expr = expr.replace(" ", "")
-
-    def construir_arvore_or(s):
-        #Divide a expressão por '|' de menor precedência
-        depth = 0
-        for i in range(len(s) - 1, -1, -1):
-            c = s[i]
-            if c == ')': depth += 1
-            elif c == '(': depth -= 1
-            elif c == '|' and depth == 0:
-                #Encontrou um '|' no nível base, cria um nó recursivamente
-                return Node('|', construir_arvore_or(s[:i]), construir_arvore_and(s[i+1:]))
-        return construir_arvore_and(s)
-
-    def construir_arvore_and(s):
-        #Divide pelo '&'
-        depth = 0
-        for i in range(len(s) - 1, -1, -1):
-            c = s[i]
-            if c == ')': depth += 1
-            elif c == '(': depth -= 1
-            elif c == '&' and depth == 0:
-                return Node('&', construir_arvore_and(s[:i]), construir_arvore_not(s[i+1:]))
-        return construir_arvore_not(s)
-
-    def construir_arvore_not(s):
-        #Lida com negação, parênteses e etc
-        if s.startswith('!'):
-            return Node('!', esquerda=construir_arvore_or(s[1:]))
-        elif s.startswith('(') and s.endswith(')'):
-            return construir_arvore_or(s[1:-1])
-        else:
-            return Node(s)
-
-    return construir_arvore_or(expr)
-
-# ------------------ Leis Lógicas (Retornam o nó modificado) -------------------
 def sao_inversos(n1, n2):
     if not n1 or not n2:
         return False
@@ -85,106 +37,82 @@ def demorgan(node):
     #!(A & B) = !A | !B  e  !(A | B) = !A & !B
     if node.valor == '!' and node.esquerda and node.esquerda.valor in ('&', '|'):
         inner = node.esquerda
-        op_original = inner.valor
-        
-        # Cria a nova estrutura baseada na lei
-        novo_op = '|' if op_original == '&' else '&'
-        novo_no = Node(novo_op, Node('!', inner.esquerda), Node('!', inner.direita))
-        
-        print(f"Aplicando De Morgan em '{node}' -> '{novo_no}'\n")
-        return novo_no
+        novo_op = '|' if inner.valor == '&' else '&'
+        return OperatorNode(novo_op, [
+            OperatorNode('!', [inner.esquerda]),
+            OperatorNode('!', [inner.direita]),
+        ])
     return node
 
 def identidade(node):
     #A & 1 = A  e  A | 0 = A
     if node.valor == '&':
         if str(node.esquerda) == '1':
-          print(f"Aplicando Identidade em '{node}' -> '{node.direita}'\n")
-          return node.direita
-        if str(node.direita) == '1': 
-          print(f"Aplicando Identidade em '{node}' -> '{node.esquerda}'\n")
-          return node.esquerda
-    
+            return node.direita
+        if str(node.direita) == '1':
+            return node.esquerda
     elif node.valor == '|':
         if str(node.esquerda) == '0':
-          print(f"Aplicando Identidade em '{node}' -> '{node.direita}'\n")
-          return node.direita
-        if str(node.direita) == '0': 
-          print(f"Aplicando Identidade em '{node}' -> '{node.esquerda}'\n")
-          return node.esquerda
-        
+            return node.direita
+        if str(node.direita) == '0':
+            return node.esquerda
     return node
 
 def nula(node):
     #A & 0 = 0  e  A | 1 = 1
     if node.valor == '&':
         if str(node.esquerda) == '0' or str(node.direita) == '0':
-            print(f"Aplicando Nula em '{node}' -> '0'\n")
-            return Node('0')
+            return VariableNode('0')
     elif node.valor == '|':
         if str(node.esquerda) == '1' or str(node.direita) == '1':
-            print(f"Aplicando Nula em '{node}' -> '1'\n")
-            return Node('1')
+            return VariableNode('1')
     return node
 
 def idempotente(node):
     #A & A = A  e  A | A = A
     if node.valor in ('&', '|') and str(node.esquerda) == str(node.direita):
-        print(f"Aplicando Idempotência em '{node}' -> '{node.esquerda}'\n")
         return node.esquerda
     return node
 
 def inversa(node):
     #A & !A = 0  e  A | !A = 1
     if node.esquerda and node.direita and sao_inversos(node.esquerda, node.direita):
-        if node.valor == '&': 
-          print(f"Aplicando Inversa em '{node}' -> '0'\n")
-          return Node('0')
-        
-        if node.valor == '|': 
-          print(f"Aplicando Inversa em '{node}' -> '1'\n")
-          return Node('1')
+        if node.valor == '&':
+            return VariableNode('0')
+        if node.valor == '|':
+            return VariableNode('1')
     return node
 
 def absorcao(node):
     #A & (A | B) = A  e  A | (A & B) = A
     if node.valor == '&' and node.direita and node.direita.valor == '|':
         if str(node.esquerda) == str(node.direita.esquerda) or str(node.esquerda) == str(node.direita.direita):
-            print(f"Aplicando Absorção em '{node}' -> '{node.esquerda}'\n")
             return node.esquerda
     if node.valor == '&' and node.esquerda and node.esquerda.valor == '|':
         if str(node.direita) == str(node.esquerda.esquerda) or str(node.direita) == str(node.esquerda.direita):
-            print(f"Aplicando Absorção em '{node}' -> '{node.direita}'\n")
             return node.direita
     if node.valor == '|' and node.direita and node.direita.valor == '&':
         if str(node.esquerda) == str(node.direita.esquerda) or str(node.esquerda) == str(node.direita.direita):
-            print(f"Aplicando Absorção em '{node}' -> '{node.esquerda}'\n")
             return node.esquerda
     if node.valor == '|' and node.esquerda and node.esquerda.valor == '&':
         if str(node.direita) == str(node.esquerda.esquerda) or str(node.direita) == str(node.esquerda.direita):
-            print(f"Aplicando Absorção em '{node}' -> '{node.direita}'\n")
             return node.direita
     return node
 
 def associativa(node):
     #(A | B) | C = A | (B | C) e (A & B) & C = A & (B & C)
-    #coisa para a direita
     if node.valor in ('&', '|') and node.esquerda and node.esquerda.valor == node.valor:
         op = node.valor
         a = node.esquerda.esquerda
         b = node.esquerda.direita
         c = node.direita
-        novo_no = Node(op, a, Node(op, b, c))
-        print(f"Aplicando Associativa em '{node}' -> '{novo_no}'\n")
-        return novo_no
+        return OperatorNode(op, [a, OperatorNode(op, [b, c])])
     return node
 
 def comutativa(node):
     if node.valor in ('&', '|'):
         if node.esquerda and node.direita and str(node.direita) < str(node.esquerda):
-             novo_no = Node(node.valor, node.direita, node.esquerda)
-             print(f"Aplicando Comutativa em '{node}' -> '{novo_no}'\n")
-             return novo_no
+            return OperatorNode(node.valor, [node.direita, node.esquerda])
     return node
 
 def distributiva(node):
@@ -194,16 +122,14 @@ def distributiva(node):
         a, b = node.esquerda.esquerda, node.esquerda.direita
         c, d = node.direita.esquerda, node.direita.direita
         common, o1, o2 = (None, None, None)
-        
+
         if str(a) == str(c): common, o1, o2 = a, b, d
         elif str(a) == str(d): common, o1, o2 = a, b, c
         elif str(b) == str(c): common, o1, o2 = b, a, d
         elif str(b) == str(d): common, o1, o2 = b, a, c
 
         if common:
-            novo_no = Node('|', common, Node('&', o1, o2))
-            print(f"Aplicando Distributiva em '{node}' -> '{novo_no}'\n")
-            return novo_no
+            return OperatorNode('|', [common, OperatorNode('&', [o1, o2])])
 
     #(A&B)|(A&C) -> A&(B|C)
     if node.valor == '|' and (node.esquerda and node.direita and
@@ -218,9 +144,7 @@ def distributiva(node):
         elif str(b) == str(d): common, o1, o2 = b, a, c
 
         if common:
-            novo_no = Node('&', common, Node('|', o1, o2))
-            print(f"Aplicando Distributiva em '{node}' -> '{novo_no}'\n")
-            return novo_no
+            return OperatorNode('&', [common, OperatorNode('|', [o1, o2])])
     return node
 
 # ------------------ Processo de Simplificação -------------------
@@ -235,27 +159,33 @@ LEIS_AUTOMATICAS = [
 ]
 
 
-def _aplicar_primeira_reducao(node):
-    """Apply at most one strictly reducing rule, traversing children first."""
+@dataclass(frozen=True)
+class _Reducao:
+    lei: str
+    caminho: Tuple[int, ...]      # onde a lei foi aplicada, em índices de `children`
+    antes: str
+    depois: str
+
+
+def _aplicar_primeira_reducao(node, caminho=(), anunciar=True):
+    """Aplica no máximo uma lei que reduza de verdade, visitando os filhos primeiro."""
     if node is None:
         return node, False, None
 
     if node.esquerda:
-        new_left, changed, law_name = _aplicar_primeira_reducao(node.esquerda)
+        new_left, changed, reducao = _aplicar_primeira_reducao(node.esquerda, caminho + (0,), anunciar)
         if changed:
             node.esquerda = new_left
-            return node, True, law_name
+            return node, True, reducao
     if node.direita:
-        new_right, changed, law_name = _aplicar_primeira_reducao(node.direita)
+        new_right, changed, reducao = _aplicar_primeira_reducao(node.direita, caminho + (1,), anunciar)
         if changed:
             node.direita = new_right
-            return node, True, law_name
+            return node, True, reducao
 
     original_complexity = calcular_complexidade(node)
     for law_name, law in LEIS_AUTOMATICAS:
-        captured_output = io.StringIO()
-        with redirect_stdout(captured_output):
-            candidate = law(node)
+        candidate = law(node)
         if str(candidate) == str(node):
             continue
         if calcular_complexidade(candidate) >= original_complexity:
@@ -266,8 +196,9 @@ def _aplicar_primeira_reducao(node):
                 candidate,
             )
             continue
-        print(captured_output.getvalue(), end="")
-        return candidate, True, law_name
+        if anunciar:
+            print(f"Aplicando {law_name} em '{node}' -> '{candidate}'\n")
+        return candidate, True, _Reducao(law_name, caminho, str(node), str(candidate))
 
     return node, False, None
 
@@ -278,61 +209,108 @@ def aplicar_leis_recursivo(node):
     return candidate
 
 
-def simplificar(arvore, max_steps=MAX_SIMPLIFICATION_STEPS):
-    """Simplify finitely, keeping the last accepted expression."""
+@dataclass(frozen=True)
+class PassoSimplificacao:
+    iteracao: int
+    lei: str
+    caminho: Tuple[int, ...]
+    subexpressao_antes: str
+    subexpressao_depois: str
+    expressao_antes: str
+    expressao_depois: str
+    trecho_antes: Tuple[int, int]     # onde a subexpressão está em expressao_antes
+    trecho_depois: Tuple[int, int]    # onde o resultado está em expressao_depois
 
-    print("--- Iniciando Simplificação ---")
+
+@dataclass
+class ResultadoSimplificacao:
+    expressao_original: str
+    expressao_booleana: str
+    expressao_inicial: str
+    expressao_final: str
+    motivo_parada: str
+    passos: List[PassoSimplificacao] = field(default_factory=list)
+
+
+def _registrar_passo(passos, iteracao, reducao, arvore_antes, arvore_depois):
+    texto_antes, trechos_antes = to_string_com_trechos(arvore_antes)
+    texto_depois, trechos_depois = to_string_com_trechos(arvore_depois)
+    passos.append(PassoSimplificacao(
+        iteracao=iteracao,
+        lei=reducao.lei,
+        caminho=reducao.caminho,
+        subexpressao_antes=reducao.antes,
+        subexpressao_depois=reducao.depois,
+        expressao_antes=texto_antes,
+        expressao_depois=texto_depois,
+        trecho_antes=trechos_antes[id(no_no_caminho(arvore_antes, reducao.caminho))],
+        trecho_depois=trechos_depois[id(no_no_caminho(arvore_depois, reducao.caminho))],
+    ))
+
+
+def _simplificar(arvore, max_steps, anunciar, passos):
+    """Núcleo comum: devolve (árvore final, motivo da parada)."""
+    if anunciar:
+        print("--- Iniciando Simplificação ---")
     logger.info("simplification started: expression=%s", arvore)
     guard = SimplificationGuard(arvore, max_steps=max_steps)
 
     for passo in range(1, guard.max_steps + 1):
         expressao_anterior = str(arvore)
-        print(f"\nIteração {passo}: tentando simplificar {expressao_anterior}")
-        candidate, changed, law_name = _aplicar_primeira_reducao(copy.deepcopy(arvore))
+        if anunciar:
+            print(f"\nIteração {passo}: tentando simplificar {expressao_anterior}")
+        candidate, changed, reducao = _aplicar_primeira_reducao(copy.deepcopy(arvore), anunciar=anunciar)
 
         if not changed:
-            print("\nNenhuma outra simplificação foi possível.")
+            if anunciar:
+                print("\nNenhuma outra simplificação foi possível.")
             logger.info(
                 "no further simplification: expression=%s steps=%s",
                 arvore,
                 guard.accepted_steps,
             )
-            return arvore
+            return arvore, "no_further_simplification"
 
         decision = guard.consider(candidate)
         if not decision.accepted:
             if decision.reason == "repeated_state":
-                print("\nEstado equivalente já visitado; simplificação encerrada.")
+                if anunciar:
+                    print("\nEstado equivalente já visitado; simplificação encerrada.")
                 logger.warning(
                     "repeated state detected: expression=%s step=%s",
                     candidate,
                     passo,
                 )
             elif decision.reason == "maximum_steps":
-                print("\nLimite de segurança atingido; mantendo a última expressão válida.")
+                if anunciar:
+                    print("\nLimite de segurança atingido; mantendo a última expressão válida.")
                 logger.warning(
                     "maximum steps reached: expression=%s limit=%s",
                     arvore,
                     guard.max_steps,
                 )
             else:
-                print("\nA transformação não reduziu a complexidade; simplificação encerrada.")
+                if anunciar:
+                    print("\nA transformação não reduziu a complexidade; simplificação encerrada.")
                 logger.warning(
                     "simplification stopped without progress: before=%s candidate=%s",
                     arvore,
                     candidate,
                 )
-            return arvore
+            return arvore, decision.reason
 
+        if passos is not None:
+            _registrar_passo(passos, passo, reducao, arvore, candidate)
         arvore = candidate
         logger.info(
             "rule applied: rule=%s step=%s complexity=%s expression=%s",
-            law_name,
+            reducao.lei,
             passo,
             calcular_complexidade(arvore),
             arvore,
         )
-        print(f"Árvore intermediária: {arvore}")
+        if anunciar:
+            print(f"Árvore intermediária: {arvore}")
 
         if not arvore.esquerda and not arvore.direita:
             logger.info(
@@ -340,21 +318,49 @@ def simplificar(arvore, max_steps=MAX_SIMPLIFICATION_STEPS):
                 arvore,
                 guard.accepted_steps,
             )
-            return arvore
+            return arvore, "completed"
 
     logger.warning(
         "maximum steps reached: expression=%s limit=%s",
         arvore,
         guard.max_steps,
     )
-    print("\nLimite de segurança atingido; mantendo a última expressão válida.")
+    if anunciar:
+        print("\nLimite de segurança atingido; mantendo a última expressão válida.")
 
-    return arvore
+    return arvore, "maximum_steps"
+
+
+def simplificar(arvore, max_steps=MAX_SIMPLIFICATION_STEPS):
+    """Simplify finitely, keeping the last accepted expression."""
+    return _simplificar(arvore, max_steps, anunciar=True, passos=None)[0]
+
+
+def simplificar_expressao(expressao_usuario, max_steps=MAX_SIMPLIFICATION_STEPS) -> ResultadoSimplificacao:
+    """
+    Fluxo completo do "Simplificar — Resultado", sem imprimir nada: converte
+    para álgebra booleana (como a interface sempre fez) e simplifica,
+    devolvendo cada passo aceito. Erros de sintaxe sobem como
+    ExpressaoInvalida.
+    """
+    booleana = converter_para_algebra_booleana(expressao_usuario)
+    logica = booleana.replace("+", "|").replace("*", "&").replace("~", "!")
+    arvore = construir_arvore(logica)
+    inicial = str(arvore)
+    passos: List[PassoSimplificacao] = []
+    final, motivo = _simplificar(arvore, max_steps, anunciar=False, passos=passos)
+    return ResultadoSimplificacao(
+        expressao_original=expressao_usuario,
+        expressao_booleana=booleana,
+        expressao_inicial=inicial,
+        expressao_final=str(final),
+        motivo_parada=motivo,
+        passos=passos,
+    )
 
 # ------------------ Laço Principal de Execução -------------------
 def principal_simplificar(expressao_usuario):
- 
-    #expressao_usuario = input("\nDigite a expressão lógica (use !, &, |) ou 'sair' para terminar: ")
+
     expressao_usuario = expressao_usuario.replace("+", "|").replace("*", "&").replace("~", "!")
     print(f"\n=====================================================================")
     print(f"\t\tExpressão Original: {expressao_usuario}")
@@ -362,21 +368,21 @@ def principal_simplificar(expressao_usuario):
 
     try:
         arvore = construir_arvore(expressao_usuario)
-        
+
         arvore_simplificada = simplificar(arvore)
-        
+
         print("\n------------------ Resultado Final -------------------")
         print(f"Expressão Original    : {expressao_usuario}")
         print(f"Expressão Simplificada: {arvore_simplificada}")
         print("------------------------------------------------------\n")
         return arvore_simplificada
 
-    except Exception as e:
-        logger.exception("simplification exception: expression=%s", expressao_usuario)
+    except ValueError as e:
+        logger.warning("simplification rejected: expression=%s error=%s", expressao_usuario, e)
         print(f"Ocorreu um erro ao processar a expressão: {e}")
         print("Por favor, verifique se a sintaxe está correta (ex: 'P & (Q | !R)').")
         return None
-        
+
 '''
 -------------------------casos testes------------------
 
