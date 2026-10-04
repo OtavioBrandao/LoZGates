@@ -14,35 +14,6 @@ class Problems:
         #print(f"The boolean answer is : {self.answer}")
         pass
 
-class ProblemsToFrame:
-    def __init__(self, problem_bank):
-        self.problems = problem_bank
-    
-    def get_frame_from_number(self, index):
-        return Problems_bank[index]
-
-    def create_frame_from_problem(self, question_number, window):
-        #Import local: os dados do banco não devem depender da interface desktop
-        import customtkinter as ctk
-
-        current_problem = self.get_frame_from_number(question_number)
-        frame = ctk.CTkFrame(window, fg_color="#082347")
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        label_name = ctk.CTkLabel(frame, text=current_problem.name, font=("Trebuchet MS", 20), text_color="white")
-        label_name.pack(pady=10)
-
-        label_question = ctk.CTkLabel(frame, text=current_problem.question, font=("Trebuchet MS", 14), text_color="white")
-        label_question.pack(pady=10)
-
-        label_answer = ctk.CTkLabel(frame, text=f"Answer: {current_problem.answer}", font=("Trebuchet MS", 14), text_color="white")
-        label_answer.pack(pady=10)
-
-        botao_voltar = ctk.CTkButton(frame, text="Voltar", command=lambda: self.show_problems_frame(window))
-        botao_voltar.pack(pady=20)
-
-        return frame
-
 Problems_bank = [
     Problems(
         name = "Airbags",

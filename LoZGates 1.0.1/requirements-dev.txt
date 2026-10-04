@@ -1,2 +1,7 @@
 -r requirements.txt
-pyinstaller>=6,<7
+pytest>=8,<10
+httpx>=0.27,<1
+# Só para os testes de paridade: o oráculo congelado do interface_update
+# (tests/paridade/oraculo_interface_update) ainda usa pygame e CustomTkinter.
+pygame>=2.5,<3
+customtkinter>=5.2,<7

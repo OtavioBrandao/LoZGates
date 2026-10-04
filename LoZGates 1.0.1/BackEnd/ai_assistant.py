@@ -16,7 +16,7 @@ AIResultCallback = Callable[[str | None, str | None], None]
 
 
 class AIAssistant:
-    """Prepare prompts and perform requests outside the Tkinter event loop."""
+    """Prepare prompts and perform requests (sync for the web API, async helpers for callers with an event loop)."""
 
     def __init__(
         self,

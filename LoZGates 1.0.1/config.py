@@ -1,13 +1,10 @@
-import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
 
 
 ROOT_PATH = Path(__file__).resolve().parent
-ROOT_DIR = str(ROOT_PATH)  # Compatibilidade com consumidores antigos.
 ASSETS_DIR = ROOT_PATH / "assets"
-ASSETS_PATH = str(ASSETS_DIR)
 
 
 def load_environment_file(path=None):
@@ -55,13 +52,12 @@ def _env_float(variable_name, default, minimum=0.1):
 
 DATA_DIR = _configured_path("LOZGATES_DATA_DIR", ROOT_PATH / "data")
 LOG_DIR = _configured_path("LOZGATES_LOG_DIR", ROOT_PATH / "logs")
-CIRCUIT_IMAGE_PATH = DATA_DIR / "circuito.png"
-INPUT_CACHE_PATH = DATA_DIR / "entrada.txt"
+# Registro de uso gravado em arquivo (DetailedUserLogger com persistir=True).
+# Na web os dados ficam no navegador e o servidor não grava nada (D6).
 ACTIVITY_LOG_PATH = DATA_DIR / "user_activity_detailed.json"
 ACTIVITY_SETTINGS_PATH = DATA_DIR / "logging_settings.json"
 LEGACY_ACTIVITY_LOG_PATH = ROOT_PATH / "user_activity_detailed.json"
 LEGACY_ACTIVITY_SETTINGS_PATH = ROOT_PATH / "logging_settings.json"
-WINDOW_ICON_PATH = ASSETS_DIR / "icon.ico"
 
 
 def ensure_runtime_directories():
@@ -232,56 +228,3 @@ Para acessar o manual completo, use o botão "❓ Ajuda" na tela inicial.
 
 Este popup mostra apenas informações básicas para consulta rápida.
 """
-
-#função para as coisas aparecerem na frente
-def make_window_visible_robust(window, parent=None, modal=False):
-    if parent:
-        try:
-            window.transient(parent)
-        except Exception:
-            logging.getLogger(__name__).debug(
-                "Nao foi possivel associar a janela ao parent", exc_info=True
-            )
-    
-    window.update_idletasks()
-    
-    def force_visibility():
-        try:
-            window.deiconify()          
-            window.lift()               
-            window.attributes('-topmost', 1) 
-            window.focus_force()
-            if modal:
-                window.grab_set()
-        except Exception:
-            logging.getLogger(__name__).debug(
-                "Nao foi possivel forcar a visibilidade da janela", exc_info=True
-            )
-    
-    def normalize():
-        try:
-            window.attributes('-topmost', 0) 
-            if modal:
-                window.grab_release()
-        except Exception:
-            logging.getLogger(__name__).debug(
-                "Nao foi possivel normalizar a janela", exc_info=True
-            )
-    
-    window.after(10, force_visibility) 
-    window.after(250, normalize)
-    return window
-
-
-def apply_window_icon(window):
-    """Aplica o icone quando suportado pelo backend Tk da plataforma."""
-    if not WINDOW_ICON_PATH.exists():
-        return False
-    try:
-        window.iconbitmap(str(WINDOW_ICON_PATH))
-        return True
-    except Exception:
-        logging.getLogger(__name__).debug(
-            "Backend Tk nao suporta o icone %s", WINDOW_ICON_PATH, exc_info=True
-        )
-        return False

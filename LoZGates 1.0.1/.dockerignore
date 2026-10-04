@@ -9,7 +9,7 @@ data
 logs
 tests
 docs
-FrontEnd
+frontend
 assets
 *.json
 *.png

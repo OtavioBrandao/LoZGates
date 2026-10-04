@@ -2,7 +2,7 @@
 Banco de problemas: consulta e correção das respostas.
 
 A regra de correção é a do interface_update (que ficava dentro da tela de
-problemas em CustomTkinter): a resposta está certa se for logicamente
+problemas do desktop): a resposta está certa se for logicamente
 equivalente à esperada, ou se tiver a mesma estrutura com outros nomes de
 variáveis (ex.: a>b no lugar de p>q).
 """

@@ -7,10 +7,10 @@ from pathlib import Path
 
 from BackEnd.logging_config import configure_logging
 from config import (
+    ACTIVITY_LOG_PATH,
+    ACTIVITY_SETTINGS_PATH,
     ASSETS_DIR,
-    CIRCUIT_IMAGE_PATH,
     DATA_DIR,
-    INPUT_CACHE_PATH,
     ROOT_PATH,
     load_environment_file,
 )
@@ -19,9 +19,9 @@ from config import (
 class ConfigurationTests(unittest.TestCase):
     def test_runtime_outputs_are_outside_versioned_assets(self):
         self.assertEqual(ASSETS_DIR, ROOT_PATH / "assets")
-        self.assertEqual(CIRCUIT_IMAGE_PATH.parent, DATA_DIR)
-        self.assertEqual(INPUT_CACHE_PATH.parent, DATA_DIR)
-        self.assertNotEqual(CIRCUIT_IMAGE_PATH.parent, ASSETS_DIR)
+        self.assertEqual(ACTIVITY_LOG_PATH.parent, DATA_DIR)
+        self.assertEqual(ACTIVITY_SETTINGS_PATH.parent, DATA_DIR)
+        self.assertNotEqual(DATA_DIR, ASSETS_DIR)
 
     def test_env_file_loads_values_without_overriding_process(self):
         variable = "LOZGATES_TEST_ENV_FILE"
