@@ -1,0 +1,123 @@
+{
+  "origem": "origin/interface_update",
+  "commit": "51bcfb78cfbc0c5866f05318ec63497ca7aa1d08",
+  "reescrita": "'BackEnd'/'FrontEnd' nos imports -> 'tests.paridade.oraculo_interface_update.BackEnd'/'tests.paridade.oraculo_interface_update.FrontEnd'",
+  "arquivos": {
+    "BackEnd/__init__.py": {
+      "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imports_reescritos": 0
+    },
+    "BackEnd/converter.py": {
+      "sha256_original": "4b13c8b695d37b7f07535fae604e818e2e0cafe7a5fba779f4ad36e72c73badc",
+      "imports_reescritos": 0
+    },
+    "BackEnd/equivalencia.py": {
+      "sha256_original": "6de72bb08dbccfb5b1f91580469424a2345a1e088efdfdbd0efe16d0884a3f4b",
+      "imports_reescritos": 0
+    },
+    "BackEnd/tabela.py": {
+      "sha256_original": "2d1d7913d50679f3bcd7c48085ced3a49644ae1112184217ad0231e5018929e8",
+      "imports_reescritos": 1
+    },
+    "BackEnd/identificar_lei.py": {
+      "sha256_original": "170e31e441d1166a8d72d880656c8a1d383bca361c619cf6aa5a47732479830f",
+      "imports_reescritos": 1
+    },
+    "BackEnd/simplificador_interativo.py": {
+      "sha256_original": "cb1c46c333526516f66cef32e904b84785f96290d35e9bbe3fef593584a585bf",
+      "imports_reescritos": 0
+    },
+    "BackEnd/normalizer.py": {
+      "sha256_original": "0240584fd129873bff298a846cb1025603edebee28fe61fc8469a1d62277007b",
+      "imports_reescritos": 0
+    },
+    "BackEnd/problems_bank.py": {
+      "sha256_original": "6f11f75628718cc78c5ecfe1ba4a865ab802374c00b7d3f4286928fdb72e1976",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/__init__.py": {
+      "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/platform_support.py": {
+      "sha256_original": "3a1bac6af722c58469762e658d92485949247b1fb9e7c35e48fcf4eecaf286d4",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/circuit_mode_selector.py": {
+      "sha256_original": "eaee546a5e1a8ba4b6ed8fee4619ae8fa248abb0c6fa56a0fec42975ca9c1713",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/core/__init__.py": {
+      "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/core/nodes.py": {
+      "sha256_original": "9b89d148d5a2709502e9360a4b670a526b9d3f5087832ecb7c65ae3790e68aef",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/logic/__init__.py": {
+      "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/logic/parser.py": {
+      "sha256_original": "c0e0b1d02b1bd2e52f88faf847b61f3510769c2dcc4c6528c419397febf64818",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/rendering/__init__.py": {
+      "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/rendering/camera.py": {
+      "sha256_original": "4357092f9469a6619b482a7d04b291c0adbd58f48df7d7577f0fc9ebad6f9d12",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/rendering/drawer.py": {
+      "sha256_original": "d78114ea048c9274b965dfcf4856c523bfabf96b0783bf237a7c3d773a9dca16",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/rendering/circuit_renderer.py": {
+      "sha256_original": "ed02da7f6d0788e69a9cedb7ec9214799c8a2bf07b7734888885b6246f760b80",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/interactive/__init__.py": {
+      "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/interactive/components.py": {
+      "sha256_original": "e8f6c8d10927f3f4fcb9efd0be736bcae60b91ea1db2f1b6a7deaac0af6f0f86",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/interactive/palette.py": {
+      "sha256_original": "a2c09b924945db757914cba6e748730051146e23943a0845548eaa9a42506ef6",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/interactive/interactive_circuit.py": {
+      "sha256_original": "d06e405ae546f6507695960c359dd98ac30ac64b48ecfe9caa6c6af00be4db4c",
+      "imports_reescritos": 1
+    },
+    "BackEnd/circuito_logico/utils/__init__.py": {
+      "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imports_reescritos": 0
+    },
+    "BackEnd/circuito_logico/utils/history.py": {
+      "sha256_original": "c65cf7a1d62073b44b3521c877b0d9d7179efdfa46fb1221c7809de2418f9694",
+      "imports_reescritos": 0
+    },
+    "FrontEnd/__init__.py": {
+      "sha256_original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imports_reescritos": 0
+    },
+    "FrontEnd/screens/resolver/resolver_controller.py": {
+      "sha256_original": "ea3b0b0fac34e18d10dc0686a80893045309bcd8990b4206f105f4f43dce506e",
+      "imports_reescritos": 1
+    },
+    "FrontEnd/screens/resolver/resolver_state.py": {
+      "sha256_original": "fdd27ad16fbfed7536b145fddbb6eac4b513b401cd43af8344a51ca32eaee86b",
+      "imports_reescritos": 0
+    },
+    "FrontEnd/screens/problems/problems_screen.py": {
+      "sha256_original": "e7d4043e4f4274fa48546f3d5056105ffc983c45d4157cb82ccf4b6af46d9b26",
+      "imports_reescritos": 5
+    }
+  }
+}

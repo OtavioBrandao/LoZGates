@@ -16,7 +16,10 @@ def test_parse_e_reimpressao_estavel(expr):
 
 @pytest.mark.parametrize("expr", CASOS)
 def test_avaliacao_bate_com_motor_antigo(expr):
-    from BackEnd.equivalencia import UniversalLogicAnalyzer
+    # O motor antigo é o do oráculo congelado do interface_update: o
+    # BackEnd.equivalencia atual já usa o próprio parser canônico.
+    from tests.paridade.oraculo import modulo
+    UniversalLogicAnalyzer = modulo("BackEnd.equivalencia").UniversalLogicAnalyzer
     analyzer = UniversalLogicAnalyzer()
     arvore = parse(expr)
     variaveis = sorted(collect_variables(arvore))

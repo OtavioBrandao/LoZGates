@@ -1,0 +1,109 @@
+#Módulo para gerenciamento da câmera/viewport do circuito lógico, incluindo zoom, pan e conversões de coordenadas.
+
+import pygame
+
+class Camera:
+    def __init__(self, screen_width, screen_height):
+        self.x = 0
+        self.y = 0
+        self.zoom = 1.0
+        self.min_zoom = 0.2
+        self.max_zoom = 3.0
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        self.move_speed = 5
+        self.zoom_speed = 0.1
+        self.dragging = False
+        self.last_mouse_pos = (0, 0)
+        self.mouse_inside = False
+        self.on_mouse_enter = None
+        self.on_mouse_leave = None
+    
+    def world_to_screen(self, world_pos):
+        world_x, world_y = world_pos
+        screen_x = (world_x - self.x) * self.zoom + self.screen_width / 2
+        screen_y = (world_y - self.y) * self.zoom + self.screen_height / 2
+        return (int(screen_x), int(screen_y))
+    
+    def screen_to_world(self, screen_pos):
+        screen_x, screen_y = screen_pos
+        world_x = (screen_x - self.screen_width / 2) / self.zoom + self.x
+        world_y = (screen_y - self.screen_height / 2) / self.zoom + self.y
+        return (world_x, world_y)
+    
+    def move(self, dx, dy):
+        self.x += dx / self.zoom
+        self.y += dy / self.zoom
+    
+    def zoom_at(self, screen_pos, zoom_delta):
+        world_pos = self.screen_to_world(screen_pos)
+        self.zoom = max(self.min_zoom, min(self.max_zoom, self.zoom + zoom_delta))
+        self.x = world_pos[0] - (screen_pos[0] - self.screen_width / 2) / self.zoom
+        self.y = world_pos[1] - (screen_pos[1] - self.screen_height / 2) / self.zoom
+
+    def update_viewport(self, screen_width, screen_height):
+        self.screen_width = max(1, int(screen_width))
+        self.screen_height = max(1, int(screen_height))
+    
+    def reset_view(self):
+        self.x = 0
+        self.y = 0
+        self.zoom = 1.0
+    
+    def handle_event(self, event, interactive_mode=False):
+        if event.type == pygame.MOUSEWHEEL:
+            mouse_position = pygame.mouse.get_pos()
+            self.zoom_at(mouse_position, event.y * self.zoom_speed)
+            return True
+
+        # Verifica se o mouse está dentro da área do pygame
+        if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            is_inside = (0 <= mouse_x <= self.screen_width and 0 <= mouse_y <= self.screen_height)
+            
+            # Detecta mudança de estado e chama callbacks
+            if is_inside and not self.mouse_inside:
+                self.mouse_inside = True
+                if self.on_mouse_enter:
+                    self.on_mouse_enter()
+            elif not is_inside and self.mouse_inside:
+                self.mouse_inside = False
+                if self.on_mouse_leave:
+                    self.on_mouse_leave()
+            
+            if not is_inside:
+                return False
+        
+        if interactive_mode:
+            # No modo interativo, só permite zoom
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 4:  # Scroll up
+                    self.zoom_at(event.pos, self.zoom_speed)
+                    return True
+                elif event.button == 5:  # Scroll down
+                    self.zoom_at(event.pos, -self.zoom_speed)
+                    return True
+        else:
+            # Modo normal - permite drag e zoom
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    self.dragging = True
+                    self.last_mouse_pos = event.pos
+                    return True
+                elif event.button == 4:
+                    self.zoom_at(event.pos, self.zoom_speed)
+                    return True
+                elif event.button == 5:
+                    self.zoom_at(event.pos, -self.zoom_speed)
+                    return True
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                self.dragging = False
+                return True
+            elif event.type == pygame.MOUSEMOTION and self.dragging:
+                dx = event.pos[0] - self.last_mouse_pos[0]
+                dy = event.pos[1] - self.last_mouse_pos[1]
+                self.move(-dx, -dy)
+                self.last_mouse_pos = event.pos
+                return True
+        
+        return False
