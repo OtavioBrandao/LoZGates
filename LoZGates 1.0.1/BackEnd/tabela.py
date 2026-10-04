@@ -97,6 +97,16 @@ def verificar_conclusao(resultados):
     else:
         return f"A expressão é SATISFATÍVEL."
 
+def classificar_conclusao(resultados):
+    """'tautologia', 'contradicao' ou 'satisfativel' (None se não houver o que classificar)."""
+    if not resultados or any(r not in (0, 1) for r in resultados):
+        return None
+    if all(resultados):
+        return "tautologia"
+    if not any(resultados):
+        return "contradicao"
+    return "satisfativel"
+
 def imprimir_tabela_formatada(resultado_tabela):
     colunas = resultado_tabela["colunas"]
     tabela = resultado_tabela["tabela"]

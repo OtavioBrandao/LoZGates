@@ -29,12 +29,8 @@ class AIAssistant:
     def configured(self) -> bool:
         return self.client.configured
 
-    def get_ai_suggestion(
-        self,
-        expression: str,
-        step_context: str = "",
-        callback: AIResultCallback | None = None,
-    ) -> threading.Thread:
+    @staticmethod
+    def _pedido_de_sugestao(expression: str, step_context: str = "") -> tuple[str, str, int]:
         prompt = f"""Analise esta expressão de lógica proposicional:
 
 Expressão: {expression}
@@ -48,20 +44,12 @@ Lei: [nome]
 Aplicação: [explicação]
 Resultado: [expressão]
 """
-        return self._request_async(
-            prompt,
-            "Você é um professor especialista em lógica proposicional. "
-            "Seja preciso, didático e não invente equivalências.",
-            max_tokens=400,
-            callback=callback,
-        )
+        sistema = ("Você é um professor especialista em lógica proposicional. "
+                   "Seja preciso, didático e não invente equivalências.")
+        return prompt, sistema, 400
 
-    def ask_question(
-        self,
-        question: str,
-        expression: str,
-        callback: AIResultCallback | None = None,
-    ) -> threading.Thread:
+    @staticmethod
+    def _pedido_de_resposta(question: str, expression: str) -> tuple[str, str, int]:
         prompt = f"""Responda à pergunta sobre lógica proposicional.
 
 Expressão em análise: {expression or "não informada"}
@@ -70,12 +58,45 @@ Pergunta: {question}
 Explique de forma didática, use símbolos lógicos apropriados e inclua um
 exemplo apenas quando ele ajudar. Responda em português.
 """
-        return self._request_async(
-            prompt,
-            "Você é um professor de lógica proposicional. Seja claro e preciso.",
-            max_tokens=500,
-            callback=callback,
+        return prompt, "Você é um professor de lógica proposicional. Seja claro e preciso.", 500
+
+    def _consultar(self, prompt: str, system_prompt: str, max_tokens: int) -> str:
+        """Pedido síncrono; falhas sobem como AIClientError (com mensagem para o aluno)."""
+        response = self.client.complete(
+            [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=max_tokens,
+            temperature=0.2,
         )
+        return self._format_response(response)
+
+    def sugerir(self, expression: str, step_context: str = "") -> str:
+        """Versão síncrona de get_ai_suggestion (usada pela API web)."""
+        return self._consultar(*self._pedido_de_sugestao(expression, step_context))
+
+    def perguntar(self, question: str, expression: str) -> str:
+        """Versão síncrona de ask_question (usada pela API web)."""
+        return self._consultar(*self._pedido_de_resposta(question, expression))
+
+    def get_ai_suggestion(
+        self,
+        expression: str,
+        step_context: str = "",
+        callback: AIResultCallback | None = None,
+    ) -> threading.Thread:
+        prompt, sistema, maximo = self._pedido_de_sugestao(expression, step_context)
+        return self._request_async(prompt, sistema, max_tokens=maximo, callback=callback)
+
+    def ask_question(
+        self,
+        question: str,
+        expression: str,
+        callback: AIResultCallback | None = None,
+    ) -> threading.Thread:
+        prompt, sistema, maximo = self._pedido_de_resposta(question, expression)
+        return self._request_async(prompt, sistema, max_tokens=maximo, callback=callback)
 
     def _request_async(
         self,
@@ -87,27 +108,20 @@ exemplo apenas quando ele ajudar. Responda em português.
     ) -> threading.Thread:
         def make_request() -> None:
             try:
-                response = self.client.complete(
-                    [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt},
-                    ],
-                    max_tokens=max_tokens,
-                    temperature=0.2,
-                )
+                resposta = self._consultar(prompt, system_prompt, max_tokens)
             except AIClientError as exc:
                 logger.warning("AI request unavailable: %s", exc)
                 if callback:
                     callback(None, exc.user_message)
                 return
-            except Exception:
+            except Exception:  # noqa: BLE001 - a thread precisa sempre devolver uma resposta à interface
                 logger.exception("Unexpected AI assistant failure")
                 if callback:
                     callback(None, "Não foi possível consultar a IA neste momento.")
                 return
 
             if callback:
-                callback(self._format_response(response), None)
+                callback(resposta, None)
 
         thread = threading.Thread(
             target=make_request,
