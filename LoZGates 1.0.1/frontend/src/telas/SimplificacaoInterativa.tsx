@@ -78,7 +78,7 @@ export function SimplificacaoInterativa() {
   const estado = useRef<EstadoInterativo | null>(null);
   const inicio = useRef(performance.now());
   const iniciado = useRef(false);
-  const fimDoHistorico = useRef<HTMLLIElement>(null);
+  const listaDoHistorico = useRef<HTMLOListElement>(null);
 
   const aplicarResposta = (resposta: RespostaInterativa) => {
     estado.current = resposta.estado;
@@ -113,9 +113,10 @@ export function SimplificacaoInterativa() {
       .finally(() => setAguardando(false));
   }, []); // uma sessão por montagem da tela
 
-  // O histórico rola para o fim a cada passo (yview_moveto(1.0))
+  // O histórico rola para o fim a cada passo (yview_moveto(1.0)), sem mexer na página
   useEffect(() => {
-    fimDoHistorico.current?.scrollIntoView({ block: 'nearest' });
+    const lista = listaDoHistorico.current;
+    if (lista) lista.scrollTop = lista.scrollHeight;
   }, [visao?.historico.length]);
 
   const aplicarLei = (lei: BotaoLei) =>
@@ -155,57 +156,63 @@ export function SimplificacaoInterativa() {
     </div>
   );
 
+  // Duas colunas: à esquerda o estado atual, as leis e os controles (sempre à vista);
+  // à direita o histórico, que rola sozinho
   return (
-    <main className="tela tela--media resolver" aria-busy={aguardando}>
-      {/* ZONA 1 — contexto: expressão atual e subexpressão em análise */}
-      <section className="painel resolver__zona" aria-labelledby="titulo-expressao-atual">
-        <div className="painel__cabecalho">
-          <h2 id="titulo-expressao-atual" className="painel__titulo">
-            Expressão Atual
-          </h2>
-          <Botao tamanho="pequeno" onClick={abrirChatIA} aria-label="Pedir sugestão à IA">
-            &nbsp;&nbsp;IA
-          </Botao>
+    <main className="tela tela--larga resolver" aria-busy={aguardando}>
+      <div className="resolver__colunas">
+        <div className="resolver__principal">
+          {/* ZONA 1 — contexto: expressão atual e subexpressão em análise */}
+          <section className="painel resolver__zona" aria-labelledby="titulo-expressao-atual">
+            <div className="painel__cabecalho">
+              <h2 id="titulo-expressao-atual" className="painel__titulo">
+                Expressão Atual
+              </h2>
+              <Botao tamanho="pequeno" onClick={abrirChatIA} aria-label="Pedir sugestão à IA">
+                &nbsp;&nbsp;IA
+              </Botao>
+            </div>
+            <p className="mono resolver__expressao">{visao ? <ExpressaoComDestaque visao={visao} /> : app.expressaoGlobal}</p>
+            <p className="resolver__rotulo-analise">▼&nbsp;&nbsp;Subexpressão em análise:</p>
+            <p className={`resolver__analise resolver__analise--${cor}`} role="status" aria-live="polite">
+              {texto}
+            </p>
+          </section>
+
+          {/* ZONA 2 — leis */}
+          <section className="painel resolver__zona" aria-labelledby="titulo-leis">
+            <h2 id="titulo-leis" className="painel__titulo">
+              Escolha uma Lei para Aplicar
+            </h2>
+            {grupoDeLeis('Básicas', LEIS_BASICAS)}
+            {grupoDeLeis('Estruturais', LEIS_ESTRUTURAIS)}
+          </section>
+
+          {/* ZONA 3 — controles, logo abaixo das leis */}
+          <div className="resolver__controles">
+            <Botao onClick={pular} disabled={!visao || concluida || aguardando}>
+              Pular →
+            </Botao>
+            <Botao estilo="aviso" onClick={desfazer} disabled={!visao?.pode_desfazer || aguardando}>
+              ↶ Desfazer
+            </Botao>
+            <Botao estilo="voltar" onClick={voltar}>
+              Voltar
+            </Botao>
+          </div>
         </div>
-        <p className="mono resolver__expressao">{visao ? <ExpressaoComDestaque visao={visao} /> : app.expressaoGlobal}</p>
-        <p className="resolver__rotulo-analise">▼&nbsp;&nbsp;Subexpressão em análise:</p>
-        <p className={`resolver__analise resolver__analise--${cor}`} role="status" aria-live="polite">
-          {texto}
-        </p>
-      </section>
 
-      {/* ZONA 2 — leis */}
-      <section className="painel resolver__zona" aria-labelledby="titulo-leis">
-        <h2 id="titulo-leis" className="painel__titulo">
-          Escolha uma Lei para Aplicar
-        </h2>
-        {grupoDeLeis('Básicas', LEIS_BASICAS)}
-        {grupoDeLeis('Estruturais', LEIS_ESTRUTURAIS)}
-      </section>
-
-      {/* ZONA 3 — histórico e controles */}
-      <section className="painel resolver__zona" aria-labelledby="titulo-historico">
-        <h2 id="titulo-historico" className="painel__titulo">
-          Histórico de Passos
-        </h2>
-        <ol className="lista-passos lista-passos--rolavel">
-          {visao?.historico.map((item, i) => (
-            <CartaoDoHistorico key={i} item={item} />
-          ))}
-          <li ref={fimDoHistorico} aria-hidden="true" className="lista-passos__fim" />
-        </ol>
-      </section>
-
-      <div className="resolver__controles">
-        <Botao onClick={pular} disabled={!visao || concluida || aguardando}>
-          Pular →
-        </Botao>
-        <Botao estilo="aviso" onClick={desfazer} disabled={!visao?.pode_desfazer || aguardando}>
-          ↶ Desfazer
-        </Botao>
-        <Botao estilo="voltar" onClick={voltar}>
-          Voltar
-        </Botao>
+        {/* Histórico, na coluna da direita */}
+        <section className="painel resolver__historico" aria-labelledby="titulo-historico">
+          <h2 id="titulo-historico" className="painel__titulo">
+            Histórico de Passos
+          </h2>
+          <ol ref={listaDoHistorico} className="lista-passos lista-passos--historico">
+            {visao?.historico.map((item, i) => (
+              <CartaoDoHistorico key={i} item={item} />
+            ))}
+          </ol>
+        </section>
       </div>
     </main>
   );

@@ -2076,7 +2076,7 @@ kbd {
 }
 .grade-leis {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(130px, 45%), 1fr));
   gap: 8px;
 }
 .botao-lei {
@@ -2085,15 +2085,55 @@ kbd {
   padding: 8px;
   font-size: var(--t-corpo-p);
 }
-.lista-passos--rolavel {
-  max-height: 45vh;
-  overflow-y: auto;
-  padding-right: 4px;
-}
 .resolver__controles {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--e-sm);
+}
+/* Duas colunas: estado atual, leis e controles à esquerda (sempre à vista);
+   o histórico à direita, preso à tela e com rolagem própria */
+.resolver__colunas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+  align-items: start;
+  gap: var(--e-lg);
+}
+.resolver__principal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+  min-width: 0;
+}
+.resolver__historico {
+  position: sticky;
+  top: var(--e-lg);
+  max-height: calc(100vh - 2 * var(--e-lg));
+}
+.lista-passos--historico {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+@media (max-width: 960px) {
+  .resolver__colunas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* numa coluna só, Pular/Desfazer/Voltar ficam presos no pé da tela */
+  .resolver__controles {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding: var(--e-sm) 0;
+    background: var(--fundo);
+  }
+  .resolver__historico {
+    position: static;
+    max-height: none;
+  }
+  .lista-passos--historico {
+    max-height: 50vh;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -2637,8 +2677,9 @@ kbd {
   }
 }
 @media (max-width: 560px) {
-  .resolver__controles {
-    grid-template-columns: 1fr;
+  .resolver__controles .botao {
+    padding: 6px 8px;
+    font-size: var(--t-corpo-p);
   }
 }
 
