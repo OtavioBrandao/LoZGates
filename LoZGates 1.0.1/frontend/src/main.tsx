@@ -1,13 +1,14 @@
-import '@fontsource/ibm-plex-sans/400.css';
-import '@fontsource/ibm-plex-sans/500.css';
-import '@fontsource/ibm-plex-sans/600.css';
-import '@fontsource/ibm-plex-sans/700.css';
-import '@fontsource/ibm-plex-mono/400.css';
-import '@fontsource/ibm-plex-mono/600.css';
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/public-sans';
+import '@fontsource-variable/jetbrains-mono';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import './estilos/global.css';
+import { aplicarTema, temaSalvo } from './tema';
 
-// Sem <StrictMode>: ele executa efeitos duas vezes em desenvolvimento, o que duplicaria
-// chamadas ao Python com efeito colateral (ex.: registros do DetailedUserLogger).
+// Antes de desenhar, para não piscar o tema errado
+aplicarTema(temaSalvo());
+
+// Sem <StrictMode>: ele executa efeitos duas vezes em desenvolvimento, o que
+// duplicaria chamadas à API com efeito no registro de uso.
 createRoot(document.getElementById('root')!).render(<App />);
