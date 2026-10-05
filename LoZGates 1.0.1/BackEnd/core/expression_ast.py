@@ -378,6 +378,42 @@ def _precedencia(no: Node) -> int:
     return _OPERANDO if isinstance(no, VariableNode) else _PRECEDENCIA[no.op]
 
 
+def _imprimir_minimo(node: Node, style: str, trechos: Optional[Dict[int, Tuple[int, int]]]) -> str:
+    if style not in _SIMBOLOS:
+        raise ValueError(f"Estilo de impressão desconhecido: {style}")
+    simbolos = _SIMBOLOS[style]
+
+    def filho(n: Node, base: int, precisa: bool) -> str:
+        """Texto do filho que começa em `base`, entre parênteses só se precisar."""
+        if not precisa:
+            return visitar(n, base)
+        return "(" + visitar(n, base + 1) + ")"
+
+    def visitar(n: Node, base: int) -> str:
+        if isinstance(n, VariableNode):
+            texto = n.name
+        elif n.op == NOT:
+            unico = n.children[0]
+            texto = simbolos[NOT]
+            texto += filho(unico, base + len(texto), _precedencia(unico) < _PRECEDENCIA[NOT])
+        elif n.op in (AND, OR, IMPLIES, IFF):
+            propria = _PRECEDENCIA[n.op]
+            a_direita = n.op == IMPLIES  # a única que associa à direita
+            esquerda, direita = n.children
+            texto = filho(esquerda, base,
+                          _precedencia(esquerda) < propria or (_precedencia(esquerda) == propria and a_direita))
+            texto += simbolos[n.op]
+            texto += filho(direita, base + len(texto),
+                           _precedencia(direita) < propria or (_precedencia(direita) == propria and not a_direita))
+        else:
+            raise ValueError(f"Operador desconhecido: {n.op}")
+        if trechos is not None:
+            trechos[id(n)] = (base, base + len(texto))
+        return texto
+
+    return visitar(node, 0)
+
+
 def to_string_minimo(node: Node, style: str = "logic") -> str:
     """
     Como to_string, mas só com os parênteses necessários para reler a MESMA
@@ -385,35 +421,16 @@ def to_string_minimo(node: Node, style: str = "logic") -> str:
     "(A+B)*((~C+D))" sai "(A+B)*(~C+D)". Já "A*(B*C)" fica como está: sem os
     parênteses o texto seria lido como (A*B)*C, outra árvore e outro circuito.
     """
-    if style not in _SIMBOLOS:
-        raise ValueError(f"Estilo de impressão desconhecido: {style}")
-    simbolos = _SIMBOLOS[style]
+    return _imprimir_minimo(node, style, None)
 
-    def entre_parenteses(texto: str, precisa: bool) -> str:
-        return f"({texto})" if precisa else texto
 
-    def visitar(n: Node) -> str:
-        if isinstance(n, VariableNode):
-            return n.name
-        if n.op == NOT:
-            filho = n.children[0]
-            return simbolos[NOT] + entre_parenteses(visitar(filho), _precedencia(filho) < _PRECEDENCIA[NOT])
-        if n.op not in (AND, OR, IMPLIES, IFF):
-            raise ValueError(f"Operador desconhecido: {n.op}")
-        propria = _PRECEDENCIA[n.op]
-        a_direita = n.op == IMPLIES  # a única que associa à direita
-        esquerda, direita = n.children
-        texto_esquerda = entre_parenteses(
-            visitar(esquerda),
-            _precedencia(esquerda) < propria or (_precedencia(esquerda) == propria and a_direita),
-        )
-        texto_direita = entre_parenteses(
-            visitar(direita),
-            _precedencia(direita) < propria or (_precedencia(direita) == propria and not a_direita),
-        )
-        return texto_esquerda + simbolos[n.op] + texto_direita
-
-    return visitar(node)
+def to_string_minimo_com_trechos(node: Node, style: str = "logic") -> Tuple[str, Dict[int, Tuple[int, int]]]:
+    """
+    Como to_string_minimo, mas também diz onde cada nó aparece: {id(no): (início, fim)}.
+    O trecho de um nó não inclui os parênteses que o pai pôs em volta dele.
+    """
+    trechos: Dict[int, Tuple[int, int]] = {}
+    return _imprimir_minimo(node, style, trechos), trechos
 
 
 # ----------------------- HELPERS usados em vários módulos -----------------------

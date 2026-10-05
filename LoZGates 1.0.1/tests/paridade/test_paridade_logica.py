@@ -78,7 +78,7 @@ def test_simplificacao_automatica(expr):
     with contextlib.redirect_stdout(saida):
         antiga = antigo_lei.principal_simplificar(conversao_antiga)
     assert antiga is not None, saida.getvalue()
-    assert nova.expressao_final == str(antiga)
+    assert parse(nova.expressao_final) == parse(str(antiga))  # D3f: mesma árvore, só sem parênteses sobrando
     assert [passo.lei for passo in nova.passos] == leis_impressas(saida.getvalue())
 
 

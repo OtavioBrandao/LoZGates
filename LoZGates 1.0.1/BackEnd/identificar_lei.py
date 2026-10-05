@@ -9,7 +9,8 @@ from BackEnd.core.expression_ast import (
     VariableNode,
     no_no_caminho,
     parse,
-    to_string_com_trechos,
+    to_string_minimo,
+    to_string_minimo_com_trechos,
 )
 from BackEnd.simplificador_interativo import (
     MAX_SIMPLIFICATION_STEPS,
@@ -233,18 +234,21 @@ class ResultadoSimplificacao:
 
 
 def _registrar_passo(passos, iteracao, reducao, arvore_antes, arvore_depois):
-    texto_antes, trechos_antes = to_string_com_trechos(arvore_antes)
-    texto_depois, trechos_depois = to_string_com_trechos(arvore_depois)
+    # O aluno vê as expressões só com os parênteses que mudam a árvore (D3f)
+    texto_antes, trechos_antes = to_string_minimo_com_trechos(arvore_antes)
+    texto_depois, trechos_depois = to_string_minimo_com_trechos(arvore_depois)
+    no_antes = no_no_caminho(arvore_antes, reducao.caminho)
+    no_depois = no_no_caminho(arvore_depois, reducao.caminho)
     passos.append(PassoSimplificacao(
         iteracao=iteracao,
         lei=reducao.lei,
         caminho=reducao.caminho,
-        subexpressao_antes=reducao.antes,
-        subexpressao_depois=reducao.depois,
+        subexpressao_antes=to_string_minimo(no_antes),
+        subexpressao_depois=to_string_minimo(no_depois),
         expressao_antes=texto_antes,
         expressao_depois=texto_depois,
-        trecho_antes=trechos_antes[id(no_no_caminho(arvore_antes, reducao.caminho))],
-        trecho_depois=trechos_depois[id(no_no_caminho(arvore_depois, reducao.caminho))],
+        trecho_antes=trechos_antes[id(no_antes)],
+        trecho_depois=trechos_depois[id(no_depois)],
     ))
 
 
@@ -346,14 +350,14 @@ def simplificar_expressao(expressao_usuario, max_steps=MAX_SIMPLIFICATION_STEPS)
     booleana = converter_para_algebra_booleana(expressao_usuario)
     logica = booleana.replace("+", "|").replace("*", "&").replace("~", "!")
     arvore = construir_arvore(logica)
-    inicial = str(arvore)
+    inicial = to_string_minimo(arvore)
     passos: List[PassoSimplificacao] = []
     final, motivo = _simplificar(arvore, max_steps, anunciar=False, passos=passos)
     return ResultadoSimplificacao(
         expressao_original=expressao_usuario,
         expressao_booleana=booleana,
         expressao_inicial=inicial,
-        expressao_final=str(final),
+        expressao_final=to_string_minimo(final),
         motivo_parada=motivo,
         passos=passos,
     )

@@ -17,6 +17,7 @@ from BackEnd.core.expression_ast import (
     to_string,
     to_string_com_trechos,
     to_string_minimo,
+    to_string_minimo_com_trechos,
     tree_size,
 )
 
@@ -180,6 +181,28 @@ def test_impressao_minima_rele_a_mesma_arvore_em_todo_o_corpus():
             assert parse(texto) == arvore, (expr, texto)
             assert len(texto) <= len(to_string(arvore, style=estilo))
             assert to_string_minimo(parse(texto), style=estilo) == texto  # já não sobra nada para tirar
+
+
+def test_trechos_da_impressao_minima():
+    arvore = parse("!(A&B)|C")
+    texto, trechos = to_string_minimo_com_trechos(arvore, style="boolean")
+    assert texto == "~(A*B)+C"
+    negacao, c = arvore.children
+    conjuncao = negacao.children[0]
+    assert trechos[id(arvore)] == (0, len(texto))
+    assert texto[slice(*trechos[id(negacao)])] == "~(A*B)"
+    assert texto[slice(*trechos[id(conjuncao)])] == "A*B"  # sem os parênteses que o pai pôs
+    assert texto[slice(*trechos[id(c)])] == "C"
+
+
+def test_cada_trecho_minimo_rele_o_proprio_no_em_todo_o_corpus():
+    from tests.paridade import corpus
+    for expr in corpus.TODAS:
+        arvore = parse(expr)
+        texto, trechos = to_string_minimo_com_trechos(arvore, style="boolean")
+        assert texto == to_string_minimo(arvore, style="boolean")
+        for _, no in percorrer(arvore):
+            assert parse(texto[slice(*trechos[id(no)])]) == no, (expr, texto, trechos[id(no)])
 
 
 def test_trechos_apontam_cada_no_no_texto_impresso():

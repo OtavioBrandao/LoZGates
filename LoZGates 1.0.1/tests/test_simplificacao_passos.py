@@ -35,7 +35,7 @@ def test_cada_passo_tem_lei_e_trechos_coerentes():
 def test_expressao_ja_simplificada_nao_tem_passos():
     resultado = simplificar_expressao("A & B")
     assert resultado.passos == []
-    assert resultado.expressao_final == "(A&B)"
+    assert resultado.expressao_final == "A&B"
     assert resultado.motivo_parada == "no_further_simplification"
 
 

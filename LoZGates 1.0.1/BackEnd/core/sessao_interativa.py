@@ -20,7 +20,14 @@ from typing import Dict, List, Optional, Tuple
 
 import BackEnd.simplificador_interativo as simpli
 from BackEnd.converter import converter_para_algebra_booleana
-from BackEnd.core.expression_ast import caminho_ate, no_no_caminho, parse, percorrer, to_string_com_trechos
+from BackEnd.core.expression_ast import (
+    caminho_ate,
+    no_no_caminho,
+    parse,
+    percorrer,
+    to_string_minimo,
+    to_string_minimo_com_trechos,
+)
 
 VERSAO_DO_ESTADO = 1
 MOTIVOS_QUE_ENCERRAM = ("no_further_simplification", "maximum_steps", "repeated_state")
@@ -40,6 +47,15 @@ class Resposta:
     mensagem: Optional[str] = None
     # Chamadas para o registro de uso (nome do método do DetailedUserLogger e argumentos)
     eventos: List[dict] = field(default_factory=list)
+
+
+def _exibir(no) -> str:
+    """
+    Texto que o aluno vê (expressão, subexpressão e histórico): estilo booleano,
+    só com os parênteses que mudam a árvore (D3f). O registro de uso e o estado
+    salvo continuam com simpli.formatar, o formato do desktop.
+    """
+    return to_string_minimo(no, style="boolean")
 
 
 def _evento(metodo: str, *argumentos) -> dict:
@@ -141,11 +157,11 @@ class _Sessao:
         return sessao
 
     def visao(self) -> dict:
-        texto, trechos = to_string_com_trechos(self.arvore, style="boolean")
+        texto, trechos = to_string_minimo_com_trechos(self.arvore, style="boolean")
         no = self.passo_atual["no_atual"] if self.passo_atual else None
         return {
             "expressao": texto,
-            "subexpressao": simpli.formatar(no) if no is not None else None,
+            "subexpressao": _exibir(no) if no is not None else None,
             "trecho": list(trechos[id(no)]) if no is not None else None,
             "motivo_parada": self.motivo_parada,
             "concluida": self.concluida,
@@ -183,7 +199,7 @@ class _Sessao:
         self.eventos.append(_evento("log_interactive_simplification_start", expressao_booleana))
         self.arvore = simpli.construir_arvore(expressao_booleana)
         self.guarda = simpli.SimplificationGuard(self.arvore)
-        self.historico.append({"tipo": "inicial", "expressao": simpli.formatar(self.arvore)})
+        self.historico.append({"tipo": "inicial", "expressao": _exibir(self.arvore)})
         self.iniciar_rodada()
 
     def iniciar_rodada(self):
@@ -213,7 +229,8 @@ class _Sessao:
         lei = simpli.LEIS_LOGICAS[indice]
         nome = lei["nome"]
         no_atual = self.passo_atual["no_atual"]
-        antes = simpli.formatar(no_atual)
+        antes = simpli.formatar(no_atual)  # texto do registro de uso, como no desktop
+        antes_na_tela = _exibir(no_atual)
 
         # Validação pedagógica: lei que não se aplica só gera o aviso
         if not lei["verifica"](no_atual):
@@ -238,7 +255,7 @@ class _Sessao:
             self.ignorados = set()
             self.historico.append({
                 "tipo": "lei", "passo": self.contador_passos, "lei": nome,
-                "antes": antes, "depois": simpli.formatar(self.arvore),
+                "antes": antes_na_tela, "depois": _exibir(self.arvore),
             })
             self.iniciar_rodada()
         else:
@@ -258,7 +275,7 @@ class _Sessao:
         self.eventos.append(_evento("log_simplification_skip", self.contador_passos))
         self.ignorados.add(id(no))
         self.concluida = False
-        self.historico.append({"tipo": "pulo", "subexpressao": simpli.formatar(no)})
+        self.historico.append({"tipo": "pulo", "subexpressao": _exibir(no)})
         self.iniciar_rodada()
 
     def desfazer(self):

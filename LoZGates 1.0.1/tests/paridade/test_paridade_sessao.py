@@ -9,6 +9,7 @@ import pytest
 
 from BackEnd.converter import converter_para_algebra_booleana
 from BackEnd.core import sessao_interativa as sessao
+from BackEnd.core.expression_ast import parse
 from tests.paridade import corpus, diferencas_aprovadas, oraculo
 
 antigo_simpli = oraculo.modulo("BackEnd.simplificador_interativo")
@@ -49,12 +50,17 @@ class TelaFalsa:
         pass
 
 
+def arvore(texto):
+    """D3f: o texto na tela só tem os parênteses necessários; compara-se a árvore lida dele."""
+    return None if texto is None else parse(texto)
+
+
 def visao_antiga(controller):
     estado = controller.state
     passo = estado.passo_atual_info
     return {
-        "expressao": str(estado.arvore_interativa),
-        "subexpressao": str(passo["no_atual"]) if passo else None,
+        "expressao": arvore(str(estado.arvore_interativa)),
+        "subexpressao": arvore(str(passo["no_atual"])) if passo else None,
         "motivo_parada": estado.motivo_parada_interativo,
         "concluida": estado.sessao_simplificacao_concluida,
         "pode_desfazer": bool(estado.historico_de_estados),
@@ -63,8 +69,9 @@ def visao_antiga(controller):
 
 
 def comparavel(visao):
-    return {chave: visao[chave] for chave in
-            ("expressao", "subexpressao", "motivo_parada", "concluida", "pode_desfazer", "contador_passos")}
+    dados = {chave: visao[chave] for chave in
+             ("expressao", "subexpressao", "motivo_parada", "concluida", "pode_desfazer", "contador_passos")}
+    return {**dados, "expressao": arvore(dados["expressao"]), "subexpressao": arvore(dados["subexpressao"])}
 
 
 def sem_tempo(eventos):

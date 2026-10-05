@@ -16,11 +16,11 @@ def metodos(resposta):
 def test_inicio_mostra_a_menor_subexpressao_e_seu_trecho():
     resposta = sessao.iniciar("(A&1)|C", agora=1000.0)
     visao = resposta.visao
-    assert visao["expressao"] == "((A*1)+C)"
-    assert visao["subexpressao"] == "(A*1)"
+    assert visao["expressao"] == "A*1+C"
+    assert visao["subexpressao"] == "A*1"
     inicio, fim = visao["trecho"]
-    assert visao["expressao"][inicio:fim] == "(A*1)"
-    assert visao["historico"] == [{"tipo": "inicial", "expressao": "((A*1)+C)"}]
+    assert visao["expressao"][inicio:fim] == "A*1"
+    assert visao["historico"] == [{"tipo": "inicial", "expressao": "A*1+C"}]
     assert not visao["pode_desfazer"] and not visao["concluida"]
     assert metodos(resposta) == ["log_interactive_simplification_start"]
     json.dumps(resposta.estado)  # o estado precisa viajar como JSON
@@ -29,11 +29,11 @@ def test_inicio_mostra_a_menor_subexpressao_e_seu_trecho():
 def test_aplicar_lei_ate_concluir():
     resposta = sessao.iniciar("(A&1)|C", agora=1000.0)
     resposta = sessao.aplicar_lei(resposta.estado, IDENTIDADE)
-    assert resposta.visao["expressao"] == "(A+C)"
+    assert resposta.visao["expressao"] == "A+C"
     assert resposta.visao["historico"][-1] == {
-        "tipo": "lei", "passo": 1, "lei": "Identidade (A * 1 = A)", "antes": "(A*1)", "depois": "(A+C)",
+        "tipo": "lei", "passo": 1, "lei": "Identidade (A * 1 = A)", "antes": "A*1", "depois": "A+C",
     }
-    assert resposta.visao["subexpressao"] == "(A+C)"
+    assert resposta.visao["subexpressao"] == "A+C"
     assert metodos(resposta) == ["log_law_applied"]
     resposta = sessao.pular(resposta.estado)
     assert resposta.visao["motivo_parada"] == "no_further_simplification"
@@ -59,7 +59,7 @@ def test_transformacao_recusada_volta_ao_estado_anterior(monkeypatch):
     assert metodos(seguinte) == ["log_law_applied", "log_simplification_step_failed"]
     assert seguinte.eventos[0]["argumentos"] == ["Identidade (A * 1 = A)", False, 1]
     assert seguinte.visao["expressao"] == resposta.visao["expressao"]
-    assert seguinte.visao["subexpressao"] == "(A*1)" and not seguinte.visao["pode_desfazer"]
+    assert seguinte.visao["subexpressao"] == "A*1" and not seguinte.visao["pode_desfazer"]
 
 
 def test_pular_e_desfazer():
@@ -77,7 +77,7 @@ def test_pular_e_desfazer():
 def test_ignorado_por_caminho_nao_ignora_o_gemeo():
     resposta = sessao.pular(sessao.iniciar("(A*B)+(A*B)").estado)
     # o primeiro (A*B) foi pulado; o segundo, estruturalmente igual, continua disponível
-    assert resposta.visao["subexpressao"] == "(A*B)"
+    assert resposta.visao["subexpressao"] == "A*B"
     assert resposta.estado["ignorados"] == [[0]] and resposta.estado["passo_atual"] == [1]
 
 
@@ -92,4 +92,4 @@ def test_estado_invalido():
 
 
 def test_aceita_implicacao_convertendo_como_o_desktop():
-    assert sessao.iniciar("A>B").visao["expressao"] == "(~A+B)"
+    assert sessao.iniciar("A>B").visao["expressao"] == "~A+B"

@@ -31,6 +31,12 @@ ENTRADA_INVALIDA = "D3c"
 # tabela-verdade e simplificações continuam iguais.
 PARENTESES_REDUNDANTES = "D3e"
 
+# D3f — a mesma regra nas telas de simplificação (aprovado em 05/10/2026): a
+# expressão, a subexpressão em análise, o histórico e os passos aparecem só
+# com os parênteses necessários. Relidos, dão a MESMA árvore que o texto do
+# desktop; o registro de uso continua com o texto antigo.
+PARENTESES_NAS_SIMPLIFICACOES = "D3f"
+
 # Determinismo — na tabela-verdade antiga, a ordem entre subexpressões do
 # mesmo tamanho vinha de um set() e mudava a cada execução. A nova desempata
 # pela posição. O conjunto de colunas e os valores são idênticos.

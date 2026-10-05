@@ -68,23 +68,23 @@ def test_simplificacao_automatica(cliente):
     assert [p["lei"] for p in dados["passos"]] == ["Identidade", "Inversa", "Identidade"]
     primeiro = dados["passos"][0]
     inicio, fim = primeiro["trecho_antes"]
-    assert primeiro["expressao_antes"][inicio:fim] == primeiro["subexpressao_antes"] == "(A&1)"
+    assert primeiro["expressao_antes"][inicio:fim] == primeiro["subexpressao_antes"] == "A&1"
 
 
 def test_simplificacao_interativa_completa(cliente):
     leis = cliente.get("/api/simplificacao/interativa/leis").json()
     assert len(leis) == 9 and leis[2] == {"indice": 2, "nome": "Identidade (A * 1 = A)"}
     inicio = cliente.post("/api/simplificacao/interativa/iniciar", json={"expressao": "(A&1)|C"}).json()
-    assert inicio["visao"]["subexpressao"] == "(A*1)"
+    assert inicio["visao"]["subexpressao"] == "A*1"
     aplicada = cliente.post("/api/simplificacao/interativa/aplicar", json={"estado": inicio["estado"], "lei": 2}).json()
-    assert aplicada["visao"]["expressao"] == "(A+C)"
+    assert aplicada["visao"]["expressao"] == "A+C"
     assert [e["metodo"] for e in aplicada["eventos"]] == ["log_law_applied"]
     aviso = cliente.post("/api/simplificacao/interativa/aplicar", json={"estado": aplicada["estado"], "lei": 0}).json()
     assert aviso["mensagem"] == "Esta lei não pode ser aplicada à subexpressão atual."
     pulou = cliente.post("/api/simplificacao/interativa/pular", json={"estado": aplicada["estado"]}).json()
     assert pulou["visao"]["concluida"] is True
     voltou = cliente.post("/api/simplificacao/interativa/desfazer", json={"estado": pulou["estado"]}).json()
-    assert voltou["visao"]["subexpressao"] == "(A+C)"
+    assert voltou["visao"]["subexpressao"] == "A+C"
 
 
 def test_estado_interativo_corrompido(cliente):
