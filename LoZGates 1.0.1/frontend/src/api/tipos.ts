@@ -17,6 +17,9 @@ export interface TabelaVerdade {
   colunas: string[];
   tabela: number[][];
   resultados_finais: number[];
+  total_combinacoes: number;
+  /** As primeiras `total_variaveis` colunas são as variáveis (em ordem alfabética) */
+  total_variaveis: number;
   conclusao: string;
   tipo_conclusao: 'tautologia' | 'contradicao' | 'satisfativel' | null;
 }

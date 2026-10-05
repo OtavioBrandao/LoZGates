@@ -48,6 +48,9 @@ interface Estado {
   textoCircuito: string;
   /** expressao_global: a expressão em álgebra booleana usada pelo circuito e pelo modo interativo */
   expressaoGlobal: string;
+  /** Variáveis da expressão (em ordem alfabética) e os valores atuais das entradas do circuito */
+  variaveis: string[];
+  valores: Record<string, boolean>;
   labelConvertida: string | null;
   expressaoBooleanaAtual: string;
   botoesSimplificar: boolean;
@@ -71,6 +74,8 @@ const ESTADO_INICIAL: Estado = {
   layout: null,
   textoCircuito: '',
   expressaoGlobal: '',
+  variaveis: [],
+  valores: {},
   labelConvertida: null,
   expressaoBooleanaAtual: '',
   botoesSimplificar: false,
@@ -95,6 +100,8 @@ export interface ApiAplicacao extends Estado {
   definirEntrada: (texto: string) => void;
   confirmarExpressao: () => void;
   trocarParaAbas: (alvo?: Aba) => Promise<boolean>;
+  /** Liga/desliga as entradas do circuito: o servidor devolve o circuito com os novos sinais */
+  definirValores: (valores: Record<string, boolean>) => void;
   mudarAba: (aba: Aba) => void;
   garantirSeletor: () => void;
   executarConversao: () => Promise<void>;
@@ -198,11 +205,12 @@ export function ProvedorAplicacao({ children }: { children: ReactNode }) {
   }, [atualizar, janelas]);
 
   // --- ver_circuito_pygame (agora: layout em JSON desenhado em SVG) ---------------
+  // O layout volta com o nível lógico de cada barramento, porta e fio para os valores das entradas.
   const gerarCircuito = useCallback(
-    async (expressao: string) => {
+    async (expressao: string, valores: Record<string, boolean>) => {
       const pedido = ++pedidoDeCircuito.current;
       try {
-        const layout = await api.layoutCircuito(expressao);
+        const layout = await api.layoutCircuito(expressao, valores);
         if (pedido === pedidoDeCircuito.current) atualizar({ layout, textoCircuito: '' });
       } catch (erro) {
         if (pedido !== pedidoDeCircuito.current) return;
@@ -213,6 +221,25 @@ export function ProvedorAplicacao({ children }: { children: ReactNode }) {
       }
     },
     [atualizar, janelas],
+  );
+
+  const definirValores = useCallback(
+    (valores: Record<string, boolean>) => {
+      if (!ref.current.expressaoGlobal) return;
+      atualizar({ valores });
+      const pedido = ++pedidoDeCircuito.current;
+      // Mantém o desenho anterior até chegar o novo (a geometria é a mesma, só mudam os sinais)
+      api
+        .layoutCircuito(ref.current.expressaoGlobal, valores)
+        .then((layout) => {
+          if (pedido === pedidoDeCircuito.current) atualizar({ layout, textoCircuito: '', gerandoCircuito: false });
+        })
+        .catch((erro: unknown) => {
+          console.warn('Não foi possível atualizar os sinais do circuito', erro);
+          if (pedido === pedidoDeCircuito.current) atualizar({ gerandoCircuito: false });
+        });
+    },
+    [atualizar],
   );
 
   // --- trocar_para_abas ------------------------------------------------------------
@@ -229,17 +256,22 @@ export function ProvedorAplicacao({ children }: { children: ReactNode }) {
       }
       atualizar({ labelCircuito: `${PREFIXO_LABEL_CIRCUITO}${expressao}`, ocupado: true });
       let saida: string;
+      let variaveis: string[];
       try {
-        saida = (await api.converter(expressao)).expressao_booleana;
+        const conversao = await api.converter(expressao);
+        saida = conversao.expressao_booleana;
+        variaveis = conversao.variaveis;
       } catch (erro) {
         janelas.popupErro(`Erro ao processar expressão: ${mensagemDe(erro)}`);
         return false;
       } finally {
         atualizar({ ocupado: false });
       }
-      atualizar({ expressaoGlobal: saida, gerandoCircuito: true, layout: null, textoCircuito: '' });
+      // As entradas começam todas em 0, como a primeira linha da tabela-verdade
+      const valores = Object.fromEntries(variaveis.map((nome) => [nome, false]));
+      atualizar({ expressaoGlobal: saida, variaveis, valores, gerandoCircuito: true, layout: null, textoCircuito: '' });
       // No desktop o circuito é gerado em segundo plano e a tela troca na hora
-      void gerarCircuito(saida);
+      void gerarCircuito(saida, valores);
       // Uma ação explícita escolhe sua aba (show_tab não passa por on_tab_change)
       atualizar({ tela: 'abas', aba: alvo });
       registrar('log_feature_used', 'circuit_generation', (performance.now() - inicio) / 1000);
@@ -402,6 +434,7 @@ export function ProvedorAplicacao({ children }: { children: ReactNode }) {
       definirEntrada,
       confirmarExpressao,
       trocarParaAbas,
+      definirValores,
       mudarAba,
       garantirSeletor,
       executarConversao,
@@ -420,6 +453,7 @@ export function ProvedorAplicacao({ children }: { children: ReactNode }) {
       definirEntrada,
       confirmarExpressao,
       trocarParaAbas,
+      definirValores,
       mudarAba,
       garantirSeletor,
       executarConversao,

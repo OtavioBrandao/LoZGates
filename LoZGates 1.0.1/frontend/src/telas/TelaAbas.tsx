@@ -1,7 +1,8 @@
 import { useId } from 'react';
 import { Abas } from '../componentes/Abas';
-import { TopoTela } from '../componentes/TopoTela';
-import { useAplicacao, type Aba } from '../estado/Aplicacao';
+import { Botao } from '../componentes/Botao';
+import { SeletorDeTema } from '../componentes/SeletorDeTema';
+import { PREFIXO_LABEL_CIRCUITO, useAplicacao, type Aba } from '../estado/Aplicacao';
 import { AbaCircuito } from './AbaCircuito';
 import { AbaCircuitoInterativo } from './AbaCircuitoInterativo';
 import { AbaExpressao } from './AbaExpressao';
@@ -19,10 +20,29 @@ const ABAS: { id: Aba; rotulo: string }[] = [
 export function TelaAbas({ oculta }: { oculta: boolean }) {
   const app = useAplicacao();
   const idBase = useId();
+  const expressao = app.labelCircuito.startsWith(PREFIXO_LABEL_CIRCUITO)
+    ? app.labelCircuito.slice(PREFIXO_LABEL_CIRCUITO.length)
+    : app.labelCircuito;
 
   return (
-    <main className="tela tela--larga" hidden={oculta}>
-      <TopoTela voltar={{ acao: () => app.voltarPara('principal') }} />
+    <main className="pagina pagina--abas" hidden={oculta}>
+      <header className="cabecalho-expressao">
+        <Botao estilo="voltar" tamanho="pequeno" onClick={() => app.voltarPara('principal')}>
+          Voltar
+        </Botao>
+        <div className="cabecalho-expressao__texto">
+          <span className="rotulo-secao">Expressão lógica proposicional</span>
+          <p className="cabecalho-expressao__expressao mono">
+            {expressao}
+            {app.expressaoGlobal && (
+              <span className="cabecalho-expressao__booleana" title="Em álgebra booleana">
+                ≡ {app.expressaoGlobal}
+              </span>
+            )}
+          </p>
+        </div>
+        <SeletorDeTema />
+      </header>
       <Abas idBase={idBase} rotulo="Ferramentas da expressão" abas={ABAS} atual={app.aba} aoMudar={app.mudarAba} />
       {ABAS.map((item) => (
         <section
