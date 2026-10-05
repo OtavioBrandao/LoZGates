@@ -1,81 +1,114 @@
-import { Botao } from '../componentes/Botao';
+import { IconePorta, type TipoDePorta } from '../componentes/IconePorta';
+import { SeletorDeTema } from '../componentes/SeletorDeTema';
 import { useAplicacao, type Tela } from '../estado/Aplicacao';
 import { useJanelas } from '../estado/Janelas';
+import { MiniCircuito } from './MiniCircuito';
 
-interface Cartao {
-  simbolo: string;
+interface Funcao {
+  secao: string;
+  icone: TipoDePorta;
   titulo: string;
   descricao: string;
   botao: string;
   destino: Tela;
-  largo?: boolean;
 }
 
-/** Os três cards de HomeScreen (FrontEnd/screens/home/home_screen.py). */
-const CARTOES: Cartao[] = [
+/** As três entradas do HomeScreen, como seções de um datasheet. */
+const FUNCOES: Funcao[] = [
   {
-    simbolo: '⬡',
+    secao: '2.1',
+    icone: 'and',
     titulo: 'Expressões & Circuitos',
-    descricao: 'Analise expressões lógicas, gere tabelas verdade,\nsimplifique e visualize circuitos.',
-    botao: 'Explorar →',
+    descricao: 'Analise expressões lógicas, gere tabelas verdade, simplifique e visualize circuitos.',
+    botao: 'Explorar',
     destino: 'principal',
   },
   {
-    simbolo: '⟺',
+    secao: '2.2',
+    icone: 'xnor',
     titulo: 'Equivalência Lógica',
-    descricao: 'Compare duas expressões e verifique\nse são logicamente equivalentes.',
-    botao: 'Explorar →',
+    descricao: 'Compare duas expressões e verifique se são logicamente equivalentes.',
+    botao: 'Explorar',
     destino: 'equivalencia',
   },
   {
-    simbolo: '⚑',
+    secao: '2.3',
+    icone: 'or',
     titulo: 'Problemas & Exercícios',
-    descricao:
-      'Pratique com problemas do mundo real que podem ser resolvidos\ncom lógica proposicional e circuitos digitais.',
-    botao: 'Praticar →',
+    descricao: 'Pratique com problemas do mundo real que podem ser resolvidos com lógica proposicional e circuitos digitais.',
+    botao: 'Praticar',
     destino: 'problemas',
-    largo: true,
   },
 ];
 
-/** Tela inicial (HomeScreen). */
+/** Tela inicial (HomeScreen) no estilo datasheet. */
 export function Inicio() {
   const app = useAplicacao();
   const janelas = useJanelas();
 
   return (
-    <main className="tela tela--larga tela--inicio">
-      <header className="inicio__cabecalho">
-        <div>
-          <h1 className="logotipo">LoZ Gates</h1>
-          <p className="inicio__subtitulo">Lógica proposicional e circuitos digitais, passo a passo.</p>
+    <div className="pagina pagina--inicio">
+      <header className="cabecalho-app">
+        <div className="marca">
+          <IconePorta tipo="and" tamanho={42} className="marca__icone" />
+          <span className="marca__nome">LoZ Gates</span>
+          <span className="marca__versao mono">v1.0.1</span>
         </div>
-        <Botao estilo="fantasma" tamanho="pequeno" onClick={janelas.abrirManual}>
-          ?&nbsp;&nbsp;Ajuda
-        </Botao>
+        <div className="cabecalho-app__acoes">
+          <SeletorDeTema />
+          <button type="button" className="botao botao--fantasma botao--pequeno" onClick={janelas.abrirManual}>
+            Ajuda
+          </button>
+        </div>
       </header>
 
-      <nav className="inicio__cartoes" aria-label="Menu principal">
-        {CARTOES.map((cartao) => (
-          <article key={cartao.titulo} className={`cartao-inicio ${cartao.largo ? 'cartao-inicio--largo' : ''}`}>
-            <span className="cartao-inicio__simbolo" aria-hidden="true">
-              {cartao.simbolo}
-            </span>
-            <h2 className="cartao-inicio__titulo">{cartao.titulo}</h2>
-            <p className="cartao-inicio__descricao">{cartao.descricao}</p>
-            <Botao className="cartao-inicio__botao" onClick={() => app.mostrarTela(cartao.destino)} aria-label={`${cartao.botao} ${cartao.titulo}`}>
-              {cartao.botao}
-            </Botao>
-          </article>
-        ))}
-      </nav>
+      <main className="inicio">
+        <section className="destaque-inicio" aria-labelledby="titulo-inicio">
+          <div className="destaque-inicio__texto">
+            <p className="rotulo-secao">1 · Visão geral</p>
+            <h1 id="titulo-inicio" className="destaque-inicio__titulo">
+              Lógica proposicional e circuitos digitais, passo a passo.
+            </h1>
+            <p className="destaque-inicio__descricao">
+              Ligue e desligue as entradas: o sinal percorre os fios e acende a saída quando a expressão é verdadeira.
+            </p>
+          </div>
+          <MiniCircuito />
+        </section>
 
-      <footer className="inicio__rodape">
-        <span>Versão 1.0.1, Instituto de Computação da UFAL</span>
+        <section className="funcoes" aria-labelledby="titulo-funcoes">
+          <h2 id="titulo-funcoes" className="rotulo-secao funcoes__titulo">
+            2 · Ferramentas
+          </h2>
+          <ul className="funcoes__lista">
+            {FUNCOES.map((funcao) => (
+              <li key={funcao.secao} className="cartao-funcao">
+                <div className="cartao-funcao__topo">
+                  <span className="cartao-funcao__secao mono">{funcao.secao}</span>
+                  <IconePorta tipo={funcao.icone} tamanho={48} className="cartao-funcao__icone" />
+                </div>
+                <h3 className="cartao-funcao__titulo">{funcao.titulo}</h3>
+                <p className="cartao-funcao__descricao">{funcao.descricao}</p>
+                <button
+                  type="button"
+                  className="botao botao--primario cartao-funcao__botao"
+                  onClick={() => app.mostrarTela(funcao.destino)}
+                  aria-label={`${funcao.botao}: ${funcao.titulo}`}
+                >
+                  {funcao.botao} →
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+
+      <footer className="rodape-app">
+        <span>Versão 1.0.1 · Instituto de Computação · UFAL</span>
         <button type="button" className="link-discreto" onClick={() => void app.encerrarSessao()}>
           Encerrar sessão
         </button>
       </footer>
-    </main>
+    </div>
   );
 }

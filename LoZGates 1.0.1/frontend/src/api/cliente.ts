@@ -118,6 +118,8 @@ export const api = {
   editor: (expressao: string) => post<EditorInicial>('circuito/editor', { expressao }),
   validarCircuito: (expressao: string, modo: string, netlist: Netlist) =>
     post<ValidacaoCircuito>('circuito/validar', { expressao, modo, netlist }),
+  simularCircuito: (netlist: Netlist, valores: Record<string, boolean>) =>
+    post<{ saidas: Record<string, boolean | null> }>('circuito/simular', { netlist, valores }),
 
   // assistente de IA (a chave fica no servidor)
   sugestaoIa: (expressao: string, contexto: string) => post<{ resposta: string }>('ia/sugestao', { expressao, contexto }),
