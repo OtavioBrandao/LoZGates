@@ -49,15 +49,17 @@ function url(caminho: string): string {
   return new URL(`api/${caminho}`, document.baseURI).href;
 }
 
-async function pedir<T>(metodo: 'GET' | 'POST', caminho: string, corpo?: unknown): Promise<T> {
+async function pedir<T>(metodo: 'GET' | 'POST', caminho: string, corpo?: unknown, sinal?: AbortSignal): Promise<T> {
   let resposta: Response;
   try {
     resposta = await fetch(url(caminho), {
       method: metodo,
       headers: corpo === undefined ? undefined : { 'Content-Type': 'application/json' },
       body: corpo === undefined ? undefined : JSON.stringify(corpo),
+      signal: sinal,
     });
   } catch {
+    if (sinal?.aborted) throw new ErroDaApi('cancelado', 'Pedido cancelado por um mais novo.', 0);
     throw new ErroDaApi('rede', MENSAGEM_SEM_SERVIDOR, 0);
   }
 
@@ -80,7 +82,7 @@ async function pedir<T>(metodo: 'GET' | 'POST', caminho: string, corpo?: unknown
 }
 
 const get = <T>(caminho: string) => pedir<T>('GET', caminho);
-const post = <T>(caminho: string, corpo: unknown) => pedir<T>('POST', caminho, corpo);
+const post = <T>(caminho: string, corpo: unknown, sinal?: AbortSignal) => pedir<T>('POST', caminho, corpo, sinal);
 
 /** Mensagem para mostrar ao aluno a partir de qualquer erro. */
 export function mensagemDe(erro: unknown): string {
@@ -92,7 +94,7 @@ export const api = {
   // expressão
   converter: (expressao: string) => post<Conversao>('expressao/converter', { expressao }),
   /** Conferência enquanto o aluno digita: inválida vem como resposta normal, não como erro */
-  analisarExpressao: (expressao: string) => post<AnaliseDaExpressao>('expressao/analisar', { expressao }),
+  analisarExpressao: (expressao: string, sinal?: AbortSignal) => post<AnaliseDaExpressao>('expressao/analisar', { expressao }, sinal),
   tabelaVerdade: (expressao: string) => post<TabelaVerdade>('expressao/tabela-verdade', { expressao }),
 
   // simplificações

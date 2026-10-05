@@ -1,5 +1,7 @@
 import { useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type Ref } from 'react';
 import { api, ErroDaApi, mensagemDe } from '../api/cliente';
+import type { AnaliseDaExpressao } from '../api/tipos';
+import { criarConferencia, type ResultadoDaConferencia } from './conferencia';
 
 export interface ControleDoCampo {
   focar: () => void;
@@ -26,8 +28,19 @@ interface Props {
   ref?: Ref<ControleDoCampo>;
 }
 
-/** Espera o aluno parar de digitar antes de conferir a expressão no servidor. */
-const ESPERA = 350;
+function analiseDe({ texto, ...resultado }: ResultadoDaConferencia<AnaliseDaExpressao>): Analise {
+  if (resultado.ok) {
+    const resposta = resultado.valor;
+    return resposta.valida
+      ? { estado: 'valida', booleana: resposta.expressao_booleana, variaveis: resposta.variaveis }
+      : { estado: 'invalida', mensagem: resposta.mensagem, posicao: resposta.posicao, texto };
+  }
+  // Texto que nem chega a ser analisado (longo demais, por exemplo) também é inválido
+  if (resultado.erro instanceof ErroDaApi && resultado.erro.status === 422) {
+    return { estado: 'invalida', mensagem: resultado.erro.message, posicao: resultado.erro.posicao, texto };
+  }
+  return { estado: 'sem-servidor', mensagem: mensagemDe(resultado.erro) };
+}
 
 /**
  * Campo de uma expressão lógica. Enquanto o aluno digita, o parser canônico
@@ -38,7 +51,6 @@ const ESPERA = 350;
 export function CampoDeExpressao({ id, rotulo, valor, aoMudar, aoConfirmar, aoFocar, placeholder, ref }: Props) {
   const campo = useRef<HTMLInputElement>(null);
   const cursorDepoisDeInserir = useRef<number | null>(null);
-  const pedido = useRef(0);
   const [analise, setAnalise] = useState<Analise>({ estado: 'vazio' });
 
   useImperativeHandle(
@@ -65,38 +77,25 @@ export function CampoDeExpressao({ id, rotulo, valor, aoMudar, aoConfirmar, aoFo
     campo.current?.setSelectionRange(posicao, posicao);
   }, [valor]);
 
+  // Só confere depois que o aluno para de digitar (~300 ms); cada pedido novo cancela o anterior
+  const [conferencia] = useState(() =>
+    criarConferencia(
+      (texto: string, sinal: AbortSignal) => api.analisarExpressao(texto, sinal),
+      (resultado: ResultadoDaConferencia<AnaliseDaExpressao>) => setAnalise(analiseDe(resultado)),
+    ),
+  );
+  useEffect(() => conferencia.cancelar, [conferencia]);
+
   useEffect(() => {
     const texto = valor.trim();
-    const atual = ++pedido.current;
     if (!texto) {
+      conferencia.cancelar();
       setAnalise({ estado: 'vazio' });
       return;
     }
     setAnalise((anterior) => (anterior.estado === 'vazio' ? { estado: 'conferindo' } : anterior));
-    const relogio = window.setTimeout(() => {
-      api
-        .analisarExpressao(texto)
-        .then((resposta) => {
-          if (atual !== pedido.current) return;
-          setAnalise(
-            resposta.valida
-              ? { estado: 'valida', booleana: resposta.expressao_booleana, variaveis: resposta.variaveis }
-              : { estado: 'invalida', mensagem: resposta.mensagem, posicao: resposta.posicao, texto },
-          );
-        })
-        .catch((erro: unknown) => {
-          if (atual !== pedido.current) return;
-          // Texto que nem chega a ser analisado (longo demais, por exemplo) também é inválido
-          if (erro instanceof ErroDaApi && erro.status === 422) {
-            setAnalise({ estado: 'invalida', mensagem: erro.message, posicao: erro.posicao, texto });
-          } else {
-            setAnalise({ estado: 'sem-servidor', mensagem: mensagemDe(erro) });
-          }
-        });
-    }, ESPERA);
-    return () => window.clearTimeout(relogio);
-  }, [valor]);
-
+    conferencia.pedir(texto);
+  }, [valor, conferencia]);
   const idAnalise = `${id}-analise`;
   return (
     <div className="campo-expressao">
