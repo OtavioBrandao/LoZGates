@@ -2393,18 +2393,42 @@ kbd {
 }
 
 /* --------------------------------------------------------------------------
-   Banco de problemas
+   Banco de problemas (2.3)
    -------------------------------------------------------------------------- */
-.problemas__cabecalho {
-  margin-bottom: var(--e-xl);
-  text-align: center;
+.problemas__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--e-md);
 }
-.problemas__titulo {
-  margin-bottom: var(--e-sm);
-  font-family: var(--fonte-display);
-  font-size: var(--t-titulo-m);
-  font-stretch: 118%;
-  font-weight: 750;
+.filtro-nivel {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--borda-controle);
+  border-radius: var(--raio-botao);
+}
+.filtro-nivel button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-right: 1px solid var(--linha);
+  background: var(--painel);
+  color: var(--texto-2);
+  font-size: var(--t-corpo-p);
+  font-weight: 600;
+  cursor: pointer;
+}
+.filtro-nivel button:last-child {
+  border-right: 0;
+}
+.filtro-nivel button[aria-pressed='true'] {
+  background: var(--botao);
+  color: var(--botao-texto);
+}
+.filtro-nivel .mono {
+  margin-left: 4px;
+  font-weight: 700;
 }
 .lista-problemas {
   display: flex;
@@ -2413,9 +2437,9 @@ kbd {
   background: var(--painel);
 }
 .cartao-problema {
-  display: flex;
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: var(--e-md);
   width: 100%;
   min-height: 52px;
@@ -2424,12 +2448,21 @@ kbd {
   border-bottom: 1px solid var(--linha);
   background: transparent;
   color: var(--texto);
-  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
+.lista-problemas li:last-child .cartao-problema {
+  border-bottom: 0;
+}
 .cartao-problema:hover {
   background: var(--elevado);
+}
+.cartao-problema__numero {
+  color: var(--texto-2);
+  font-size: var(--t-corpo-p);
+}
+.cartao-problema__nome {
+  font-weight: 600;
 }
 .selo {
   flex: none;
@@ -2456,45 +2489,93 @@ kbd {
   color: var(--roxo);
 }
 .problema {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-md);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--e-lg);
 }
-.problema__cabecalho {
+.problema__topo {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--e-sm);
-  text-align: center;
-}
-.problema__titulo {
-  font-family: var(--fonte-display);
-  font-size: var(--t-titulo-m);
-  font-stretch: 112%;
-  font-weight: 750;
 }
 .problema__enunciado {
-  max-width: 72ch;
+  font-size: var(--t-subtitulo);
+  line-height: 1.7;
   white-space: pre-line;
-  line-height: 1.65;
+}
+/* As variáveis do enunciado, como (V), viram etiquetas */
+.variavel-do-enunciado {
+  margin: 0 2px;
+  border-color: var(--sinal-1);
+  color: var(--sinal-1);
+  font-weight: 700;
+}
+.problema__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
 }
 .problema__feedback {
   min-height: 1.5em;
   font-size: var(--t-corpo-p);
+  font-weight: 600;
+}
+.problema__feedback--sucesso {
+  color: var(--sucesso);
+}
+.problema__feedback--erro {
+  color: var(--erro);
+}
+.problema__feedback--aviso {
+  color: var(--aviso);
+}
+.problema__correta-caixa {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--e-md);
+  border: 1px solid var(--linha);
+  border-left: 4px solid var(--sucesso);
+  background: var(--fundo);
 }
 .problema__correta {
   color: var(--sucesso);
   font-size: var(--t-subtitulo);
-  font-weight: 650;
-  text-align: center;
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
-.grade-acoes-problema {
+.problema__analise {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding-top: var(--e-md);
+  border-top: 1px dashed var(--linha);
+}
+.problema__analise-botoes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--e-sm);
 }
-.grade-acoes-problema .botao {
+.problema__analise-botoes .botao {
   min-width: 0;
+}
+@media (max-width: 900px) {
+  .problema {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .problema__analise-botoes {
+    grid-template-columns: 1fr;
+  }
+  .cartao-problema {
+    grid-template-columns: 3.4rem minmax(0, 1fr) auto;
+    gap: var(--e-sm);
+    padding: 10px var(--e-md);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -2888,8 +2969,7 @@ kbd {
   .destaque-inicio {
     padding: var(--e-lg);
   }
-  .grade-modos,
-  .grade-acoes-problema {
+  .grade-modos {
     grid-template-columns: 1fr;
   }
   .painel {
