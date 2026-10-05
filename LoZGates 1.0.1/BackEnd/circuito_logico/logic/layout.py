@@ -24,7 +24,7 @@ from BackEnd.core.expression_ast import (
     collect_variables,
     parse,
     percorrer,
-    to_string,
+    to_string_minimo,
 )
 
 # Mesmas constantes do desenho original (CircuitDrawer e circuit_renderer)
@@ -127,7 +127,7 @@ class _Montador:
             'altura': ALTURA_PORTA,
             'entradas': entradas,
             'saida': saida,
-            'subexpressao': to_string(no, style="boolean"),
+            'subexpressao': to_string_minimo(no, style="boolean"),
             'caminho': list(caminho),
             'valor': self._valor(no),
         }

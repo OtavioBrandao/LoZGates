@@ -25,6 +25,12 @@ CONVERSAO_DE_IMPLICACAO = "D3b"
 # agora geram erro com mensagem clara em vez de um resultado silencioso.
 ENTRADA_INVALIDA = "D3c"
 
+# D3e — a conversão sai só com os parênteses necessários: "(A|B)&(C>D)" virava
+# "(A+B)*((~C+D))" e agora vira "(A+B)*(~C+D)" (aprovado em 05/10/2026). O
+# texto novo, relido, dá a MESMA árvore que o antigo; por isso circuito,
+# tabela-verdade e simplificações continuam iguais.
+PARENTESES_REDUNDANTES = "D3e"
+
 # Determinismo — na tabela-verdade antiga, a ordem entre subexpressões do
 # mesmo tamanho vinha de um set() e mudava a cada execução. A nova desempata
 # pela posição. O conjunto de colunas e os valores são idênticos.
@@ -33,6 +39,15 @@ ORDEM_DE_COLUNAS_EMPATADAS = "determinismo"
 
 def tem_implicacao(expressao: str) -> bool:
     return ">" in expressao
+
+
+def mesma_arvore(texto1: str, texto2: str) -> bool:
+    """D3e: os dois textos são lidos como a mesma árvore (igualdade estrutural)?"""
+    from BackEnd.core.expression_ast import parse
+    try:
+        return parse(texto1) == parse(texto2)
+    except ValueError:
+        return False
 
 
 def tem_implicacao_encadeada_sem_parenteses(expressao: str) -> bool:

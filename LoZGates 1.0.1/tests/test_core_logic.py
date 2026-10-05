@@ -8,7 +8,7 @@ from BackEnd.tabela import gerar_tabela_verdade
 
 class ConverterTests(unittest.TestCase):
     def test_converts_supported_operator_notations(self):
-        self.assertEqual(converter_para_algebra_booleana("A -> B"), "(~A+B)")
+        self.assertEqual(converter_para_algebra_booleana("A -> B"), "~A+B")
         self.assertEqual(converter_para_algebra_booleana("!A | B"), "~A+B")
         self.assertTrue(
             check_universal_equivalence(

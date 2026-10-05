@@ -3,11 +3,13 @@ Conversão de lógica proposicional (& | ! > <>) para álgebra booleana (* + ~).
 
 A conversão é feita sobre a árvore do parser canônico, então cada implicação
 e cada bi-implicação recebe exatamente os operandos que a precedência manda
-(antes, "A&B>C" virava "A*(~B+C)"). O resto do texto sai como o aluno
-escreveu: os parênteses digitados são preservados e só os símbolos mudam.
+(antes, "A&B>C" virava "A*(~B+C)"). Os parênteses que o aluno digitou
+continuam valendo para a forma da árvore, mas o texto final sai só com os
+parênteses necessários: "(A|B)&(C>D)" vira "(A+B)*(~C+D)", não
+"(A+B)*((~C+D))". Relido, o texto dá a mesma árvore (e o mesmo circuito).
 
-    A -> B   = (~A + B)
-    A <-> B  = ((~A + B) * (~B + A))
+    A -> B   = ~A + B
+    A <-> B  = (~A + B) * (~B + A)
 """
 
 from BackEnd.core.expression_ast import (
@@ -20,6 +22,7 @@ from BackEnd.core.expression_ast import (
     OperatorNode,
     VariableNode,
     parse,
+    to_string_minimo,
 )
 
 
@@ -63,7 +66,9 @@ class Conversorlogical:
 
     def convert_to_boolean_algebra(self, expression, show_steps=False):
         self.history = [f"Original: {expression}"]
-        convertida = _converter(parse(expression))
+        # _converter decide a forma da árvore (os parênteses do aluno e os de cada
+        # implicação); a reimpressão tira os que não mudam essa forma
+        convertida = to_string_minimo(parse(_converter(parse(expression))), style="boolean")
         self.history.append(f"Convertida: {convertida}")
 
         if show_steps:

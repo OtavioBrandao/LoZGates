@@ -16,6 +16,7 @@ from BackEnd.core.expression_ast import (
     percorrer,
     to_string,
     to_string_com_trechos,
+    to_string_minimo,
     tree_size,
 )
 
@@ -141,6 +142,44 @@ def test_reimpressao_estavel_nos_dois_estilos():
         assert parse(to_string(arvore, style="logic")) == arvore
         assert parse(to_string(arvore, style="boolean")) == arvore
     assert to_string(parse("A&B|!C"), style="boolean") == "((A*B)+~C)"
+
+
+@pytest.mark.parametrize("entrada, minimo", [
+    ("((A))", "A"),
+    ("(A&B)&C", "A&B&C"),
+    ("A&(B&C)", "A&(B&C)"),        # sem os parênteses seria (A&B)&C: outra árvore
+    ("A|(B&C)", "A|B&C"),
+    ("(A|B)&C", "(A|B)&C"),
+    ("!(A&B)", "!(A&B)"),
+    ("!(!A)", "!!A"),
+    ("(!A)&B", "!A&B"),
+    ("A>(B>C)", "A>B>C"),          # a implicação associa à direita
+    ("(A>B)>C", "(A>B)>C"),
+    ("(A<>B)<>C", "A<>B<>C"),      # a bi-implicação, à esquerda
+    ("A<>(B<>C)", "A<>(B<>C)"),
+    ("(A>B)<>C", "A>B<>C"),
+    ("A<>(B>C)", "A<>B>C"),
+    ("(A<>B)>C", "(A<>B)>C"),
+    ("A>(B<>C)", "A>(B<>C)"),
+    ("(A|B)>(C&D)", "A|B>C&D"),
+    ("!(A>B)", "!(A>B)"),
+    ("(A&1)|(0)", "A&1|0"),
+])
+def test_impressao_minima(entrada, minimo):
+    arvore = parse(entrada)
+    assert to_string_minimo(arvore) == minimo
+    assert parse(minimo) == arvore
+
+
+def test_impressao_minima_rele_a_mesma_arvore_em_todo_o_corpus():
+    from tests.paridade import corpus
+    for expr in corpus.TODAS:
+        arvore = parse(expr)
+        for estilo in ("logic", "boolean"):
+            texto = to_string_minimo(arvore, style=estilo)
+            assert parse(texto) == arvore, (expr, texto)
+            assert len(texto) <= len(to_string(arvore, style=estilo))
+            assert to_string_minimo(parse(texto), style=estilo) == texto  # já não sobra nada para tirar
 
 
 def test_trechos_apontam_cada_no_no_texto_impresso():

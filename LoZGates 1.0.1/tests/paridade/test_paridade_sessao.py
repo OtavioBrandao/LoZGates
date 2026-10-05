@@ -9,7 +9,7 @@ import pytest
 
 from BackEnd.converter import converter_para_algebra_booleana
 from BackEnd.core import sessao_interativa as sessao
-from tests.paridade import corpus, oraculo
+from tests.paridade import corpus, diferencas_aprovadas, oraculo
 
 antigo_simpli = oraculo.modulo("BackEnd.simplificador_interativo")
 AntigoController = oraculo.modulo("FrontEnd.screens.resolver.resolver_controller").ResolverController
@@ -77,8 +77,10 @@ def sem_tempo(eventos):
 
 def roteiros(quantidade=120, passos=12, semente=7):
     sorteio = random.Random(semente)
+    # D3b muda a entrada quando há implicação; D3e (só parênteses) mantém a mesma árvore e entra
     expressoes = [e for e in corpus.TODAS
-                  if antigo_conversor.converter_para_algebra_booleana(e) == converter_para_algebra_booleana(e)]
+                  if diferencas_aprovadas.mesma_arvore(antigo_conversor.converter_para_algebra_booleana(e),
+                                                       converter_para_algebra_booleana(e))]
     for _ in range(quantidade):
         acoes = []
         for _ in range(passos):

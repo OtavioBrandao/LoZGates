@@ -15,7 +15,7 @@ def test_saude(cliente):
 def test_converter(cliente):
     resposta = cliente.post("/api/expressao/converter", json={"expressao": "A&B>C"})
     assert resposta.status_code == 200
-    assert resposta.json() == {"expressao": "A&B>C", "expressao_booleana": "(~(A*B)+C)", "variaveis": ["A", "B", "C"]}
+    assert resposta.json() == {"expressao": "A&B>C", "expressao_booleana": "~(A*B)+C", "variaveis": ["A", "B", "C"]}
 
 
 def test_expressao_invalida_tem_mensagem_e_posicao(cliente):
@@ -132,7 +132,7 @@ def test_modos_componentes_e_editor(cliente):
     assert modos[2]["restrictions"] == ["nand"] and modos[2]["dicas"]
     assert cliente.get("/api/circuito/componentes").json()["tipos"]["not"]["saida"] == [46, 40]
     editor = cliente.post("/api/circuito/editor", json={"expressao": "A>B"}).json()
-    assert editor["expressao_booleana"] == "(~A+B)"
+    assert editor["expressao_booleana"] == "~A+B"
     assert [c["id"] for c in editor["componentes"]] == ["var-A", "var-B", "saida"]
 
 

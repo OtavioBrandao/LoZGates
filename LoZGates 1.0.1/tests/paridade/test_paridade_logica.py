@@ -11,6 +11,7 @@ import re
 import pytest
 
 from BackEnd.converter import converter_para_algebra_booleana
+from BackEnd.core.expression_ast import parse, to_string_minimo
 from BackEnd.equivalencia import check_universal_equivalence, comparar_expressoes
 from BackEnd.identificar_lei import simplificar_expressao
 from BackEnd.problemas import verificar_resposta
@@ -55,7 +56,9 @@ def test_equivalencia(expr1, expr2):
 def test_conversao_para_algebra_booleana(expr):
     antiga, nova = antigo_conversor.converter_para_algebra_booleana(expr), converter_para_algebra_booleana(expr)
     assert comparar_expressoes(expr, nova).equivalentes, "a conversão nova tem que preservar o significado"
-    if nova != antiga:
+    assert nova == to_string_minimo(parse(nova), style="boolean"), "D3e: a conversão não pode ter parênteses sobrando"
+    if not diferencas_aprovadas.mesma_arvore(nova, antiga):
+        # D3b: só a conversão de > e <> pode mudar a árvore; o resto difere no máximo em parênteses (D3e)
         assert diferencas_aprovadas.tem_implicacao(expr), f"diferença não aprovada: {antiga!r} -> {nova!r}"
 
 
@@ -68,7 +71,7 @@ def test_simplificacao_automatica(expr):
     conversao_antiga = antigo_conversor.converter_para_algebra_booleana(expr)
     nova = simplificar_expressao(expr)
     assert comparar_expressoes(expr, nova.expressao_final).equivalentes
-    if conversao_antiga != nova.expressao_booleana:
+    if not diferencas_aprovadas.mesma_arvore(conversao_antiga, nova.expressao_booleana):
         assert diferencas_aprovadas.tem_implicacao(expr)  # D3b: a entrada da simplificação mudou
         return
     saida = io.StringIO()

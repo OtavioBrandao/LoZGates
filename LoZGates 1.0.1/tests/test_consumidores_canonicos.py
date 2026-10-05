@@ -276,28 +276,33 @@ class TestConversor:
     def test_sem_parser_proprio(self):
         assert_sem_parser_proprio(self.modulo)
 
-    @pytest.mark.parametrize("entrada, esperado", [
-        ("A>B", "(~A+B)"),
-        ("A -> B", "(~A+B)"),
-        ("!A | B", "~A+B"),
-        ("A & B", "A*B"),
-        ("A <-> B", "((~A+B)*(~B+A))"),
-        ("(A>B)>C", "(~((~A+B))+C)"),
-        ("!(A>B)", "~((~A+B))"),
-        ("!A>B", "(~~A+B)"),
-        ("(A&B)|C", "(A*B)+C"),
-        ("(A>B)&C", "((~A+B))*C"),
+    @pytest.mark.parametrize("entrada, antiga, esperado", [
+        ("A>B", "(~A+B)", "~A+B"),
+        ("A -> B", "(~A+B)", "~A+B"),
+        ("!A | B", "~A+B", "~A+B"),
+        ("A & B", "A*B", "A*B"),
+        ("A <-> B", "((~A+B)*(~B+A))", "(~A+B)*(~B+A)"),
+        ("(A>B)>C", "(~((~A+B))+C)", "~(~A+B)+C"),
+        ("!(A>B)", "~((~A+B))", "~(~A+B)"),
+        ("!A>B", "(~~A+B)", "~~A+B"),
+        ("(A&B)|C", "(A*B)+C", "A*B+C"),
+        ("(A>B)&C", "((~A+B))*C", "(~A+B)*C"),
+        ("(A|B)&(C>D)", "(A+B)*((~C+D))", "(A+B)*(~C+D)"),   # exemplo da revisão de 05/10/2026
+        ("A&(B&C)", "A*(B*C)", "A*(B*C)"),                   # sem eles a árvore (e o circuito) mudaria
     ])
-    def test_saida_identica_a_antiga_onde_ela_estava_certa(self, entrada, esperado):
+    def test_mesma_arvore_da_antiga_sem_parenteses_sobrando(self, entrada, antiga, esperado):
+        """Onde a conversão antiga estava certa, a nova dá a mesma árvore, só sem os parênteses redundantes (D3e)."""
         from BackEnd.converter import converter_para_algebra_booleana
-        assert converter_para_algebra_booleana(entrada) == esperado
+        convertida = converter_para_algebra_booleana(entrada)
+        assert convertida == esperado
+        assert expression_ast.parse(convertida) == expression_ast.parse(antiga)
 
     @pytest.mark.parametrize("entrada, esperado", [
-        ("A&B>C", "(~(A*B)+C)"),          # antes: A*(~B+C)
-        ("A|B>C", "(~(A+B)+C)"),          # antes: A+(~B+C)
-        ("A>B&C", "(~A+B*C)"),            # antes: (~A+B)*C
-        ("A&B<>C", "((~(A*B)+C)*(~C+A*B))"),
-        ("A>B>C", "(~A+(~B+C))"),         # implicação associa à direita
+        ("A&B>C", "~(A*B)+C"),            # antes: A*(~B+C)
+        ("A|B>C", "~(A+B)+C"),            # antes: A+(~B+C)
+        ("A>B&C", "~A+B*C"),              # antes: (~A+B)*C
+        ("A&B<>C", "(~(A*B)+C)*(~C+A*B)"),
+        ("A>B>C", "~A+(~B+C)"),           # implicação associa à direita
     ])
     def test_casos_que_mudavam_o_significado(self, entrada, esperado):
         from BackEnd.converter import converter_para_algebra_booleana

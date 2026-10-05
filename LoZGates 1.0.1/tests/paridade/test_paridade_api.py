@@ -16,8 +16,8 @@ antigo_validar_resposta = oraculo.validar_resposta_problema()
 @pytest.mark.parametrize("expr", corpus.TODAS)
 def test_converter_e_tabela_via_api(cliente, expr):
     conversao = cliente.post("/api/expressao/converter", json={"expressao": expr}).json()
-    if conversao["expressao_booleana"] != antigo_conversor.converter_para_algebra_booleana(expr):
-        assert diferencas_aprovadas.tem_implicacao(expr)
+    if not diferencas_aprovadas.mesma_arvore(conversao["expressao_booleana"], antigo_conversor.converter_para_algebra_booleana(expr)):
+        assert diferencas_aprovadas.tem_implicacao(expr)  # D3b; sem implicação, só os parênteses podem mudar (D3e)
 
     tabela = cliente.post("/api/expressao/tabela-verdade", json={"expressao": expr}).json()
     antiga = antigo_tabela.gerar_tabela_verdade(expr)

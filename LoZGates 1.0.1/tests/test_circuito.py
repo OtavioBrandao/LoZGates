@@ -22,7 +22,7 @@ def test_layout_de_a_e_b_com_as_coordenadas_do_desenho_original():
     assert (porta['tipo'], porta['x'], porta['y']) == ("AND", 570, 150)
     assert porta['entradas'] == [(570, 165), (570, 215)]
     assert porta['saida'] == (610, 190)
-    assert porta['subexpressao'] == "(A*B)"
+    assert porta['subexpressao'] == "A*B"
     assert [f['pontos'] for f in layout['fios']] == [
         [(100, 140), (335.0, 140), (335.0, 165), (570, 165)],
         [(200, 240), (385.0, 240), (385.0, 215), (570, 215)],
@@ -33,7 +33,7 @@ def test_layout_de_a_e_b_com_as_coordenadas_do_desenho_original():
 
 def test_layout_converte_implicacao_e_usa_barramento_negado():
     layout = montar_layout("A>B")
-    assert layout['expressao_booleana'] == "(~A+B)"
+    assert layout['expressao_booleana'] == "~A+B"
     (porta,) = layout['portas']
     assert porta['tipo'] == "OR"
     assert [f['origem'] for f in layout['fios']] == [{'tipo': 'barramento', 'id': '~A'}, {'tipo': 'barramento', 'id': 'B'}]

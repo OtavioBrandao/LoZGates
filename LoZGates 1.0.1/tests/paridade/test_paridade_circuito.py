@@ -19,7 +19,7 @@ from BackEnd.circuito_logico.logic.validacao import montar_netlist, validar_circ
 from BackEnd.circuito_logico.modos import DICAS, MODOS  # noqa: E402
 from BackEnd.converter import converter_para_algebra_booleana  # noqa: E402
 from BackEnd.core.expression_ast import NOT, OperatorNode, collect_variables, parse  # noqa: E402
-from tests.paridade import corpus, oraculo  # noqa: E402
+from tests.paridade import corpus, diferencas_aprovadas, oraculo  # noqa: E402
 
 antigo_conversor = oraculo.modulo("BackEnd.converter")
 antigo_renderer = oraculo.modulo("BackEnd.circuito_logico.rendering.circuit_renderer")
@@ -83,8 +83,9 @@ def comparaveis():
     for expr in corpus.TODAS:
         if any(c in expr for c in "01"):
             continue  # o circuito antigo não aceitava constantes (desenhava "Erro")
-        if antigo_conversor.converter_para_algebra_booleana(expr) != converter_para_algebra_booleana(expr):
-            continue  # D3b: a entrada do circuito mudou junto com a conversão
+        if not diferencas_aprovadas.mesma_arvore(antigo_conversor.converter_para_algebra_booleana(expr),
+                                                 converter_para_algebra_booleana(expr)):
+            continue  # D3b: a entrada do circuito mudou junto com a conversão (D3e, só parênteses, não conta)
         yield expr
 
 

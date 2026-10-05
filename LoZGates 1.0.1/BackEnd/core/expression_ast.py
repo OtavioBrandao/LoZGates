@@ -369,6 +369,53 @@ def to_string_com_trechos(node: Node, style: str = "logic") -> Tuple[str, Dict[i
     return _imprimir(node, style, trechos), trechos
 
 
+# Precedência na gramática acima (maior = liga mais forte): <> < > < | < & < ! < operando
+_PRECEDENCIA = {IFF: 1, IMPLIES: 2, OR: 3, AND: 4, NOT: 5}
+_OPERANDO = 6
+
+
+def _precedencia(no: Node) -> int:
+    return _OPERANDO if isinstance(no, VariableNode) else _PRECEDENCIA[no.op]
+
+
+def to_string_minimo(node: Node, style: str = "logic") -> str:
+    """
+    Como to_string, mas só com os parênteses necessários para reler a MESMA
+    árvore; a precedência e a associatividade da gramática decidem o resto.
+    "(A+B)*((~C+D))" sai "(A+B)*(~C+D)". Já "A*(B*C)" fica como está: sem os
+    parênteses o texto seria lido como (A*B)*C, outra árvore e outro circuito.
+    """
+    if style not in _SIMBOLOS:
+        raise ValueError(f"Estilo de impressão desconhecido: {style}")
+    simbolos = _SIMBOLOS[style]
+
+    def entre_parenteses(texto: str, precisa: bool) -> str:
+        return f"({texto})" if precisa else texto
+
+    def visitar(n: Node) -> str:
+        if isinstance(n, VariableNode):
+            return n.name
+        if n.op == NOT:
+            filho = n.children[0]
+            return simbolos[NOT] + entre_parenteses(visitar(filho), _precedencia(filho) < _PRECEDENCIA[NOT])
+        if n.op not in (AND, OR, IMPLIES, IFF):
+            raise ValueError(f"Operador desconhecido: {n.op}")
+        propria = _PRECEDENCIA[n.op]
+        a_direita = n.op == IMPLIES  # a única que associa à direita
+        esquerda, direita = n.children
+        texto_esquerda = entre_parenteses(
+            visitar(esquerda),
+            _precedencia(esquerda) < propria or (_precedencia(esquerda) == propria and a_direita),
+        )
+        texto_direita = entre_parenteses(
+            visitar(direita),
+            _precedencia(direita) < propria or (_precedencia(direita) == propria and not a_direita),
+        )
+        return texto_esquerda + simbolos[n.op] + texto_direita
+
+    return visitar(node)
+
+
 # ----------------------- HELPERS usados em vários módulos -----------------------
 
 def collect_variables(node: Node) -> Set[str]:

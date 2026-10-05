@@ -41,7 +41,7 @@ def test_expressao_ja_simplificada_nao_tem_passos():
 
 def test_converte_implicacao_antes_de_simplificar():
     resultado = simplificar_expressao("A > A")
-    assert resultado.expressao_booleana == "(~A+A)"
+    assert resultado.expressao_booleana == "~A+A"
     assert resultado.expressao_final == "1"
 
 
