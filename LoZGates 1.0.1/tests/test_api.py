@@ -18,6 +18,18 @@ def test_converter(cliente):
     assert resposta.json() == {"expressao": "A&B>C", "expressao_booleana": "~(A*B)+C", "variaveis": ["A", "B", "C"]}
 
 
+def test_analisar_enquanto_o_aluno_digita(cliente):
+    valida = cliente.post("/api/expressao/analisar", json={"expressao": "(A|B)&(C>D)"})
+    assert valida.status_code == 200
+    assert valida.json() == {"valida": True, "expressao_booleana": "(A+B)*(~C+D)", "variaveis": ["A", "B", "C", "D"]}
+    # incompleta no meio da digitação: resposta normal (200), com a posição do problema
+    invalida = cliente.post("/api/expressao/analisar", json={"expressao": "A & & B"})
+    assert invalida.status_code == 200
+    assert invalida.json()["valida"] is False
+    assert invalida.json()["posicao"] == 4
+    assert invalida.json()["mensagem"]
+
+
 def test_expressao_invalida_tem_mensagem_e_posicao(cliente):
     resposta = cliente.post("/api/expressao/converter", json={"expressao": "AB"})
     assert resposta.status_code == 422

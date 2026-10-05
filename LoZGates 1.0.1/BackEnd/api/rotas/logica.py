@@ -7,7 +7,7 @@ from BackEnd.api import limites
 from BackEnd.api.esquemas import AplicacaoDeLei, EstadoInterativo, Expressao, ParDeExpressoes
 from BackEnd.converter import converter_para_algebra_booleana
 from BackEnd.core import sessao_interativa
-from BackEnd.core.expression_ast import collect_variables, parse
+from BackEnd.core.expression_ast import ExpressaoInvalida, collect_variables, parse
 from BackEnd.equivalencia import comparar_expressoes
 from BackEnd.identificar_lei import simplificar_expressao
 from BackEnd.tabela import classificar_conclusao, gerar_tabela_verdade, verificar_conclusao
@@ -21,6 +21,24 @@ def converter(entrada: Expressao):
     booleana = converter_para_algebra_booleana(entrada.expressao)
     return {
         "expressao": entrada.expressao,
+        "expressao_booleana": booleana,
+        "variaveis": sorted(collect_variables(parse(booleana))),
+    }
+
+
+@router.post("/expressao/analisar")
+def analisar(entrada: Expressao):
+    """
+    Conferência enquanto o aluno digita. Aqui uma expressão inválida é a
+    resposta esperada, não um erro do pedido: vem com status 200, a mensagem
+    e a posição do problema (as outras rotas continuam respondendo 422).
+    """
+    try:
+        booleana = converter_para_algebra_booleana(entrada.expressao)
+    except ExpressaoInvalida as erro:
+        return {"valida": False, "mensagem": erro.mensagem, "posicao": erro.posicao}
+    return {
+        "valida": True,
         "expressao_booleana": booleana,
         "variaveis": sorted(collect_variables(parse(booleana))),
     }
