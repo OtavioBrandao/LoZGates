@@ -653,20 +653,6 @@ kbd {
   text-transform: uppercase;
 }
 
-.legenda-operadores {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px 14px;
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--linha);
-  background: var(--elevado);
-  color: var(--texto-2);
-  font-size: var(--t-corpo-p);
-}
-.legenda-operadores span {
-  white-space: nowrap;
-}
 
 /* --------------------------------------------------------------------------
    Painéis
@@ -1719,50 +1705,193 @@ kbd {
 }
 
 /* --------------------------------------------------------------------------
-   Formulários centrais (principal, equivalência)
+   Telas de formulário: Expressões & Circuitos (2.1) e Equivalência (2.2)
    -------------------------------------------------------------------------- */
-.formulario-central {
+.pagina--formulario {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: var(--e-md);
-  margin-top: clamp(0px, 5vh, 50px);
-  text-align: center;
+  gap: var(--e-lg);
+  max-width: 1120px;
 }
-.cartao-formulario {
-  padding: var(--e-xl) var(--e-lg);
-  border: 1px solid var(--linha);
-  border-top: 3px solid var(--trilha);
-  background: var(--painel);
-  box-shadow: var(--sombra);
-}
-.titulo-formulario {
+.cabecalho-tela__titulo {
   font-family: var(--fonte-display);
-  font-size: var(--t-titulo-p);
+  font-size: clamp(1.25rem, 2.6vw, 1.6rem);
   font-stretch: 112%;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.2;
 }
-.separador-comparar {
+.folha-expressao {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  align-items: start;
+  gap: var(--e-lg);
+}
+.folha-expressao__entrada {
+  gap: var(--e-lg);
+}
+.folha-expressao__lateral {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--e-lg);
+  min-width: 0;
+}
+.folha-expressao__acoes {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--e-sm);
+}
+
+/* Campo com conferência ao vivo pelo parser canônico */
+.campo-expressao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.campo-expressao .campo--expressao {
+  min-height: 54px;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+}
+.campo--invalido,
+.campo--invalido:focus {
+  border-color: var(--erro);
+  box-shadow: 0 0 0 1px var(--erro);
+}
+.campo-expressao__analise {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 14px;
+  min-height: 1.5em;
   color: var(--texto-2);
   font-size: var(--t-corpo-p);
-  font-weight: 600;
 }
-.separador-comparar::before,
-.separador-comparar::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--borda-controle);
+.campo-expressao__analise--valida .campo-expressao__marca {
+  color: var(--sucesso);
+  font-weight: 700;
+}
+.campo-expressao__analise--invalida,
+.campo-expressao__analise--sem-servidor {
+  color: var(--erro);
+}
+.campo-expressao__analise--invalida .campo-expressao__marca {
+  font-weight: 700;
+}
+.campo-expressao__trecho {
+  color: var(--texto);
+  white-space: pre;
+}
+.campo-expressao__trecho mark {
+  padding: 0 1px;
+  background: var(--erro-fundo);
+  color: var(--erro);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--erro);
+}
+
+/* Teclado de operadores: é a legenda e também digita */
+.teclado-operadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(132px, 30%), 1fr));
+  gap: 6px;
+}
+.tecla-operador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 10px;
+  border: 1px solid var(--borda-controle);
+  border-radius: var(--raio-botao);
+  background: var(--painel);
+  color: var(--texto-2);
+  font-size: var(--t-corpo-p);
+  text-align: left;
+  cursor: pointer;
+}
+.tecla-operador:hover {
+  background: var(--elevado);
+  color: var(--texto);
+}
+.tecla-operador__simbolo {
+  min-width: 2.4em;
+  border-color: var(--trilha);
+  color: var(--trilha);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.tecla-operador__nome {
+  line-height: 1.2;
+}
+.tecla-operador__curto {
+  display: none;
+}
+/* Celular: símbolo em cima e nome curto embaixo, quatro por linha */
+@media (max-width: 640px) {
+  .teclado-operadores {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .tecla-operador {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 52px;
+    padding: 4px 2px;
+    text-align: center;
+  }
+  .tecla-operador__nome {
+    display: none;
+  }
+  .tecla-operador__curto {
+    display: block;
+    font-size: 0.72rem;
+    line-height: 1.1;
+  }
+}
+
+.exemplos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.exemplo {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px dashed var(--borda-controle);
+  border-radius: var(--raio-botao);
+  background: transparent;
+  color: var(--texto);
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+}
+.exemplo:hover {
+  border-style: solid;
+  background: var(--elevado);
+}
+
+/* Equivalência */
+.equivalencia__campos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--e-md);
+}
+.equivalencia__simbolo {
+  padding-top: 34px;
+  color: var(--trilha);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
 }
 .resultado-equivalencia {
   padding: var(--e-md);
   border: 2px solid;
+  font-family: var(--fonte-display);
   font-size: var(--t-titulo-p);
-  font-weight: 650;
+  font-weight: 700;
   white-space: pre;
 }
 .resultado-equivalencia--sim {
@@ -1775,46 +1904,173 @@ kbd {
   background: var(--erro-fundo);
   color: var(--erro);
 }
-
-/* --------------------------------------------------------------------------
-   Aba Expressão
-   -------------------------------------------------------------------------- */
-.aba-expressao {
+.equivalencia__explicacao {
+  font-size: var(--t-subtitulo);
+  line-height: 1.6;
+}
+.comparacao {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--e-xl);
-  max-width: 760px;
-  margin: 0 auto;
-  padding-top: var(--e-lg);
+  gap: var(--e-sm);
+  min-width: 0;
+}
+.comparacao__resumo {
+  margin-left: auto;
+  font-family: var(--fonte);
+  font-size: var(--t-corpo-p);
+  font-weight: 400;
+}
+.comparacao__rolagem {
+  max-height: 440px;
+  overflow: auto;
+  border: 1px solid var(--linha);
+}
+.comparacao__tabela {
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--t-corpo-p);
   text-align: center;
 }
-.aba-expressao__grupo {
+.comparacao__tabela th,
+.comparacao__tabela td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--linha);
+  white-space: nowrap;
+}
+.comparacao__tabela th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 2px solid var(--trilha);
+  background: var(--elevado);
+  color: var(--texto);
+}
+.comparacao__saida {
+  border-left: 1px solid var(--linha);
+}
+.comparacao__expressao {
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.comparacao__linha--diferente td {
+  background: var(--foco-fundo);
+}
+.comparacao__diferenca {
+  color: var(--foco);
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   Aba Expressão: 3.1 conversão, 3.2 simplificação, 3.3 análise
+   -------------------------------------------------------------------------- */
+.aba-expressao {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--e-lg);
+}
+.aba-expressao__conversao {
+  grid-column: 1 / -1;
+}
+.aba-expressao__conversao-corpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--e-lg);
+}
+.aba-expressao__acao {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--e-md);
-  width: 100%;
 }
-.aba-expressao__outros {
-  width: 100%;
-  padding-top: var(--e-lg);
-  border-top: 1px solid var(--linha);
+.regras-conversao {
+  border-collapse: collapse;
+  font-size: var(--t-corpo-p);
+}
+.regras-conversao th,
+.regras-conversao td {
+  padding: 4px 14px;
+  border-bottom: 1px solid var(--linha);
+  text-align: left;
+}
+.regras-conversao th {
+  border-bottom: 2px solid var(--trilha);
+  color: var(--texto-2);
+  font-family: var(--fonte);
+  font-size: var(--t-legenda);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .resultado-conversao {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: var(--e-sm) var(--e-lg);
+  margin: 0;
   padding: var(--e-md) var(--e-lg);
   border: 1px solid var(--linha);
-  background: var(--painel);
+  border-left: 3px solid var(--sinal-1);
+  background: var(--fundo);
+}
+.resultado-conversao dd {
+  margin: 0;
   font-size: var(--t-subtitulo);
-  text-align: left;
+  overflow-wrap: anywhere;
 }
 .resultado-conversao__rotulo {
   color: var(--texto-2);
   font-size: var(--t-corpo-p);
+}
+.resultado-conversao__booleana {
+  color: var(--trilha);
+  font-size: 1.4rem !important;
+  font-weight: 700;
+}
+.opcoes-simplificacao {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: var(--e-md);
+}
+.cartao-opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border: 1px solid var(--linha);
+  background: var(--fundo);
+}
+.cartao-opcao__titulo {
+  font-family: var(--fonte-display);
+  font-size: var(--t-subtitulo);
+  font-stretch: 112%;
+  font-weight: 700;
+}
+.cartao-opcao .botao {
+  margin-top: auto;
+}
+
+@media (max-width: 860px) {
+  .folha-expressao,
+  .aba-expressao {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .equivalencia__campos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .equivalencia__simbolo {
+    padding-top: 0;
+    text-align: center;
+  }
+}
+@media (max-width: 640px) {
+  .aba-expressao__conversao-corpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* --------------------------------------------------------------------------

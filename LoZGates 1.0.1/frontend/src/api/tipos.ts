@@ -13,6 +13,10 @@ export interface Conversao {
   variaveis: string[];
 }
 
+export type AnaliseDaExpressao =
+  | { valida: true; expressao_booleana: string; variaveis: string[] }
+  | { valida: false; mensagem: string; posicao: number | null };
+
 export interface TabelaVerdade {
   colunas: string[];
   tabela: number[][];

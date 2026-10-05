@@ -8,6 +8,7 @@
  */
 import type {
   Conteudo,
+  AnaliseDaExpressao,
   Conversao,
   Correcao,
   DefinicoesComponentes,
@@ -90,6 +91,8 @@ export function mensagemDe(erro: unknown): string {
 export const api = {
   // expressão
   converter: (expressao: string) => post<Conversao>('expressao/converter', { expressao }),
+  /** Conferência enquanto o aluno digita: inválida vem como resposta normal, não como erro */
+  analisarExpressao: (expressao: string) => post<AnaliseDaExpressao>('expressao/analisar', { expressao }),
   tabelaVerdade: (expressao: string) => post<TabelaVerdade>('expressao/tabela-verdade', { expressao }),
 
   // simplificações
