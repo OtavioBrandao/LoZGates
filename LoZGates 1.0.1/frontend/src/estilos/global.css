@@ -2195,74 +2195,151 @@ kbd {
 }
 
 /* --------------------------------------------------------------------------
-   Passos (StepView e Resolver)
+   Simplificações: registro de passos (Resultado) e Resolver (Interativa)
    -------------------------------------------------------------------------- */
+.pagina--simplificacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-lg);
+}
 .vista-passos {
+  gap: var(--e-lg);
+}
+
+/* Registro de passos: linha do tempo numerada, como o log de uma bancada */
+.registro-passos {
   display: flex;
   flex-direction: column;
+}
+.registro-passos__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
   gap: var(--e-md);
-  margin: var(--e-lg) 0;
+  padding-bottom: var(--e-lg);
 }
-.lista-passos {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.registro-passos__item::before {
+  content: '';
+  position: absolute;
+  top: 2.25rem;
+  bottom: 0;
+  left: calc(1.125rem - 1px);
+  width: 2px;
+  background: var(--linha);
 }
-.cartao-passo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 16px;
-  border: 1px solid var(--linha);
+.registro-passos__item:last-child {
+  padding-bottom: 0;
+}
+.registro-passos__item:last-child::before {
+  display: none;
+}
+.registro-passos__marca {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 2px solid var(--sucesso);
+  border-radius: 50%;
   background: var(--painel);
+  color: var(--sucesso);
+  font-size: var(--t-corpo-p);
+  font-weight: 700;
 }
-.cartao-passo--sucesso {
-  border-top: 3px solid var(--sucesso);
-}
-.cartao-passo--pular {
-  border-top: 3px solid var(--aviso);
-  background: var(--elevado);
-}
-.cartao-passo--entrada {
-  animation: surgir 0.3s ease-out;
-}
-.cartao-passo__titulo {
+.registro-passos__item--inicial .registro-passos__marca {
+  border-color: var(--trilha);
   color: var(--trilha);
-  font-weight: 650;
 }
-.cartao-passo__cabecalho {
+.registro-passos__item--pulo .registro-passos__marca {
+  border-color: var(--aviso);
+  color: var(--aviso);
+}
+.registro-passos__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 4px;
+}
+.registro-passos__titulo {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 4px 12px;
+  align-items: baseline;
+  gap: 4px 10px;
   font-weight: 650;
 }
-.cartao-passo__expressao {
-  font-size: var(--t-subtitulo);
+.registro-passos__lei {
+  padding: 1px 8px;
+  border: 1px solid var(--borda-controle);
+  color: var(--texto-2);
+  font-size: var(--t-corpo-p);
+  font-weight: 600;
 }
-.cartao-passo__transformacao {
+.registro-passos__expressao {
+  font-size: var(--t-subtitulo);
+  overflow-wrap: anywhere;
+}
+.registro-passos__transformacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
   padding: 8px 12px;
   border: 1px solid var(--linha);
   background: var(--elevado);
+  font-size: var(--t-subtitulo);
+  overflow-wrap: anywhere;
+}
+.registro-passos__seta {
+  color: var(--texto-2);
+}
+.registro-passos__contexto {
+  display: grid;
+  gap: 2px;
+  margin: 0;
   font-size: var(--t-corpo-p);
 }
-.cartao-passo__status {
-  font-weight: 650;
+.registro-passos__contexto > div {
+  display: grid;
+  grid-template-columns: 4.5em minmax(0, 1fr);
+  gap: var(--e-sm);
 }
-.lista-passos__fim {
-  height: 0;
+.registro-passos__contexto dt {
+  padding-top: 2px;
+  color: var(--texto-2);
+  font-family: var(--fonte);
+  font-size: var(--t-legenda);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.registro-passos__contexto dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+/* Onde a lei agiu (antes) e o que ficou no lugar (depois) */
+.trecho {
+  padding: 0 1px;
+  background: var(--foco-fundo);
+  color: var(--texto);
+  box-shadow: inset 0 -2px 0 var(--foco);
+}
+.trecho--resultado {
+  background: var(--sucesso-fundo);
+  box-shadow: inset 0 -2px 0 var(--sucesso);
 }
 .resultado-final {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: var(--e-lg);
-  border: 2px solid var(--sucesso);
-  background: var(--painel);
-  text-align: center;
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--linha);
+  border-left: 4px solid var(--sucesso);
+  background: var(--fundo);
 }
 .resultado-final__expressao {
-  font-size: var(--t-titulo-p);
+  color: var(--sucesso);
+  font-size: var(--t-titulo-m);
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 .carregando-texto {
   animation: pulsar 1.2s ease-in-out infinite;
@@ -2273,14 +2350,10 @@ kbd {
   }
 }
 
-.resolver {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-md);
-}
 .resolver__expressao {
-  font-size: var(--t-subtitulo);
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 .trecho-em-analise {
   padding: 0 2px;
@@ -2318,6 +2391,9 @@ kbd {
   background: var(--elevado);
   color: var(--texto-2);
 }
+.resolver__progresso {
+  text-align: right;
+}
 .grupo-leis + .grupo-leis {
   margin-top: var(--e-md);
 }
@@ -2340,6 +2416,10 @@ kbd {
   min-height: 60px;
   padding: 8px;
   font-size: var(--t-corpo-p);
+}
+.botao-lei small {
+  color: var(--texto-2);
+  opacity: 1;
 }
 .resolver__controles {
   display: grid;

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { api, mensagemDe } from '../api/cliente';
 import type { EstadoInterativo, ItemHistorico, RespostaInterativa, VisaoInterativa } from '../api/tipos';
 import { Botao } from '../componentes/Botao';
+import { CabecalhoDaTela } from '../componentes/CabecalhoDaTela';
+import { TextoComTrecho } from '../componentes/TextoComTrecho';
 import { LEIS_BASICAS, LEIS_ESTRUTURAIS, type BotaoLei } from '../dados/leis';
 import { useAplicacao } from '../estado/Aplicacao';
 import { useJanelas } from '../estado/Janelas';
@@ -22,44 +24,53 @@ function analise(visao: VisaoInterativa | null): { texto: string; cor: 'sucesso'
   return { texto: 'Aguardando próxima análise...', cor: 'secundario' };
 }
 
-/** A expressão atual com a subexpressão em análise destacada. */
-function ExpressaoComDestaque({ visao }: { visao: VisaoInterativa }) {
-  if (!visao.trecho) return <>{visao.expressao}</>;
-  const [inicio, fim] = visao.trecho;
-  return (
-    <>
-      {visao.expressao.slice(0, inicio)}
-      <mark className="trecho-em-analise">{visao.expressao.slice(inicio, fim)}</mark>
-      {visao.expressao.slice(fim)}
-    </>
-  );
-}
-
-function CartaoDoHistorico({ item }: { item: ItemHistorico }) {
+function ItemDoHistorico({ item }: { item: ItemHistorico }) {
   switch (item.tipo) {
     case 'inicial':
       return (
-        <li className="cartao-passo cartao-passo--inicial">
-          <p className="cartao-passo__titulo">Expressão inicial:</p>
-          <p className="mono">{item.expressao}</p>
+        <li className="registro-passos__item registro-passos__item--inicial">
+          <span className="registro-passos__marca mono" aria-hidden="true">
+            0
+          </span>
+          <div className="registro-passos__corpo">
+            <p className="registro-passos__titulo">Expressão inicial</p>
+            <p className="mono registro-passos__expressao">{item.expressao}</p>
+          </div>
         </li>
       );
     case 'lei':
       return (
-        <li className="cartao-passo cartao-passo--sucesso">
-          <p className="cartao-passo__cabecalho">
-            <span className="cor-sucesso">✓&nbsp;&nbsp;Passo {item.passo}:</span>
-            <span className="destaque">{item.lei}</span>
-          </p>
-          <p className="mono texto-secundario">Antes:&nbsp;&nbsp;{item.antes}</p>
-          <p className="mono">Depois:&nbsp;&nbsp;{item.depois}</p>
+        <li className="registro-passos__item">
+          <span className="registro-passos__marca mono" aria-hidden="true">
+            {item.passo}
+          </span>
+          <div className="registro-passos__corpo">
+            <p className="registro-passos__titulo">
+              Passo {item.passo} <span className="registro-passos__lei">{item.lei}</span>
+            </p>
+            <dl className="registro-passos__contexto mono">
+              <div>
+                <dt>antes</dt>
+                <dd>{item.antes}</dd>
+              </div>
+              <div>
+                <dt>depois</dt>
+                <dd className="cor-sucesso">{item.depois}</dd>
+              </div>
+            </dl>
+          </div>
         </li>
       );
     case 'pulo':
       return (
-        <li className="cartao-passo cartao-passo--pular">
-          <p className="cartao-passo__titulo cor-aviso">→&nbsp;&nbsp;Subexpressão pulada:</p>
-          <p className="mono texto-secundario">{item.subexpressao}</p>
+        <li className="registro-passos__item registro-passos__item--pulo">
+          <span className="registro-passos__marca mono" aria-hidden="true">
+            →
+          </span>
+          <div className="registro-passos__corpo">
+            <p className="registro-passos__titulo">Subexpressão pulada</p>
+            <p className="mono texto-secundario">{item.subexpressao}</p>
+          </div>
         </li>
       );
   }
@@ -157,32 +168,38 @@ export function SimplificacaoInterativa() {
   );
 
   // Duas colunas: à esquerda o estado atual, as leis e os controles (sempre à vista);
-  // à direita o histórico, que rola sozinho
+  // à direita o histórico, que rola sozinho. O Voltar fica com Pular e Desfazer.
   return (
-    <main className="tela tela--larga resolver" aria-busy={aguardando}>
+    <main className="pagina pagina--simplificacao resolver" aria-busy={aguardando}>
+      <CabecalhoDaTela secao="3.2 · Simplificação · Interativa" titulo="Escolha a lei a cada passo" />
       <div className="resolver__colunas">
         <div className="resolver__principal">
           {/* ZONA 1 — contexto: expressão atual e subexpressão em análise */}
           <section className="painel resolver__zona" aria-labelledby="titulo-expressao-atual">
             <div className="painel__cabecalho">
-              <h2 id="titulo-expressao-atual" className="painel__titulo">
-                Expressão Atual
+              <h2 id="titulo-expressao-atual" className="titulo-painel">
+                <span className="rotulo-secao">1</span> Expressão Atual
               </h2>
-              <Botao tamanho="pequeno" onClick={abrirChatIA} aria-label="Pedir sugestão à IA">
-                &nbsp;&nbsp;IA
+              <Botao estilo="fantasma" tamanho="pequeno" onClick={abrirChatIA} aria-label="Pedir sugestão à IA">
+                Pedir ajuda à IA
               </Botao>
             </div>
-            <p className="mono resolver__expressao">{visao ? <ExpressaoComDestaque visao={visao} /> : app.expressaoGlobal}</p>
+            <p className="mono resolver__expressao">
+              {visao ? <TextoComTrecho texto={visao.expressao} trecho={visao.trecho} classe="trecho-em-analise" /> : app.expressaoGlobal}
+            </p>
             <p className="resolver__rotulo-analise">▼&nbsp;&nbsp;Subexpressão em análise:</p>
             <p className={`resolver__analise resolver__analise--${cor}`} role="status" aria-live="polite">
               {texto}
+            </p>
+            <p className="resolver__progresso texto-secundario pequeno">
+              {visao ? `${visao.contador_passos} ${visao.contador_passos === 1 ? 'lei aplicada' : 'leis aplicadas'}` : '…'}
             </p>
           </section>
 
           {/* ZONA 2 — leis */}
           <section className="painel resolver__zona" aria-labelledby="titulo-leis">
-            <h2 id="titulo-leis" className="painel__titulo">
-              Escolha uma Lei para Aplicar
+            <h2 id="titulo-leis" className="titulo-painel">
+              <span className="rotulo-secao">2</span> Escolha uma Lei para Aplicar
             </h2>
             {grupoDeLeis('Básicas', LEIS_BASICAS)}
             {grupoDeLeis('Estruturais', LEIS_ESTRUTURAIS)}
@@ -204,12 +221,12 @@ export function SimplificacaoInterativa() {
 
         {/* Histórico, na coluna da direita */}
         <section className="painel resolver__historico" aria-labelledby="titulo-historico">
-          <h2 id="titulo-historico" className="painel__titulo">
-            Histórico de Passos
+          <h2 id="titulo-historico" className="titulo-painel">
+            <span className="rotulo-secao">3</span> Histórico de Passos
           </h2>
-          <ol ref={listaDoHistorico} className="lista-passos lista-passos--historico">
+          <ol ref={listaDoHistorico} className="registro-passos lista-passos--historico">
             {visao?.historico.map((item, i) => (
-              <CartaoDoHistorico key={i} item={item} />
+              <ItemDoHistorico key={i} item={item} />
             ))}
           </ol>
         </section>
