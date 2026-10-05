@@ -2394,6 +2394,13 @@ kbd {
 .resolver__progresso {
   text-align: right;
 }
+.resolver__dica {
+  padding: var(--e-sm) var(--e-md);
+  border-left: 3px solid var(--aviso);
+  background: var(--aviso-fundo);
+  color: var(--texto);
+  font-size: var(--t-corpo-p);
+}
 .grupo-leis + .grupo-leis {
   margin-top: var(--e-md);
 }

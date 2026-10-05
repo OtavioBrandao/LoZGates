@@ -19,6 +19,9 @@ function analise(visao: VisaoInterativa | null): { texto: string; cor: 'sucesso'
       return { texto: '!  Limite máximo de transformações atingido.', cor: 'aviso' };
     case 'repeated_state':
       return { texto: '!  Transformação resultou em estado repetido.', cor: 'aviso' };
+    // A lei se aplica, mas o resultado não é menor: o motor desfaz a troca (como no desktop)
+    case 'no_progress':
+      return { texto: '!  Esta lei se aplica, mas não reduz a expressão.', cor: 'aviso' };
   }
   if (visao.subexpressao) return { texto: visao.subexpressao, cor: 'primario' };
   return { texto: 'Aguardando próxima análise...', cor: 'secundario' };
@@ -151,7 +154,9 @@ export function SimplificacaoInterativa() {
 
   const { texto, cor } = analise(visao);
   const concluida = visao?.concluida ?? false;
-  const leisDesabilitadas = !visao || concluida || aguardando;
+  // Sem subexpressão em análise, leis e Pular não fazem nada no motor: ficam desabilitados
+  const semAnalise = !visao?.subexpressao;
+  const leisDesabilitadas = !visao || concluida || aguardando || semAnalise;
 
   const grupoDeLeis = (titulo: string, leis: BotaoLei[]) => (
     <div className="grupo-leis">
@@ -191,6 +196,13 @@ export function SimplificacaoInterativa() {
             <p className={`resolver__analise resolver__analise--${cor}`} role="status" aria-live="polite">
               {texto}
             </p>
+            {visao?.motivo_parada === 'no_progress' && (
+              <p className="resolver__dica">
+                {visao.pode_desfazer
+                  ? 'Use ↶ Desfazer para voltar à subexpressão anterior e tentar outra lei.'
+                  : 'Use Voltar para recomeçar e tentar outra lei.'}
+              </p>
+            )}
             <p className="resolver__progresso texto-secundario pequeno">
               {visao ? `${visao.contador_passos} ${visao.contador_passos === 1 ? 'lei aplicada' : 'leis aplicadas'}` : '…'}
             </p>
@@ -207,7 +219,7 @@ export function SimplificacaoInterativa() {
 
           {/* ZONA 3 — controles, logo abaixo das leis */}
           <div className="resolver__controles">
-            <Botao onClick={pular} disabled={!visao || concluida || aguardando}>
+            <Botao onClick={pular} disabled={!visao || concluida || aguardando || semAnalise}>
               Pular →
             </Botao>
             <Botao estilo="aviso" onClick={desfazer} disabled={!visao?.pode_desfazer || aguardando}>
