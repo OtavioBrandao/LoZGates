@@ -26,6 +26,7 @@
   --sinal-0: #788599;
   --foco: #ba3e0b;
   --foco-fundo: rgba(186, 62, 11, 0.1);
+  --pulso: #6aa8ff;
 
   /* Retorno ao aluno */
   --sucesso: #15703a;
@@ -110,6 +111,7 @@
     --sinal-0: #647a96;
     --foco: #ff9459;
     --foco-fundo: rgba(255, 148, 89, 0.14);
+    --pulso: #e0f1ff;
     --sucesso: #5bd68e;
     --sucesso-fundo: rgba(91, 214, 142, 0.12);
     --aviso: #f2c14e;
@@ -149,6 +151,7 @@
   --sinal-0: #647a96;
   --foco: #ff9459;
   --foco-fundo: rgba(255, 148, 89, 0.14);
+  --pulso: #e0f1ff;
   --sucesso: #5bd68e;
   --sucesso-fundo: rgba(91, 214, 142, 0.12);
   --aviso: #f2c14e;
@@ -606,6 +609,9 @@ kbd {
 .seletor-tema__opcao:last-child {
   border-right: 0;
 }
+.seletor-tema__curto {
+  display: none;
+}
 .seletor-tema__opcao[aria-pressed='true'] {
   background: var(--botao);
   color: var(--botao-texto);
@@ -846,31 +852,22 @@ kbd {
   font-weight: 700;
   text-anchor: middle;
 }
-/* a chave fica sobre o começo do fio (x = 19% do desenho) e nunca sai do quadro */
+/* As mesmas chaves da tela do circuito, sobre o começo dos fios (x = 0 do
+   desenho): o fio parece sair da chave, qualquer que seja a largura do quadro */
 .mini__chave {
   position: absolute;
-  left: 12%;
-  transform: translate(-50%, -50%);
-  width: clamp(58px, 20%, 88px);
-  min-height: 44px;
-  padding: 0 4px;
-  border: 2px solid var(--sinal-0);
-  border-radius: var(--raio-botao);
-  background: var(--painel);
-  color: var(--texto);
-  font-family: var(--fonte-mono);
-  font-size: clamp(0.8rem, 0.6rem + 0.9vw, 1rem);
-  font-weight: 700;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease;
+  left: 2%;
+  z-index: 1;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 10px;
+  transform: translateY(-50%);
 }
-.mini__chave.chave--1 {
-  border-color: var(--sinal-1);
-  background: var(--sinal-1-fundo);
-  color: var(--sinal-1);
+.mini__chave--a {
+  top: 25%;
+}
+.mini__chave--b {
+  top: 75%;
 }
 .mini__legenda {
   display: flex;
@@ -941,6 +938,111 @@ kbd {
     stroke 0.18s ease,
     stroke-width 0.18s ease,
     fill 0.18s ease;
+}
+
+/* Propagação: quando uma entrada muda, o novo nível percorre cada fio (a
+   frente) com um brilho na ponta (o pulso), trecho a trecho até o LED, que
+   acende com um clarão. Com prefers-reduced-motion nada disso aparece. */
+.frente,
+.pulso {
+  fill: none;
+  stroke-linejoin: round;
+  pointer-events: none;
+  animation-duration: var(--duracao, 260ms);
+  animation-delay: var(--atraso, 0ms);
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+.frente {
+  stroke: var(--sinal-1);
+  stroke-width: 4;
+  stroke-linecap: butt;
+  stroke-dasharray: calc(var(--comprimento) * 1px) calc(var(--comprimento) * 1px);
+}
+.mini__frente {
+  stroke-width: 4.5;
+}
+.frente--acende {
+  animation-name: frente-acende;
+}
+.frente--apaga {
+  animation-name: frente-apaga;
+}
+@keyframes frente-acende {
+  from {
+    stroke-dashoffset: calc(var(--comprimento) * 1px);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes frente-apaga {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: calc(var(--comprimento) * -1px);
+  }
+}
+.pulso {
+  stroke: var(--pulso);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 16px calc(var(--comprimento) * 1px + 16px);
+  animation-name: pulso;
+  filter: drop-shadow(0 0 4px var(--sinal-1));
+}
+.mini__pulso {
+  stroke-width: 9;
+}
+@keyframes pulso {
+  0% {
+    stroke-dashoffset: 16px;
+    opacity: 0;
+  }
+  12%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: calc(16px - var(--comprimento) * 1px);
+    opacity: 0;
+  }
+}
+.led--acendendo {
+  animation: led-acende 520ms ease-out var(--atraso, 0ms) both;
+}
+.led--apagando {
+  animation: led-apaga 220ms ease-in var(--atraso, 0ms) both;
+}
+@keyframes led-acende {
+  0% {
+    fill: var(--painel);
+    stroke: var(--sinal-0);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  25% {
+    fill: var(--sinal-1);
+    stroke: var(--sinal-1);
+    filter: drop-shadow(0 0 16px var(--sinal-1));
+  }
+  100% {
+    fill: var(--sinal-1);
+    stroke: var(--sinal-1);
+    filter: drop-shadow(0 0 6px var(--sinal-1));
+  }
+}
+@keyframes led-apaga {
+  from {
+    fill: var(--sinal-1);
+    stroke: var(--sinal-1);
+    filter: drop-shadow(0 0 6px var(--sinal-1));
+  }
+  to {
+    fill: var(--painel);
+    stroke: var(--sinal-0);
+    filter: drop-shadow(0 0 0 transparent);
+  }
 }
 
 /* Ferramentas (seção 2) */
@@ -1145,42 +1247,73 @@ kbd {
   flex-direction: column;
   gap: var(--e-sm);
 }
-.circuito-vivo__ferramentas {
+/* Título, zoom e ações numa linha só: sobra mais altura para o desenho */
+.circuito-vivo__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+}
+.circuito-vivo__topo .titulo-painel {
+  margin-right: auto;
+}
+.circuito-vivo__ferramentas,
+.circuito-vivo__acoes {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
 .circuito-vivo__zoom {
-  min-width: 4.5ch;
+  min-width: 4.5rem;
+  padding: 0 8px;
   color: var(--texto-2);
-  font-size: var(--t-corpo-p);
-  text-align: center;
 }
-.circuito-vivo__area {
+.circuito-vivo__moldura {
   position: relative;
+}
+/* A área rola: no celular o circuito abre legível e desliza para o lado */
+.circuito-vivo__area {
+  overflow: auto;
+  overscroll-behavior-x: contain;
   border: 1px solid var(--linha);
   background: var(--fundo);
-}
-.circuito-vivo__svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 64vh;
-  min-height: 160px;
   cursor: grab;
+  scrollbar-width: thin;
   user-select: none;
   -webkit-user-select: none;
 }
-.circuito-vivo__svg:active {
+.circuito-vivo__area:active {
   cursor: grabbing;
 }
-.circuito-vivo__svg:focus-visible {
+.circuito-vivo__area:focus-visible {
   box-shadow: inset 0 0 0 2px var(--foco);
+}
+.circuito-vivo__folha {
+  display: grid;
+  place-items: center;
+  width: max-content;
+  height: max-content;
+  min-width: 100%;
+  min-height: 100%;
+}
+.circuito-vivo__svg {
+  display: block;
 }
 .circuito-vivo__ajuda {
   color: var(--texto-2);
   font-size: var(--t-legenda);
+}
+.so-toque {
+  display: none;
+}
+@media (pointer: coarse) {
+  .so-mouse {
+    display: none;
+  }
+  .so-toque {
+    display: inline;
+  }
 }
 .grade {
   fill: none;
@@ -1208,7 +1341,7 @@ kbd {
 .circuito-vivo .fio.fio--indefinido,
 .circuito-vivo .fio--indefinido .fio {
   stroke: var(--sinal-0);
-  stroke-width: 2;
+  stroke-width: 2.5;
 }
 .circuito-vivo .fio.fio--indefinido,
 .circuito-vivo .fio--indefinido .fio {
@@ -1230,20 +1363,20 @@ kbd {
 .barramento__nome {
   fill: var(--texto);
   font-family: var(--fonte-mono);
-  font-size: 17px;
+  font-size: 24px;
   font-weight: 700;
   text-anchor: middle;
 }
 .barramento__valor {
   font-family: var(--fonte-mono);
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 700;
   text-anchor: middle;
 }
-.fio--1 .barramento__valor {
+.barramento__valor.fio--1 {
   fill: var(--sinal-1);
 }
-.fio--0 .barramento__valor {
+.barramento__valor.fio--0 {
   fill: var(--texto-2);
 }
 .porta-viva {
@@ -1266,7 +1399,7 @@ kbd {
 .saida-viva__nome {
   fill: var(--texto);
   font-family: var(--fonte-mono);
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 700;
   text-anchor: middle;
 }
@@ -1395,6 +1528,49 @@ kbd {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--e-sm);
+}
+
+/* Telas estreitas: as entradas ficam presas logo abaixo do desenho (e no pé
+   da tela enquanto o circuito estiver à vista), para o aluno ver o fio
+   acender ao mudar uma entrada. Nas largas elas ficam no painel ao lado. */
+.barra-entradas {
+  display: none;
+}
+@media (max-width: 1080px) {
+  .painel-entradas {
+    display: none;
+  }
+  .barra-entradas {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-sm);
+    padding: var(--e-sm);
+    border: 1px solid var(--borda-controle);
+    background: var(--painel);
+    box-shadow: 0 -6px 16px rgba(17, 26, 39, 0.08);
+  }
+  .barra-entradas__chaves {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 6px;
+  }
+  .barra-entradas .chave-entrada {
+    min-height: 42px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .barra-entradas__rodape {
+    display: flex;
+    align-items: center;
+    gap: var(--e-sm);
+  }
+  .barra-entradas .saida-atual {
+    flex: 1;
+    padding: 4px 12px;
+  }
 }
 
 /* Tabela 1: tabela-verdade resumida */
@@ -2437,8 +2613,27 @@ kbd {
   .chat-ia__fechar {
     margin-left: 0;
   }
+  /* Voltar e o tema na mesma linha; a expressão embaixo, com a largura toda */
+  .cabecalho-expressao .seletor-tema {
+    margin-left: auto;
+  }
+  .cabecalho-expressao__texto {
+    order: 1;
+    flex-basis: 100%;
+  }
   .cabecalho-expressao__expressao {
     font-size: 1.15rem;
+  }
+  .seletor-tema__curto {
+    display: inline;
+  }
+  .seletor-tema__longo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }
 @media (max-width: 560px) {
@@ -2455,5 +2650,14 @@ kbd {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  /* sem pulso percorrendo o fio nem clarão no LED: o estado muda direto */
+  .frente,
+  .pulso {
+    display: none;
+  }
+  .led--acendendo,
+  .led--apagando {
+    animation: none !important;
   }
 }

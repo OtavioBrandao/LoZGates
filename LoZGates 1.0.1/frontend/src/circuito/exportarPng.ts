@@ -6,6 +6,8 @@
  * isolada não enxerga esse CSS, então copiamos para cada elemento as
  * propriedades de pintura já calculadas pelo navegador.
  */
+import { EVENTO_ESTADO_FINAL } from './propagacao';
+
 const PROPRIEDADES = [
   'fill', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linejoin',
   'stroke-linecap', 'opacity', 'font-family', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline', 'filter',
@@ -43,8 +45,9 @@ export async function exportarPng(svg: SVGSVGElement, nomeDoArquivo: string): Pr
   const largura = Math.round(w * escala);
   const altura = Math.round(h * escala);
 
-  // Transições em andamento (um fio que acabou de mudar de nível, o destaque de uma porta
-  // que acabou de perder o mouse) vão direto para o estado final antes de lermos as cores
+  // O sinal que ainda percorre o circuito chega de uma vez, e transições em andamento (o
+  // destaque de uma porta que acabou de perder o mouse) vão para o estado final antes da leitura
+  svg.dispatchEvent(new Event(EVENTO_ESTADO_FINAL));
   for (const animacao of svg.getAnimations({ subtree: true })) {
     try {
       animacao.finish();

@@ -1,6 +1,8 @@
 /**
- * Zoom e deslocamento do circuito, como uma "janela" (viewBox) sobre as
- * coordenadas do mundo que o servidor calculou.
+ * Zoom do circuito por tamanho: o desenho tem `escala` pixels por unidade do
+ * layout e fica numa área que rola (barras do navegador, dedo, roda do mouse).
+ * A escala inicial faz o circuito caber na largura, mas nunca fica abaixo da
+ * escala legível: no celular o circuito abre legível, com rolagem lateral.
  */
 export interface Janela {
   x: number;
@@ -9,31 +11,64 @@ export interface Janela {
   h: number;
 }
 
-export const ZOOM_MINIMO = 0.5;
-export const ZOOM_MAXIMO = 6;
-
-/** Nível de zoom em relação ao enquadramento inteiro (1 = circuito todo visível). */
-export const nivelDeZoom = (base: Janela, janela: Janela) => base.w / janela.w;
-
-/** Aproxima (fator > 1) ou afasta mantendo parado o ponto (px, py) do mundo. */
-export function zoomEm(base: Janela, janela: Janela, fator: number, px: number, py: number): Janela {
-  const nivel = Math.min(ZOOM_MAXIMO, Math.max(ZOOM_MINIMO, nivelDeZoom(base, janela) * fator));
-  const real = nivel / nivelDeZoom(base, janela);
-  const w = janela.w / real;
-  const h = janela.h / real;
-  return { x: px - (px - janela.x) / real, y: py - (py - janela.y) / real, w, h };
+export interface Ponto {
+  x: number;
+  y: number;
 }
 
-/** Zoom pelo centro da janela (botões + e −). */
-export function zoomNoCentro(base: Janela, janela: Janela, fator: number): Janela {
-  return zoomEm(base, janela, fator, janela.x + janela.w / 2, janela.y + janela.h / 2);
+export interface Tamanho {
+  largura: number;
+  altura: number;
 }
 
-/** Desloca a janela em unidades do mundo, sem deixar o circuito sumir de vista. */
-export function deslocar(base: Janela, janela: Janela, dx: number, dy: number): Janela {
-  const folgaX = Math.max(base.w, janela.w) * 0.75;
-  const folgaY = Math.max(base.h, janela.h) * 0.75;
-  const x = Math.min(base.x + base.w - janela.w + folgaX, Math.max(base.x - folgaX, janela.x + dx));
-  const y = Math.min(base.y + base.h - janela.h + folgaY, Math.max(base.y - folgaY, janela.y + dy));
-  return { ...janela, x, y };
+/** Abaixo disso os rótulos (24 unidades) ficam menores que ~14 px. */
+export const ESCALA_LEGIVEL = 0.6;
+/** Circuitos pequenos não viram um desenho gigante. */
+export const ESCALA_MAXIMA_INICIAL = 1.2;
+/** Zoom máximo, em relação à escala inicial. */
+export const ZOOM_MAXIMO = 4;
+
+/** Escala em que o circuito inteiro cabe na área. */
+export function escalaQueCabe(base: Janela, area: Tamanho): number {
+  return Math.min(area.largura / base.w, area.altura / base.h);
+}
+
+/** Escala com que o circuito abre (o "100%"). */
+export function escalaInicial(base: Janela, largura: number, alturaMaxima: number): number {
+  const cabe = escalaQueCabe(base, { largura, altura: alturaMaxima });
+  return Math.min(ESCALA_MAXIMA_INICIAL, Math.max(ESCALA_LEGIVEL, cabe));
+}
+
+export function limitarEscala(escala: number, minima: number, maxima: number): number {
+  return Math.min(maxima, Math.max(minima, escala));
+}
+
+/** Onde o desenho começa dentro da área: centralizado quando é menor que ela. */
+export function deslocamentoDoDesenho(base: Janela, area: Tamanho, escala: number): Ponto {
+  return {
+    x: Math.max(0, (area.largura - base.w * escala) / 2),
+    y: Math.max(0, (area.altura - base.h * escala) / 2),
+  };
+}
+
+/**
+ * Rolagem que mantém parado o ponto da área sob o cursor (ou o centro dos dois
+ * dedos) quando a escala muda. `ponto` é relativo ao canto visível da área.
+ */
+export function rolagemAncorada(
+  base: Janela,
+  area: Tamanho,
+  rolagem: Ponto,
+  ponto: Ponto,
+  escalaAntes: number,
+  escalaDepois: number,
+): Ponto {
+  const antes = deslocamentoDoDesenho(base, area, escalaAntes);
+  const depois = deslocamentoDoDesenho(base, area, escalaDepois);
+  const mundoX = (rolagem.x + ponto.x - antes.x) / escalaAntes;
+  const mundoY = (rolagem.y + ponto.y - antes.y) / escalaAntes;
+  return {
+    x: mundoX * escalaDepois + depois.x - ponto.x,
+    y: mundoY * escalaDepois + depois.y - ponto.y,
+  };
 }

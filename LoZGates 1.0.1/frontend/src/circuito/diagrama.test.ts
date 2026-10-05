@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { combinacaoDoIndice, indiceDaCombinacao, montarDiagrama } from './diagrama';
-import { deslocar, nivelDeZoom, zoomEm, zoomNoCentro, ZOOM_MAXIMO } from './visao';
 
 // Tabela-verdade de A&B>C como o servidor devolve (variáveis primeiro, linhas em ordem binária)
 const TABELA = [
@@ -50,29 +49,5 @@ describe('diagrama de tempo', () => {
     expect(indiceDaCombinacao(['A', 'B', 'C'], { A: true, B: true, C: false })).toBe(6);
     expect(combinacaoDoIndice(['A', 'B', 'C'], 5)).toEqual({ A: true, B: false, C: true });
     for (let i = 0; i < 8; i += 1) expect(indiceDaCombinacao(['A', 'B', 'C'], combinacaoDoIndice(['A', 'B', 'C'], i))).toBe(i);
-  });
-});
-
-describe('zoom e deslocamento', () => {
-  const base = { x: 0, y: 0, w: 1000, h: 400 };
-
-  it('aproxima mantendo parado o ponto sob o cursor', () => {
-    const janela = zoomEm(base, base, 2, 250, 100);
-    expect(nivelDeZoom(base, janela)).toBeCloseTo(2);
-    // o ponto (250, 100) continua na mesma proporção da janela
-    expect((250 - janela.x) / janela.w).toBeCloseTo(0.25);
-    expect((100 - janela.y) / janela.h).toBeCloseTo(0.25);
-  });
-
-  it('respeita os limites de zoom', () => {
-    let janela = base;
-    for (let i = 0; i < 40; i += 1) janela = zoomNoCentro(base, janela, 1.5);
-    expect(nivelDeZoom(base, janela)).toBeCloseTo(ZOOM_MAXIMO);
-  });
-
-  it('não deixa o circuito sair de vista ao arrastar', () => {
-    const longe = deslocar(base, base, 1e6, -1e6);
-    expect(longe.x).toBeLessThanOrEqual(base.w * 0.75 + 1e-9);
-    expect(longe.y).toBeGreaterThanOrEqual(-base.h * 0.75 - 1e-9);
   });
 });

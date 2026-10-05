@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, dadosFixos, mensagemDe } from '../api/cliente';
 import type { TabelaVerdade } from '../api/tipos';
 import { Botao } from '../componentes/Botao';
+import { ChaveDeEntrada } from '../componentes/ChaveDeEntrada';
 import { CircuitoVivo } from '../circuito/CircuitoVivo';
 import { DiagramaDeTempo } from '../circuito/DiagramaDeTempo';
 import { combinacaoDoIndice, indiceDaCombinacao } from '../circuito/diagrama';
@@ -60,6 +61,7 @@ export function AbaCircuito() {
   const variaveis = app.variaveis;
   const atual = indiceDaCombinacao(variaveis, app.valores);
   const escolher = (indice: number) => app.definirValores(combinacaoDoIndice(variaveis, indice));
+  const alternar = (nome: string) => app.definirValores({ ...app.valores, [nome]: !app.valores[nome] });
   const total = 2 ** variaveis.length;
   const saida = app.layout?.valor ?? (tabela ? Boolean(tabela.resultados_finais[atual]) : null);
   const linhasDaTabela = useMemo(() => tabela?.tabela.map((linha) => linha.slice(0, tabela.total_variaveis)) ?? null, [tabela]);
@@ -79,76 +81,97 @@ export function AbaCircuito() {
     }
   };
 
+  const titulo = (
+    <h2 id="titulo-figura-circuito" className="titulo-painel">
+      <span className="rotulo-secao">Figura 1</span> Circuito lógico
+    </h2>
+  );
+  const acoes = (
+    <>
+      <button
+        type="button"
+        className="botao botao--fantasma botao--icone"
+        aria-label="Ajuda rápida sobre circuitos"
+        disabled={duvida === null}
+        onClick={() => duvida !== null && janelas.popupDuvida(duvida)}
+      >
+        ?
+      </button>
+      <Botao tamanho="pequeno" onClick={() => void salvarImagem()}>
+        Exportar PNG
+      </Botao>
+    </>
+  );
+
+  const chaves = variaveis.map((nome) => (
+    <ChaveDeEntrada key={nome} nome={nome} ligada={Boolean(app.valores[nome])} aoAlternar={() => alternar(nome)} />
+  ));
+  const saidaAtual = (
+    <div className="saida-atual" aria-live="polite">
+      <span className="mono">S</span>
+      <span className={`led-html ${saida ? 'led-html--1' : ''}`} aria-hidden="true" />
+      <strong className={`mono ${saida ? 'cor-sinal-1' : 'cor-sinal-0'}`}>{saida === null ? '·' : saida ? '1' : '0'}</strong>
+    </div>
+  );
+  const anterior = () => escolher((atual - 1 + total) % total);
+  const proxima = () => escolher((atual + 1) % total);
+
+  // Telas estreitas: as entradas ficam presas logo abaixo do desenho, para o aluno ver o fio acender
+  const barraDeEntradas = variaveis.length > 0 && (
+    <div className="barra-entradas" role="group" aria-label="Entradas do circuito">
+      <div className="barra-entradas__chaves">{chaves}</div>
+      <div className="barra-entradas__rodape">
+        <button type="button" className="botao botao--fantasma botao--icone" onClick={anterior} aria-label="Combinação anterior">
+          ◂
+        </button>
+        {saidaAtual}
+        <button type="button" className="botao botao--fantasma botao--icone" onClick={proxima} aria-label="Próxima combinação">
+          ▸
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="tela-circuito">
       <section className="painel painel-circuito" aria-labelledby="titulo-figura-circuito">
-        <header className="painel__cabecalho">
-          <h2 id="titulo-figura-circuito" className="titulo-painel">
-            <span className="rotulo-secao">Figura 1</span> Circuito lógico
-          </h2>
-          <div className="painel__acoes">
-            <button
-              type="button"
-              className="botao botao--fantasma botao--icone"
-              aria-label="Ajuda rápida sobre circuitos"
-              disabled={duvida === null}
-              onClick={() => duvida !== null && janelas.popupDuvida(duvida)}
-            >
-              ?
-            </button>
-            <Botao tamanho="pequeno" onClick={() => void salvarImagem()}>
-              Exportar PNG
-            </Botao>
-          </div>
-        </header>
         {app.layout ? (
-          <CircuitoVivo ref={svg} layout={app.layout} rotulo={`Circuito lógico de ${expressao}`} />
+          <CircuitoVivo
+            ref={svg}
+            layout={app.layout}
+            rotulo={`Circuito lógico de ${expressao}`}
+            titulo={titulo}
+            acoes={acoes}
+            abaixo={barraDeEntradas}
+          />
         ) : (
-          <p className="aviso-vazio">{app.gerandoCircuito ? 'Gerando circuito…' : app.textoCircuito}</p>
+          <>
+            <header className="painel__cabecalho">
+              {titulo}
+              <div className="painel__acoes">{acoes}</div>
+            </header>
+            <p className="aviso-vazio">{app.gerandoCircuito ? 'Gerando circuito…' : app.textoCircuito}</p>
+          </>
         )}
       </section>
 
-      <aside className="lateral-circuito">
-        <section className="painel" aria-labelledby="titulo-entradas">
+      <div className="lateral-circuito">
+        <section className="painel painel-entradas" aria-labelledby="titulo-entradas">
           <h2 id="titulo-entradas" className="titulo-painel">
             Entradas
           </h2>
           {variaveis.length === 0 ? (
             <p className="texto-secundario pequeno">A expressão não tem variáveis: a saída é constante.</p>
           ) : (
-            <div className="entradas">
-              {variaveis.map((nome) => {
-                const ligada = Boolean(app.valores[nome]);
-                return (
-                  <button
-                    key={nome}
-                    type="button"
-                    className={`chave-entrada ${ligada ? 'chave-entrada--1' : ''}`}
-                    aria-pressed={ligada}
-                    aria-label={`Entrada ${nome}: ${ligada ? '1' : '0'}`}
-                    onClick={() => app.definirValores({ ...app.valores, [nome]: !ligada })}
-                  >
-                    <span className="chave-entrada__nome mono">{nome}</span>
-                    <span className="chave-entrada__trilho" aria-hidden="true">
-                      <span className="chave-entrada__botao" />
-                    </span>
-                    <span className="chave-entrada__valor mono">{ligada ? '1' : '0'}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <div className="entradas">{chaves}</div>
           )}
-          <div className="saida-atual" aria-live="polite">
-            <span className="mono">S</span>
-            <span className={`led-html ${saida ? 'led-html--1' : ''}`} aria-hidden="true" />
-            <strong className={`mono ${saida ? 'cor-sinal-1' : 'cor-sinal-0'}`}>{saida === null ? '·' : saida ? '1' : '0'}</strong>
-          </div>
+          {saidaAtual}
           {variaveis.length > 0 && (
             <div className="passos-combinacao">
-              <Botao estilo="fantasma" tamanho="pequeno" onClick={() => escolher((atual - 1 + total) % total)}>
+              <Botao estilo="fantasma" tamanho="pequeno" onClick={anterior}>
                 ◂ Anterior
               </Botao>
-              <Botao estilo="fantasma" tamanho="pequeno" onClick={() => escolher((atual + 1) % total)}>
+              <Botao estilo="fantasma" tamanho="pequeno" onClick={proxima}>
                 Próxima ▸
               </Botao>
             </div>
@@ -181,7 +204,7 @@ export function AbaCircuito() {
             </>
           )}
         </section>
-      </aside>
+      </div>
 
       <section className="painel painel-tempo" aria-labelledby="titulo-diagrama">
         <h2 id="titulo-diagrama" className="titulo-painel">
