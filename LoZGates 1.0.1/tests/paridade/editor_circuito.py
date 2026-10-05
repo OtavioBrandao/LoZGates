@@ -1,7 +1,7 @@
 """
 Cenários de paridade do editor do circuito interativo.
 
-O editor agora roda no navegador (web/src/circuito/editor/modelo.ts). Para
+O editor agora roda no navegador (frontend/src/circuito/editor/modelo.ts). Para
 provar que ele se comporta como o pygame do interface_update, este módulo roda
 o código ORIGINAL (o oráculo congelado: CircuitoInterativoManual, Component,
 CircuitDrawer, ComponentPalette) em situações sorteadas e grava as respostas
@@ -31,7 +31,7 @@ antigo_paleta = oraculo.modulo("BackEnd.circuito_logico.interactive.palette")
 antigo_drawer = oraculo.modulo("BackEnd.circuito_logico.rendering.drawer")
 antigo_camera = oraculo.modulo("BackEnd.circuito_logico.rendering.camera")
 
-ARQUIVO = pathlib.Path(__file__).resolve().parents[2] / "web" / "src" / "circuito" / "editor" / "paridade-editor.json"
+ARQUIVO = pathlib.Path(__file__).resolve().parents[2] / "frontend" / "src" / "circuito" / "editor" / "paridade-editor.json"
 TIPOS = ["variable", "and", "or", "not", "nand", "nor", "xor", "xnor", "output"]
 # Tela usada nos cenários de arrasto (câmera na origem, zoom 1)
 LARGURA_TELA, ALTURA_TELA = 800, 600

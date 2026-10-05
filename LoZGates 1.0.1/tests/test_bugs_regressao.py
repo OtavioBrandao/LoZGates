@@ -3,7 +3,7 @@ Regressões de bugs já corrigidos que continuam valendo na versão web.
 
 Os bugs 1 e 2 eram da interface CustomTkinter (que saiu da web-unificado, D5).
 O bug 4 (o circuito interativo não registrava as ações) agora é coberto pelo
-teste do editor em TypeScript (web/src/circuito/editor/modelo.test.ts).
+teste do editor em TypeScript (frontend/src/circuito/editor/modelo.test.ts).
 """
 import inspect
 import unittest

@@ -15,7 +15,7 @@ Pré-requisitos: Python 3.10+ com as dependências do projeto e Node.js 18 ou 20
 python -m uvicorn BackEnd.api.app:app --reload --port 8000
 
 # terminal 2 — interface
-cd web
+cd frontend
 npm install
 npm run dev        # http://localhost:5173 (o Vite repassa /api para a porta 8000)
 ```
@@ -33,7 +33,7 @@ npm test           # testes do editor de circuito (Vitest)
 ## Estrutura
 
 ```
-web/
+frontend/
 ├── index.html
 ├── vite.config.ts            # proxy /api, ícone de ../assets e configuração do Vitest
 └── src/

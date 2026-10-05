@@ -1,6 +1,6 @@
 """
 O editor do circuito interativo mudou para o navegador (TypeScript). Os
-cenários que o teste do frontend confere (web/src/circuito/editor/modelo.test.ts)
+cenários que o teste do frontend confere (frontend/src/circuito/editor/modelo.test.ts)
 são gerados pelo código pygame ORIGINAL; aqui garantimos que o arquivo gravado
 é exatamente o que o oráculo produz hoje.
 """
