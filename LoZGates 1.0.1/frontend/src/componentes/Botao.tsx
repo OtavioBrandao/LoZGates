@@ -28,10 +28,3 @@ export function Botao({ estilo = 'primario', tamanho = 'normal', cor, corHover, 
     </button>
   );
 }
-
-/** Escurece uma cor para o hover (CircuitModeSelector._darken_color). */
-export function escurecer(hex: string): string {
-  const limpo = hex.replace('#', '');
-  const canais = [0, 2, 4].map((i) => Math.max(0, Math.floor(parseInt(limpo.slice(i, i + 2), 16) * 0.7)));
-  return `#${canais.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
-}

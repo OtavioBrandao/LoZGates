@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, dadosFixos, mensagemDe } from '../api/cliente';
 import type { DefinicoesComponentes, EditorInicial, ModoCircuito } from '../api/tipos';
-import { Botao, escurecer } from '../componentes/Botao';
+import { Botao } from '../componentes/Botao';
+import { IconePorta, type TipoDePorta } from '../componentes/IconePorta';
 import { EditorInterativo } from '../circuito/editor/Editor';
 import { useAplicacao } from '../estado/Aplicacao';
 import { registrar } from '../telemetria/registro';
@@ -9,17 +10,21 @@ import { registrar } from '../telemetria/registro';
 type Cor = 'destaque' | 'secundario' | 'sucesso' | 'aviso' | 'erro';
 
 const TEXTO_CONTROLES =
-  '🎮 CONTROLES BÁSICOS:\n\n' +
+  'CONTROLES BÁSICOS:\n\n' +
   '  • Espaço: Testar circuito\n' +
   '  • Clique: Selecionar componente\n' +
   '  • Arrastar: Mover componente\n' +
-  '  • Bolinhas verdes: Pontos de conexão\n' +
+  '  • Bolinhas: pontos de conexão (cheias quando ligadas)\n' +
   '  • Delete: Remover selecionado\n' +
   '  • WASD: Mover câmera\n' +
   '  • Scroll: Zoom\n' +
   '  • Ctrl+Z/Y: Desfazer/Refazer\n' +
   '  • Esc: Cancela conexão\n' +
   '  • R: Reset vista\n\n';
+
+/** Mesma escala de cores dos selos do banco de problemas. */
+const NIVEIS = ['Iniciante', 'Intermediário', 'Avançado', 'Expert'];
+const classeDoNivel = (dificuldade: string) => `selo--${Math.max(0, NIVEIS.indexOf(dificuldade))}`;
 
 interface Desafio {
   modo: ModoCircuito;
@@ -39,7 +44,6 @@ export function AbaCircuitoInterativo() {
   const [modoAtual, setModoAtual] = useState<string | null>(null);
   const [desafio, setDesafio] = useState<Desafio | null>(null);
   const [iniciando, setIniciando] = useState(false);
-  const [descricao, setDescricao] = useState('Escolha um modo para ver detalhes');
   const [status, setStatus] = useState<{ texto: string; cor: Cor }>({
     texto: "Escolha um modo e clique em 'Iniciar Desafio'",
     cor: 'secundario',
@@ -56,7 +60,7 @@ export function AbaCircuitoInterativo() {
 
   const infoModo = (chave: string) => modos.find((m) => m.chave === chave) ?? modos[0];
   // create_circuit_area(): o título é montado quando a tela é criada
-  const tituloCircuito = useMemo(() => `🎯 Monte o Circuito ${expressao}`, []);
+  const tituloCircuito = useMemo(() => expressao, []);
 
   const selecionarModo = (chave: string) => {
     // Só permite trocar de modo se o circuito não estiver ativo
@@ -66,7 +70,6 @@ export function AbaCircuitoInterativo() {
     }
     setModoAtual(chave);
     const modo = infoModo(chave);
-    setDescricao(`🎯 ${modo.name} - ${modo.difficulty}\n📝 ${modo.description}`);
     if (expressao) {
       if (ativo) setStatus({ texto: `Status: Desafio ativo - ${modo.name} | Pressione ESPAÇO para testar`, cor: 'destaque' });
       else setStatus({ texto: `Modo selecionado: ${modo.name} | Pronto para iniciar!`, cor: 'sucesso' });
@@ -116,65 +119,73 @@ export function AbaCircuitoInterativo() {
       return;
     }
     const modo = infoModo(modoAtual);
-    setInfo(`💡 DICAS - ${modo.name} (${modo.difficulty})\n\n` + modo.dicas.map((d, i) => `  ${i + 1}. ${d}\n\n`).join(''));
+    setInfo(`DICAS - ${modo.name} (${modo.difficulty})\n\n` + modo.dicas.map((d, i) => `  ${i + 1}. ${d}\n\n`).join(''));
   };
 
   return (
     <div className="seletor-circuito">
-      {/* Enquanto o desafio está ativo, os painéis de cima saem para o circuito ter espaço */}
+      {/* Enquanto o desafio está ativo, a escolha de modo sai para o circuito ter espaço */}
       {!ativo && (
-        <>
-          <header className="seletor-circuito__cabecalho">
-            <h2 className="titulo-secao">⚡&nbsp;&nbsp;Circuito Interativo</h2>
+        <section className="painel" aria-labelledby="titulo-modos">
+          <div className="painel__cabecalho">
+            <h2 id="titulo-modos" className="titulo-painel">
+              <span className="rotulo-secao">4.1</span> Selecione o Modo de Desafio
+            </h2>
             {expressao ? (
-              <p className="destaque mono">Expressão: {expressao}</p>
+              <p className="seletor-circuito__expressao">
+                Monte o circuito de <span className="mono">{expressao}</span>
+              </p>
             ) : (
               <p className="cor-aviso">⚠️ Nenhuma expressão definida - Vá para a tela principal primeiro</p>
             )}
-          </header>
-
-          <section className="painel seletor-circuito__modos" aria-labelledby="titulo-modos">
-            <h3 id="titulo-modos" className="painel__titulo">
-              Selecione o Modo de Desafio:
-            </h3>
-            {erroModos && <p className="cor-erro">{erroModos}</p>}
-            <div className="grade-modos">
-              {modos.map((modo) => (
-                <Botao
-                  key={modo.chave}
-                  estilo="cor"
-                  cor={modo.color}
-                  corHover={escurecer(modo.color)}
-                  corTexto="#FFFFFF"
+          </div>
+          {erroModos && <p className="cor-erro">{erroModos}</p>}
+          <ul className="modos">
+            {modos.map((modo) => (
+              <li key={modo.chave}>
+                <button
+                  type="button"
                   className={`botao-modo ${modoAtual === modo.chave ? 'botao-modo--atual' : ''}`}
                   aria-pressed={modoAtual === modo.chave}
                   onClick={() => selecionarModo(modo.chave)}
                 >
-                  <span>
-                    {modo.icon} {modo.name}
+                  <span className="botao-modo__topo">
+                    <span className="botao-modo__nome">{modo.name}</span>
+                    <span className={`selo ${classeDoNivel(modo.difficulty)}`}>{modo.difficulty}</span>
                   </span>
-                  <small>{modo.difficulty}</small>
-                </Botao>
-              ))}
-            </div>
-            <p className="seletor-circuito__descricao texto-secundario">{descricao}</p>
-          </section>
-        </>
+                  <span className="botao-modo__descricao">{modo.description}</span>
+                  <span className="botao-modo__portas">
+                    {modo.restrictions && modo.restrictions.length > 0 ? (
+                      modo.restrictions.map((tipo) => (
+                        <span key={tipo} className="botao-modo__porta">
+                          <IconePorta tipo={tipo as TipoDePorta} tamanho={30} />
+                          <span className="mono">{tipo.toUpperCase()}</span>
+                        </span>
+                      ))
+                    ) : (
+                      <span className="texto-secundario">Todas as portas</span>
+                    )}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <section className="painel seletor-circuito__controles" aria-label="Controles do desafio">
-        <div className="linha-botoes">
+        <div className="linha-botoes linha-botoes--inicio">
           <Botao estilo="sucesso" tamanho="pequeno" onClick={() => void iniciar()} disabled={ativo || iniciando}>
-            🚀 Iniciar Desafio
+            ▶&nbsp;&nbsp;Iniciar Desafio
           </Botao>
           <Botao estilo="erro" tamanho="pequeno" onClick={parar} disabled={!ativo}>
-            ⏹️ Parar
+            ■&nbsp;&nbsp;Parar
           </Botao>
-          <Botao tamanho="pequeno" onClick={mostrarDicas} disabled={!ativo}>
-            i&nbsp;&nbsp;Dicas
+          <Botao estilo="fantasma" tamanho="pequeno" onClick={mostrarDicas} disabled={!ativo}>
+            Dicas
           </Botao>
-          <Botao estilo="aviso" tamanho="pequeno" onClick={() => setInfo(TEXTO_CONTROLES)} disabled={!ativo}>
-            🎮 Controles
+          <Botao estilo="fantasma" tamanho="pequeno" onClick={() => setInfo(TEXTO_CONTROLES)} disabled={!ativo}>
+            Controles
           </Botao>
         </div>
         <p className={`seletor-circuito__status cor-${status.cor}`} role="status" aria-live="polite">
@@ -184,8 +195,8 @@ export function AbaCircuitoInterativo() {
 
       {info !== null && (
         <section className="painel seletor-circuito__info" aria-labelledby="titulo-info">
-          <h3 id="titulo-info" className="painel__titulo">
-            ℹ️ Informações
+          <h3 id="titulo-info" className="titulo-painel">
+            Informações
           </h3>
           <pre className="texto-pre">{info}</pre>
         </section>
@@ -193,8 +204,8 @@ export function AbaCircuitoInterativo() {
 
       {desafio && (
         <section className="painel seletor-circuito__area" aria-labelledby="titulo-area">
-          <h3 id="titulo-area" className="painel__titulo">
-            {tituloCircuito}
+          <h3 id="titulo-area" className="titulo-painel">
+            <span className="rotulo-secao">Figura 3</span> Monte o Circuito <span className="mono">{tituloCircuito}</span>
           </h3>
           <EditorInterativo
             key={desafio.rodada}

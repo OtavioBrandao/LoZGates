@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as EventoPonteiro } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type PointerEvent as EventoPonteiro } from 'react';
 import { api, mensagemDe } from '../../api/cliente';
 import type { ComponenteInicial, DefinicoesComponentes, Ponto } from '../../api/tipos';
+import { TracosDaPorta, type TipoDePorta } from '../../componentes/IconePorta';
 import { registrar } from '../../telemetria/registro';
-import { CORES, FormaDaPorta } from '../formas';
+import { FormaDaPorta } from '../formas';
 import { EditorDeCircuito, type Componente } from './modelo';
 
 /** Tempo das mensagens de acerto/erro (300 quadros do laço de ~60 quadros/s do desktop) */
@@ -20,8 +21,6 @@ const ATALHOS: { rotulo: string; tecla: string; ctrl?: boolean; dica: string }[]
 
 const TECLAS_DO_EDITOR = new Set([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Delete', 'Backspace', 'Escape']);
 
-const rgb = ([r, g, b]: [number, number, number]) => `rgb(${r},${g},${b})`;
-
 interface Props {
   definicoes: DefinicoesComponentes;
   iniciais: ComponenteInicial[];
@@ -34,7 +33,12 @@ interface Props {
 
 type Mensagem = { tipo: 'sucesso' | 'erro'; chave: number } | null;
 
-/** CircuitoInterativoManual: o editor de circuito em SVG. */
+/**
+ * CircuitoInterativoManual: o editor de circuito em SVG. A geometria, os
+ * cliques e as teclas vêm do modelo (paridade com o pygame); aqui só se
+ * desenha, com as cores do tema: papel quadriculado, portas a traço, pinos
+ * vazados que ficam cheios quando ligados e seleção em laranja.
+ */
 export function EditorInterativo({ definicoes, iniciais, permitidas, expressao, modo }: Props) {
   const editor = useMemo(
     () => new EditorDeCircuito(definicoes, iniciais, permitidas, registrar),
@@ -49,6 +53,7 @@ export function EditorInterativo({ definicoes, iniciais, permitidas, expressao, 
   const [mensagem, setMensagem] = useState<Mensagem>(null);
   const [testando, setTestando] = useState(false);
   const vistaAjustada = useRef(false);
+  const idGrade = `grade-editor-${useId().replace(/:/g, '')}`;
 
   // Tamanho da área (o pygame ocupava o frame inteiro e acompanhava o redimensionamento)
   useEffect(() => {
@@ -171,7 +176,7 @@ export function EditorInterativo({ definicoes, iniciais, permitidas, expressao, 
           height={altura}
           tabIndex={0}
           role="application"
-          aria-label="Área do circuito interativo. Clique numa porta da paleta para posicioná-la; ligue as bolinhas verdes; Espaço testa o circuito."
+          aria-label="Área do circuito interativo. Clique numa porta da paleta para posicioná-la; ligue os pontos de conexão; Espaço testa o circuito."
           onPointerDown={aoPressionar}
           onPointerMove={aoMover}
           onPointerUp={aoSoltar}
@@ -189,14 +194,14 @@ export function EditorInterativo({ definicoes, iniciais, permitidas, expressao, 
           onContextMenu={(e) => e.preventDefault()}
         >
           <defs>
-            <pattern id="grade-editor" width={50} height={50} patternUnits="userSpaceOnUse">
-              <path d="M 50 0 L 0 0 0 50" fill="none" stroke={CORES.grade} strokeWidth={1} vectorEffect="non-scaling-stroke" />
+            <pattern id={idGrade} width={50} height={50} patternUnits="userSpaceOnUse">
+              <path className="editor-circuito__grade" d="M 50 0 L 0 0 0 50" vectorEffect="non-scaling-stroke" />
             </pattern>
           </defs>
-          <rect width={largura} height={altura} fill={CORES.fundo} />
+          <rect className="editor-circuito__fundo" width={largura} height={altura} />
 
           <g transform={`translate(${largura / 2} ${altura / 2}) scale(${camera.zoom}) translate(${-camera.x} ${-camera.y})`}>
-            <rect x={mundoX1 - 100} y={mundoY1 - 100} width={mundoX2 - mundoX1 + 200} height={mundoY2 - mundoY1 + 200} fill="url(#grade-editor)" />
+            <rect x={mundoX1 - 100} y={mundoY1 - 100} width={mundoX2 - mundoX1 + 200} height={mundoY2 - mundoY1 + 200} fill={`url(#${idGrade})`} />
             {editor.fios.map((f, i) => {
               const origem = editor.componente(f.origem);
               const destino = editor.componente(f.destino);
@@ -207,10 +212,8 @@ export function EditorInterativo({ definicoes, iniciais, permitidas, expressao, 
               return (
                 <polyline
                   key={i}
+                  className="editor-circuito__fio"
                   points={`${inicio[0]},${inicio[1]} ${meio},${inicio[1]} ${meio},${fim[1]} ${fim[0]},${fim[1]}`}
-                  fill="none"
-                  stroke={CORES.fio}
-                  strokeWidth={3}
                 />
               );
             })}
@@ -224,44 +227,39 @@ export function EditorInterativo({ definicoes, iniciais, permitidas, expressao, 
 
           {inicioDaLinha && (
             <line
+              className="editor-circuito__ligando"
               x1={editor.mundoParaTela(inicioDaLinha)[0]}
               y1={editor.mundoParaTela(inicioDaLinha)[1]}
               x2={editor.cursor[0]}
               y2={editor.cursor[1]}
-              stroke={CORES.selecionado}
-              strokeWidth={2}
             />
           )}
 
-          {/* Painel de componentes (ComponentPalette) */}
-          <g className="editor-circuito__paleta" fontFamily="sans-serif">
-            <rect x={paleta.x} y={paleta.y} width={paleta.largura} height={paleta.altura} fill="rgb(40,40,40)" stroke="rgb(100,100,100)" strokeWidth={2} />
-            <text x={paleta.x + paleta.largura / 2} y={paleta.y + 16} fill="#ffffff" fontSize={15} textAnchor="middle">
-              componentes
+          {/* Painel de componentes (ComponentPalette): mesma geometria do modelo */}
+          <g className="editor-circuito__paleta">
+            <rect className="paleta__fundo" x={paleta.x} y={paleta.y} width={paleta.largura} height={paleta.altura} />
+            <text className="paleta__titulo" x={paleta.x + paleta.largura / 2} y={paleta.y + 18}>
+              PORTAS
             </text>
-            {paleta.botoes.map((b) => (
-              <g key={b.tipo} aria-label={`${b.nome}${b.permitido ? '' : ' (não permitida neste modo)'}`}>
-                <rect
-                  x={b.x}
-                  y={b.y}
-                  width={b.largura}
-                  height={b.altura}
-                  fill={b.permitido ? rgb(b.cor) : 'rgb(60,60,60)'}
-                  stroke={b.permitido ? 'rgb(150,150,150)' : 'rgb(80,80,80)'}
-                  strokeWidth={2}
-                />
-                <text
-                  x={b.x + b.largura / 2}
-                  y={b.y + b.altura / 2}
-                  fill={b.permitido ? '#ffffff' : 'rgb(120,120,120)'}
-                  fontSize={Math.min(15, b.altura * 0.6)}
-                  textAnchor="middle"
-                  dominantBaseline="central"
+            {paleta.botoes.map((b) => {
+              const icone = Math.min(b.altura - 6, 30);
+              return (
+                <g
+                  key={b.tipo}
+                  className={`paleta__botao ${b.permitido ? '' : 'paleta__botao--bloqueado'}`}
+                  aria-label={`${b.nome}${b.permitido ? '' : ' (não permitida neste modo)'}`}
                 >
-                  {b.nome}
-                </text>
-              </g>
-            ))}
+                  <rect className="paleta__tecla" x={b.x} y={b.y} width={b.largura} height={b.altura} />
+                  <svg className="paleta__icone" x={b.x + 4} y={b.y + (b.altura - icone) / 2} width={(icone * 48) / 32} height={icone} viewBox="0 0 48 32">
+                    <TracosDaPorta tipo={b.tipo as TipoDePorta} />
+                  </svg>
+                  <text className="paleta__nome" x={b.x + 8 + (icone * 48) / 32} y={b.y + b.altura / 2} fontSize={Math.min(14, b.altura * 0.55)}>
+                    {b.nome}
+                  </text>
+                  {!b.permitido && <line className="paleta__risco" x1={b.x + 4} y1={b.y + b.altura - 4} x2={b.x + b.largura - 4} y2={b.y + 4} />}
+                </g>
+              );
+            })}
           </g>
         </svg>
 
@@ -298,56 +296,48 @@ function DesenhoDoComponente({
 }) {
   const { largura, altura } = editor.dimensoes(c.tipo);
   const saida = editor.saida(c);
+  const classes = ['componente-editor', selecionado ? 'componente-editor--selecionado' : '', fantasma ? 'componente-editor--fantasma' : ''].join(' ');
   return (
-    <g opacity={fantasma ? 0.65 : 1} fontFamily="sans-serif">
+    <g className={classes}>
       {c.tipo === 'variable' && (
         <>
-          <rect x={c.x} y={c.y} width={largura} height={altura} fill="none" stroke={selecionado ? CORES.selecionado : CORES.branco} strokeWidth={2} />
-          <text x={c.x + largura / 2} y={c.y + altura / 2} fill={CORES.rotulo} fontSize={14} textAnchor="middle" dominantBaseline="central">
+          <rect className="componente-editor__caixa" x={c.x} y={c.y} width={largura} height={altura} />
+          <text className="componente-editor__nome" x={c.x + largura / 2} y={c.y + altura / 2}>
             {c.nome}
           </text>
         </>
       )}
       {c.tipo === 'output' && (
         <>
-          <rect x={c.x} y={c.y} width={largura} height={altura} fill="none" stroke={selecionado ? CORES.selecionado : CORES.saida} strokeWidth={2} />
-          <text x={c.x + largura / 2} y={c.y + altura / 2} fill={CORES.rotulo} fontSize={11} textAnchor="middle" dominantBaseline="central">
+          <rect className="componente-editor__caixa componente-editor__caixa--saida" x={c.x} y={c.y} width={largura} height={altura} />
+          <text className="componente-editor__saida" x={c.x + largura / 2} y={c.y + altura / 2}>
             SAÍDA
           </text>
         </>
       )}
       {c.tipo !== 'variable' && c.tipo !== 'output' && (
         <>
-          {selecionado && (
-            <rect
-              x={c.x - 6}
-              y={c.y - 6}
-              width={largura + 12}
-              height={altura + 12}
-              fill="none"
-              stroke={CORES.selecionado}
-              strokeWidth={1.5}
-              strokeDasharray="6 4"
-            />
-          )}
-          <FormaDaPorta tipo={c.tipo} x={c.x} y={c.y} />
+          {selecionado && <rect className="componente-editor__selecao" x={c.x - 6} y={c.y - 6} width={largura + 12} height={altura + 12} />}
+          <g className="porta-editor">
+            <FormaDaPorta tipo={c.tipo} x={c.x} y={c.y} />
+          </g>
         </>
       )}
       {editor.entradas(c).map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={4} fill={editor.entradaLigada(c.id, i) ? CORES.pinoLigado : CORES.pino} />
+        <circle key={i} className={`pino-editor ${editor.entradaLigada(c.id, i) ? 'pino-editor--ligado' : ''}`} cx={x} cy={y} r={4.5} />
       ))}
-      {saida && <circle cx={saida[0]} cy={saida[1]} r={4} fill={editor.saidaLigada(c.id) ? CORES.pinoLigado : CORES.pino} />}
+      {saida && <circle className={`pino-editor ${editor.saidaLigada(c.id) ? 'pino-editor--ligado' : ''}`} cx={saida[0]} cy={saida[1]} r={4.5} />}
     </g>
   );
 }
 
-/** draw_collision_warning: X vermelho no centro do componente que está sendo posicionado. */
+/** draw_collision_warning: X no centro do componente que está sendo posicionado. */
 function XDeColisao({ editor, c }: { editor: EditorDeCircuito; c: Componente }) {
   const { largura, altura } = editor.dimensoes(c.tipo);
   const [x, y] = editor.mundoParaTela([c.x + Math.floor(largura / 2), c.y + Math.floor(altura / 2)]);
   const t = 15;
   return (
-    <g stroke="rgb(255,0,0)" strokeWidth={3}>
+    <g className="editor-circuito__colisao">
       <line x1={x - t} y1={y - t} x2={x + t} y2={y + t} />
       <line x1={x + t} y1={y - t} x2={x - t} y2={y + t} />
     </g>
@@ -359,23 +349,23 @@ function MensagemDoTeste({ tipo, expressao, permitidas }: { tipo: 'sucesso' | 'e
   if (tipo === 'sucesso') {
     return (
       <div className="mensagem-teste mensagem-teste--sucesso" role="status" aria-live="assertive">
-        <p className="mensagem-teste__titulo">🎉 PARABÉNS! 🎉</p>
+        <p className="mensagem-teste__titulo">PARABÉNS!</p>
         <p className="mensagem-teste__subtitulo">Circuito montado corretamente!</p>
         {permitidas && <p>Usando apenas: {permitidas.join(', ').toUpperCase()}</p>}
-        <p>Expressão: {expressao}</p>
+        <p className="mono">Expressão: {expressao}</p>
       </div>
     );
   }
   return (
     <div className="mensagem-teste mensagem-teste--erro" role="status" aria-live="assertive">
-      <p className="mensagem-teste__titulo">❌ CIRCUITO INCORRETO ❌</p>
+      <p className="mensagem-teste__titulo">CIRCUITO INCORRETO</p>
       <p className="mensagem-teste__subtitulo">Tente novamente!</p>
       <p className="mensagem-teste__secao">Possíveis problemas:</p>
       <ul>
-        <li>• Verifique todas as conexões</li>
-        <li>• Confira se implementou a expressão correta</li>
-        <li>• Todas as variáveis devem estar conectadas</li>
-        <li>• O circuito deve ter pelo menos uma porta lógica</li>
+        <li>Verifique todas as conexões</li>
+        <li>Confira se implementou a expressão correta</li>
+        <li>Todas as variáveis devem estar conectadas</li>
+        <li>O circuito deve ter pelo menos uma porta lógica</li>
       </ul>
     </div>
   );

@@ -12,8 +12,20 @@ const COM_BOLHA: Record<string, number> = { not: 35, nand: 35, nor: 35, xnor: 35
 
 export type TipoDePorta = keyof typeof FORMAS;
 
-export function IconePorta({ tipo, tamanho = 48, rotulo, className = '' }: { tipo: TipoDePorta; tamanho?: number; rotulo?: string; className?: string }) {
+/** Só os traços (no quadro 48×32), para quem já está dentro de um <svg> (a paleta do editor). */
+export function TracosDaPorta({ tipo }: { tipo: TipoDePorta }) {
   const bolha = COM_BOLHA[tipo];
+  return (
+    <>
+      {FORMAS[tipo].map((d, i) => (
+        <path key={i} d={d} />
+      ))}
+      {bolha !== undefined && <circle cx={bolha} cy={16} r={3.5} />}
+    </>
+  );
+}
+
+export function IconePorta({ tipo, tamanho = 48, rotulo, className = '' }: { tipo: TipoDePorta; tamanho?: number; rotulo?: string; className?: string }) {
   return (
     <svg
       className={`icone-porta ${className}`}
@@ -25,10 +37,7 @@ export function IconePorta({ tipo, tamanho = 48, rotulo, className = '' }: { tip
       aria-hidden={rotulo ? undefined : true}
       focusable="false"
     >
-      {FORMAS[tipo].map((d, i) => (
-        <path key={i} d={d} />
-      ))}
-      {bolha !== undefined && <circle cx={bolha} cy={16} r={3.5} />}
+      <TracosDaPorta tipo={tipo} />
     </svg>
   );
 }
